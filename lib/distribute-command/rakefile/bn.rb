@@ -410,9 +410,9 @@ namespace :bn do
           if not group.nil?
             case lang
             when :java
-              'dashboard_%s' % group
+              '%s_dashboard' % group
             when :cpp
-              'dashboard_cpp_%s' % group
+              '%s_dashboard_cpp' % group
             else
               nil
             end

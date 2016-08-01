@@ -120,6 +120,7 @@ module Jenkins
       end
 
       changes = {}
+      change_files = {}
 
       File.glob('*/trunk').each do |dirname|
         version = info[dirname]
@@ -301,8 +302,7 @@ module Jenkins
         end
 
         if not map.empty?
-          changes[:change] ||= {}
-          changes[:change][dirname] = map
+          change_files[dirname] = map
         end
 
         map.each do |lang, lang_info|
@@ -330,6 +330,10 @@ module Jenkins
 
               pom_modules(File.dirname(file)).each do |pom_path|
                 lang_info.each do |path, authors|
+                  if path.include? 'build/deploy'
+                    next
+                  end
+
                   if path == pom_path
                     changes[lang] ||= {}
                     changes[lang][group] ||= {
@@ -372,13 +376,10 @@ module Jenkins
         end
       end
 
+      Util::Logger::head change_files.to_string
       Util::Logger::head changes.to_string
 
       changes.each do |lang, group_info|
-        if not [:java, :cpp].include?
-          next
-        end
-
         group_info.each do |group, path_info|
           if block_given?
             jobname = yield lang, group

@@ -286,7 +286,7 @@ namespace :stn do
 
       if not Jenkins::dashboard_monitor home, username, password do |lang, group|
           if lang == :java
-            'dashboard_stn'
+            'stn_dashboard'
           else
             nil
           end
