@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<sequence
+  iptn_installation_home        = '//10.5.64.22/版本发布/测试版本/12.16.10P02 -B02/installation/windows-x64'
+  iptn_installation_home_patch  = '//10.5.64.22/版本发布/测试版本/12.16.10P02 -B02/installation/windows-x64/patch'
+  iptn_silencefile              = '//10.5.64.22/silenceinstall/iptn/installation/windows/silenceinstall-for-localhost.xml'
+  iptn_license                  = '//10.5.64.22/silenceinstall/iptn/license/ums-license.LCS'
+  iptn_database                 = '//10.5.64.22/silenceinstall/iptn/database/U3Backup_EMS_daily.zip'
+  iptn_home                     = 'd:/netnumen/ems'
+
+  sptn_installation_home        = '//10.5.64.22/版本发布/SDN版本/每日构建/installation/installation/daily_main_${date_string}/installation/windows'
+  sptn_installation_home_patch  = '//10.5.64.22/版本发布/SDN版本/每日构建/installation/installation/daily_main_${date_string}/installation/windows/patch'
+  sptn_silencefile              = '//10.5.64.22/silenceinstall/sptn/installation/windows/silenceinstall-for-localhost.xml'
+  sptn_license                  = '//10.5.64.22/silenceinstall/sptn/license/ums-license.LCS'
+  sptn_home                     = 'd:/netnumen/ems'
+>
+  <parallel>
+    <!--
+      name, ip, home, installation_home, silencefile, license
+      cmdline, uninstall_cmdline, tmpdir, skip, installation_home_patch
+    -->
+    <installation_iptn name = '安装IPTN网管' ip = '10.8.10.142' home = '${iptn_home}'
+      installation_home = '${iptn_installation_home}' silencefile = '${iptn_silencefile}' license = '${iptn_license}'
+      skip = '${installation_home}'
+    />
+
+    <!--
+      name, ip, home, installation_home, silencefile, license
+      cmdline, uninstall_cmdline, tmpdir, skip, installation_home_patch, main_ip
+    -->
+    <installation_sptn name = '安装SPTN网管(DC)' ip = '10.8.10.143' home = '${sptn_home}_dc'
+      installation_home = '${sptn_installation_home}' silencefile = '${sptn_silencefile}' license = '${sptn_license}'
+      main_ip = '10.8.10.142' skip = '${installation_home}'
+    />
+
+    <installation_sptn name = '安装SPTN网管(SC)' ip = '10.8.10.144' home = '${sptn_home}_sc'
+      installation_home = '${sptn_installation_home}' silencefile = '${sptn_silencefile}' license = '${sptn_license}'
+      skip = '${installation_home}'
+    />
+  </parallel>
+
+  <!--
+    name, ip, home
+    cmdline, shutdown_cmdline, database, restore_database_cmdline
+  -->
+  <start_iptn name = '启动IPTN网管' ip = '10.8.10.142' home = '${iptn_home}' database = '${iptn_database}'/>
+
+  <!--
+    name, ip, home
+    cmdline, shutdown_cmdline
+  -->
+  <start_sptn name = '启动SPTN网管(DC)' ip = '10.8.10.143' home = '${sptn_home}_dc'/>
+  <start_sptn name = '启动SPTN网管(SC)' ip = '10.8.10.144' home = '${sptn_home}_sc'/>
+</sequence>
