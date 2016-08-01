@@ -290,6 +290,11 @@ module Jenkins
           end
         end
 
+        if not map.empty?
+          changes[:change] ||= {}
+          changes[:change][dirname] = map
+        end
+
         map.each do |lang, lang_info|
           dir = nil
 
@@ -357,9 +362,13 @@ module Jenkins
         end
       end
 
-      puts changes.to_string
+      Util::Logger::head changes.to_string
 
       changes.each do |lang, group_info|
+        if not [:java, :cpp].include?
+          next
+        end
+
         group_info.each do |group, path_info|
           if block_given?
             jobname = yield lang, group

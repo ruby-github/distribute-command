@@ -711,10 +711,12 @@ namespace :bn do
   end
 
   namespace :dashboard_cpp do
-    task :compile, [:home, :module_name, :list] do |t, args|
+    task :compile, [:home, :module_name, :list, :username, :password] do |t, args|
       home = args[:home].to_s.nil || ($home || 'code')
       module_name = args[:module_name].to_s.nil
       list = args[:list].to_s.nil
+      username = args[:username].to_s.nil || ($username || 'u3build')
+      password = args[:password].to_s.nil || ($password || 'u3build')
 
       status = true
 
