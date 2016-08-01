@@ -304,6 +304,14 @@ namespace :stn do
       username = args[:username].to_s.nil || ($username || 'u3build')
       password = args[:password].to_s.nil || ($password || 'u3build')
 
+      branch = $branch
+
+      if not branch.nil?
+        if branch == File.basename(branch)
+          branch = File.join 'branches', branch
+        end
+      end
+
       paths = []
 
       if list.nil?
@@ -341,22 +349,34 @@ namespace :stn do
 
       updates_home.each do |update_home|
         File.lock File.join(home, File.dirname(update_home), 'create.id') do
-          repo = nil
+          http = nil
 
           STN_PATHS.each do |k, v|
             if update_home == v
-              repo = STN_REPOS[k]
+              http = STN_REPOS[k]
 
               break
             end
           end
 
           if update_home.include? 'u3_interface'
-            if not SVN::update File.join(home, update_home), repo, nil, username, password
+            if not http.nil?
+              http = File.join http, branch || 'trunk'
+            end
+
+            if not SVN::update File.join(home, update_home), http, nil, username, password
               status = false
             end
           else
-            if not GIT::update File.join(home, update_home), repo, nil, username, password
+            args = nil
+
+            if not File.directory? File.join(home, update_home)
+              if not branch.nil?
+                args = '-b %s' % File.basename(branch)
+              end
+            end
+
+            if not GIT::update File.join(home, update_home), http, nil, username, password
               status = false
             end
           end

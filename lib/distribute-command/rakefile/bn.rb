@@ -434,6 +434,14 @@ namespace :bn do
       username = args[:username].to_s.nil || ($username || 'u3build')
       password = args[:password].to_s.nil || ($password || 'u3build')
 
+      branch = $branch
+
+      if not branch.nil?
+        if branch == File.basename(branch)
+          branch = File.join 'branches', branch
+        end
+      end
+
       status = true
 
       if not module_name.nil?
@@ -471,11 +479,11 @@ namespace :bn do
 
         updates_home.each do |update_home|
           File.lock File.join(home, File.dirname(update_home), 'create.id') do
-            repo = nil
+            http = nil
 
             BN_PATHS.each do |k, v|
               if update_home == v
-                repo = BN_REPOS[k]
+                http = BN_REPOS[k]
 
                 break
               end
@@ -483,15 +491,31 @@ namespace :bn do
 
             case
             when update_home.include?(BN_PATHS['e2e'])
-              if not GIT::update File.join(home, update_home), repo, nil, username, password
+              args = nil
+
+              if not File.directory? File.join(home, update_home)
+                if not branch.nil?
+                  args = '-b %s' % File.basename(branch)
+                end
+              end
+
+              if not GIT::update File.join(home, update_home), http, args, username, password
                 status = false
               end
             when update_home.include?(BN_PATHS['naf'])
-              if not TFS::update File.join(home, update_home), repo, nil, username, password
+              if not http.nil?
+                http = File.join http, branch || 'trunk'
+              end
+
+              if not TFS::update File.join(home, update_home), http, nil, username, password
                 status = false
               end
             else
-              if not SVN::update File.join(home, update_home), repo, nil, username, password
+              if not http.nil?
+                http = File.join http, branch || 'trunk'
+              end
+
+              if not SVN::update File.join(home, update_home), http, nil, username, password
                 status = false
               end
             end
@@ -718,6 +742,14 @@ namespace :bn do
       username = args[:username].to_s.nil || ($username || 'u3build')
       password = args[:password].to_s.nil || ($password || 'u3build')
 
+      branch = $branch
+
+      if not branch.nil?
+        if branch == File.basename(branch)
+          branch = File.join 'branches', branch
+        end
+      end
+
       status = true
 
       if not module_name.nil?
@@ -762,15 +794,31 @@ namespace :bn do
 
             case
             when update_home.include?(BN_PATHS['e2e'])
-              if not GIT::update File.join(home, update_home), repo, nil, username, password
+              args = nil
+
+              if not File.directory? File.join(home, update_home)
+                if not branch.nil?
+                  args = '-b %s' % File.basename(branch)
+                end
+              end
+
+              if not GIT::update File.join(home, update_home), http, args, username, password
                 status = false
               end
             when update_home.include?(BN_PATHS['naf'])
-              if not TFS::update File.join(home, update_home), repo, nil, username, password
+              if not http.nil?
+                http = File.join http, branch || 'trunk'
+              end
+
+              if not TFS::update File.join(home, update_home), http, nil, username, password
                 status = false
               end
             else
-              if not SVN::update File.join(home, update_home), repo, nil, username, password
+              if not http.nil?
+                http = File.join http, branch || 'trunk'
+              end
+
+              if not SVN::update File.join(home, update_home), http, nil, username, password
                 status = false
               end
             end
