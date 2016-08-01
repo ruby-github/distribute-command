@@ -733,8 +733,8 @@ namespace :bn do
           end
         end
 
-        path += Jenkins::dashboard_load 'compile'
-        path.uniq!
+        paths += Jenkins::dashboard_load 'compile'
+        paths.uniq!
 
         updates_home = []
 
@@ -830,8 +830,8 @@ namespace :bn do
           end
         end
 
-        path += Jenkins::dashboard_load 'test'
-        path.uniq!
+        paths += Jenkins::dashboard_load 'test'
+        paths.uniq!
 
         errors = []
 
@@ -886,8 +886,8 @@ namespace :bn do
           end
         end
 
-        path += Jenkins::dashboard_load 'check'
-        path.uniq!
+        paths += Jenkins::dashboard_load 'check'
+        paths.uniq!
 
         status = true
 
@@ -950,8 +950,8 @@ namespace :bn do
           end
         end
 
-        path += Jenkins::dashboard_load 'deploy'
-        path.uniq!
+        paths += Jenkins::dashboard_load 'deploy'
+        paths.uniq!
 
         status = true
 
