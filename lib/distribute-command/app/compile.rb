@@ -156,6 +156,8 @@ module Compile
           end
         end
 
+        Util::Logger::head errors.to_string
+
         status
       end
     else

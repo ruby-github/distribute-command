@@ -1143,10 +1143,10 @@ module Jenkins
           args = {
             :parameters => parameters,
             :concurrent => false,
-            :script_path=> 'bn/dashboard/dashboard_%s.groovy' % module_name,
+            :script_path=> 'bn/dashboard/%s_dashboard.groovy' % module_name,
           }
 
-          pipeline = Jenkins::Pipeline.new 'dashboard_%s' % module_name
+          pipeline = Jenkins::Pipeline.new '%s_dashboard' % module_name
           pipeline.build args
         end
 
@@ -1154,10 +1154,10 @@ module Jenkins
           args = {
             :parameters => parameters,
             :concurrent => false,
-            :script_path=> 'bn/dashboard/dashboard_cpp_%s.groovy' % module_name,
+            :script_path=> 'bn/dashboard/%s_dashboard_cpp.groovy' % module_name,
           }
 
-          pipeline = Jenkins::Pipeline.new 'dashboard_cpp_%s' % module_name
+          pipeline = Jenkins::Pipeline.new '%s_dashboard_cpp' % module_name
           pipeline.build args
         end
       end
@@ -1215,10 +1215,10 @@ module Jenkins
       args = {
         :parameters => parameters,
         :concurrent => false,
-        :script_path=> 'stn/dashboard/dashboard_stn.groovy',
+        :script_path=> 'stn/dashboard/stn_dashboard.groovy',
       }
 
-      pipeline = Jenkins::Pipeline.new 'dashboard_stn'
+      pipeline = Jenkins::Pipeline.new 'stn_dashboard'
       pipeline.build args
 
       args = {
