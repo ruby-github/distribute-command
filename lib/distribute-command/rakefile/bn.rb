@@ -782,11 +782,11 @@ namespace :bn do
 
         updates_home.each do |update_home|
           File.lock File.join(home, File.dirname(update_home), 'create.id') do
-            repo = nil
+            http = nil
 
             BN_PATHS.each do |k, v|
               if update_home == v
-                repo = BN_REPOS[k]
+                http = BN_REPOS[k]
 
                 break
               end
