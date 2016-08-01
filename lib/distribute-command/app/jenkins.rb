@@ -173,19 +173,29 @@ module Jenkins
                   path = File.join 'trunk', path
                 end
 
+                author = x[:author]
+
+                if author =~ /<(.*)>/
+                  author = $`.strip
+
+                  if author.empty?
+                    author = $1.strip.gsub "ZTE\\", ''
+                  end
+                end
+
                 dir = pom_dirname File.join(File.dirname(dirname), path)
 
                 if not dir.nil?
                   if dir.include? 'trunk/code/'
                     map[:java] ||= {}
                     map[:java][dir] ||= []
-                    map[:java][dir] << x[:author]
+                    map[:java][dir] << author
                   end
 
                   if dir.include? 'trunk/sdn/'
                     map[:java] ||= {}
                     map[:java][dir] ||= []
-                    map[:java][dir] << x[:author]
+                    map[:java][dir] << author
                   end
 
                   if dir.include? 'trunk/code_c/'
@@ -196,20 +206,20 @@ module Jenkins
                         if File.file? File.join(dir, 'xml/daobuilder.xml')
                           map[:cpp] ||= {}
                           map[:cpp][dir_dbscript] ||= []
-                          map[:cpp][dir_dbscript] << x[:author]
+                          map[:cpp][dir_dbscript] << author
                         end
 
                         if not File.directory? File.join(dir_dbscript, 'install')
                           map[:cpp] ||= {}
                           map[:cpp][dir_dbscript] ||= []
-                          map[:cpp][dir_dbscript] << x[:author]
+                          map[:cpp][dir_dbscript] << author
                         end
                       end
                     end
 
                     map[:cpp] ||= {}
                     map[:cpp][dir] ||= []
-                    map[:cpp][dir] << x[:author]
+                    map[:cpp][dir] << author
                   end
 
                   next
@@ -220,61 +230,61 @@ module Jenkins
                   if path.include? 'trunk/code/asn/'
                     map[:java] ||= {}
                     map[:java]['Interface/trunk/code/finterface'] ||= []
-                    map[:java]['Interface/trunk/code/finterface'] << x[:author]
+                    map[:java]['Interface/trunk/code/finterface'] << author
 
                     map[:cpp] ||= {}
                     map[:cpp]['Interface/trunk/code_c/finterface'] ||= []
-                    map[:cpp]['Interface/trunk/code_c/finterface'] << x[:author]
+                    map[:cpp]['Interface/trunk/code_c/finterface'] << author
                   end
 
                   if path.include? 'trunk/code_c/asn/sdh-wdm/qx-interface/asn/'
                     map[:cpp] ||= {}
                     map[:cpp]['Interface/trunk/code_c/qxinterface/qxinterface'] ||= []
-                    map[:cpp]['Interface/trunk/code_c/qxinterface/qxinterface'] << x[:author]
+                    map[:cpp]['Interface/trunk/code_c/qxinterface/qxinterface'] << author
                   end
 
                   if path.include? 'trunk/code_c/asn/sdh-wdm/qx-interface/asn5800/'
                     map[:cpp] ||= {}
                     map[:cpp]['Interface/trunk/code_c/qxinterface/qx5800'] ||= []
-                    map[:cpp]['Interface/trunk/code_c/qxinterface/qx5800'] << x[:author]
+                    map[:cpp]['Interface/trunk/code_c/qxinterface/qx5800'] << author
                   end
 
                   if path.include? 'trunk/code_c/asn/sdh-wdm/qx-interface/asnwdm721/'
                     map[:cpp] ||= {}
                     map[:cpp]['Interface/trunk/code_c/qxinterface/qxwdm721'] ||= []
-                    map[:cpp]['Interface/trunk/code_c/qxinterface/qxwdm721'] << x[:author]
+                    map[:cpp]['Interface/trunk/code_c/qxinterface/qxwdm721'] << author
                   end
 
                   if path.include? 'trunk/code_c/asn/otntlvqx/'
                     map[:cpp] ||= {}
                     map[:cpp]['Interface/trunk/code_c/qxinterface/qxotntlv'] ||= []
-                    map[:cpp]['Interface/trunk/code_c/qxinterface/qxotntlv'] << x[:author]
+                    map[:cpp]['Interface/trunk/code_c/qxinterface/qxotntlv'] << author
                   end
                 when 'u3_interface/trunk'
                   if path.include? 'trunk/code/asn/'
                     map[:java] ||= {}
                     map[:java]['u3_interface/trunk/sdn/finterface'] ||= []
-                    map[:java]['u3_interface/trunk/sdn/finterface'] << x[:author]
+                    map[:java]['u3_interface/trunk/sdn/finterface'] << author
                   end
                 when 'BN_NAF/trunk'
                   if path.include? 'trunk/code_c/adapters/xtncorba/corbaidl/'
                     map[:cpp] ||= {}
 
                     map[:cpp]['BN_NAF/trunk/code_c/adapters/xtncorba/corbaidl/corbaidl'] ||= []
-                    map[:cpp]['BN_NAF/trunk/code_c/adapters/xtncorba/corbaidl/corbaidl'] << x[:author]
+                    map[:cpp]['BN_NAF/trunk/code_c/adapters/xtncorba/corbaidl/corbaidl'] << author
 
                     map[:cpp]['BN_NAF/trunk/code_c/adapters/xtncorba/corbaidl/corbaidl2'] ||= []
-                    map[:cpp]['BN_NAF/trunk/code_c/adapters/xtncorba/corbaidl/corbaidl2'] << x[:author]
+                    map[:cpp]['BN_NAF/trunk/code_c/adapters/xtncorba/corbaidl/corbaidl2'] << author
                   end
 
                   if path.include? 'trunk/code_c/adapters/xtntmfcorba/corbaidl/'
                     map[:cpp] ||= {}
 
                     map[:cpp]['BN_NAF/trunk/code_c/adapters/xtntmfcorba/corbaidl/corbaidl'] ||= []
-                    map[:cpp]['BN_NAF/trunk/code_c/adapters/xtntmfcorba/corbaidl/corbaidl'] << x[:author]
+                    map[:cpp]['BN_NAF/trunk/code_c/adapters/xtntmfcorba/corbaidl/corbaidl'] << author
 
                     map[:cpp]['BN_NAF/trunk/code_c/adapters/xtntmfcorba/corbaidl/corbaidl2'] ||= []
-                    map[:cpp]['BN_NAF/trunk/code_c/adapters/xtntmfcorba/corbaidl/corbaidl2'] << x[:author]
+                    map[:cpp]['BN_NAF/trunk/code_c/adapters/xtntmfcorba/corbaidl/corbaidl2'] << author
                   end
                 else
                 end
