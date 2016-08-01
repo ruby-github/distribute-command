@@ -420,7 +420,7 @@ module Jenkins
     nil
   end
 
-  def pom_modules path
+  def pom_modules path, include_home = false
     path = File.normalize path
 
     if not File.file? File.join(path, 'pom.xml')
@@ -436,13 +436,13 @@ module Jenkins
         module_name = e.text.to_s.nil
 
         if not module_name.nil?
-          modules += pom_modules File.join(path, module_name)
+          modules += pom_modules File.join(path, module_name), true
         end
       end
     rescue
     end
 
-    if modules.empty?
+    if modules.empty? or include_home
       modules << path
     end
 
