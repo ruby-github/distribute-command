@@ -184,7 +184,7 @@ module Jenkins
                   end
                 end
 
-                dir = pom_dirname File.join(File.dirname(dirname), path)
+                dir = POM::dirname File.join(File.dirname(dirname), path)
 
                 if not dir.nil?
                   if dir.include? 'trunk/code/'
@@ -328,7 +328,7 @@ module Jenkins
             File.glob(File.join(dir, 'pom/*/pom.xml')).each do |file|
               group = File.basename File.dirname(file)
 
-              pom_modules(File.dirname(file)).each do |pom_path|
+              POM::modules(File.dirname(file)).each do |pom_path|
                 lang_info.each do |path, authors|
                   if path.include? 'build/deploy'
                     next
@@ -396,56 +396,5 @@ module Jenkins
 
       true
     end
-  end
-
-  def pom_dirname path
-    path = File.normalize path
-
-    if File.file? path
-      dirname = File.dirname path
-    else
-      dirname = path
-    end
-
-    size = dirname.split('/').size
-
-    size.times do |i|
-      if File.file? File.join(dirname, 'pom.xml')
-        return dirname
-      end
-
-      dirname = File.dirname dirname
-    end
-
-    nil
-  end
-
-  def pom_modules path, include_home = false
-    path = File.normalize path
-
-    if not File.file? File.join(path, 'pom.xml')
-      return []
-    end
-
-    modules = []
-
-    begin
-      doc = REXML::Document.file File.join(path, 'pom.xml')
-
-      REXML::XPath.each doc, '//modules/module' do |e|
-        module_name = e.text.to_s.nil
-
-        if not module_name.nil?
-          modules += pom_modules File.join(path, module_name), true
-        end
-      end
-    rescue
-    end
-
-    if modules.empty? or include_home
-      modules << path
-    end
-
-    modules.uniq
   end
 end

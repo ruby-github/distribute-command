@@ -20,7 +20,7 @@ module Compile
             lines << line
           end
 
-          errors = CompileErrors::mvn lines
+          errors = mvn_errors lines
 
           status = false
         end
@@ -114,7 +114,7 @@ module Compile
                         lines << line
                       end
 
-                      errors = CompileErrors::mvn lines
+                      errors = mvn_errors lines
 
                       status = false
                     end
@@ -134,7 +134,7 @@ module Compile
                     lines << line
                   end
 
-                  errors = CompileErrors::mvn lines
+                  errors = mvn_errors lines
 
                   status = false
                 end
@@ -144,7 +144,7 @@ module Compile
         end
 
         if not errors.nil?
-          CompileErrors::puts errors
+          mvn_errors_puts errors
         end
 
         status
@@ -153,57 +153,29 @@ module Compile
       false
     end
   end
-end
 
-module CompileErrors
-  module_function
-
-  def puts errors
-    Util::Logger::puts ''
-    Util::Logger::puts '=' * 60
-    Util::Logger::puts ''
-
-    errors[:error].each do |file, error_info|
-      Util::Logger::puts file
-
-      if not error_info[:scm].nil? and not error_info[:scm][:author].nil?
-        Util::Logger::puts '责任人: %s' % error_info[:scm][:author]
-        Util::Logger::puts '版本: %s' % error_info[:scm][:rev]
-        Util::Logger::puts '日期: %s' % error_info[:scm][:date]
-      end
-
-      Util::Logger::puts '-' * 60
-
-      error_info[:list].each_with_index do |x, index|
-        if index > 0
-          Util::Logger::puts ''
-        end
-
-        Util::Logger::puts '%s行号: %s' % [INDENT, x[:lineno]]
-
-        x[:message].each do |line|
-          Util::Logger::puts '%s%s' % [INDENT, line]
-        end
-      end
-
-      Util::Logger::puts ''
-    end
-
-    if not errors[:failure].empty?
-      Util::Logger::puts '=' * 60
-      Util::Logger::puts ''
-
-      errors[:failure].each do |k, v|
-        Util::Logger::puts '%s(%s)' % [v[0], v[1]]
-      end
-
-      Util::Logger::puts ''
-    end
-
-    Util::Logger::puts '=' * 60
-  end
-
-  def mvn lines
+  # errors
+  #   :error
+  #     file
+  #       :list
+  #         -
+  #           :lineno
+  #           :message
+  #           :build
+  #       :scm
+  #         :author
+  #         :mail
+  #         :rev
+  #         :date
+  #   :failure
+  #     module_name:
+  #       - line
+  #       - path
+  #   :skipped
+  #     module_name:
+  #       - line
+  #       - path
+  def mvn_errors lines
     status = nil
     last_lines = []
 
@@ -694,7 +666,7 @@ module CompileErrors
       }
     end
 
-    map = artifactid_paths
+    map = POM::artifactid_paths
 
     info[:failure].each do |k, v|
       if map.has_key? k
@@ -709,63 +681,108 @@ module CompileErrors
     end
 
     if status != true
-      name = nil
-      error_lines = []
-
-      last_lines.each do |line|
-        line.strip!
-
-        if line =~ /^\[ERROR\]\s+Failed\s+to\s+execute\s+.*\s+on\s+project\s+([\w_-]+):/
-          name = $1
-        end
-
-        if not name.nil?
-          error_lines << line
-        end
-
-        if line =~ /^\[ERROR\]\s+.*->\s+\[Help\s+1\]$/
-          if not name.nil?
-            dirname = map[name]
-
-            if not dirname.nil?
-              found = false
-
-              info[:error].keys.each do |file|
-                if File.include? dirname, file
-                  found = true
-
-                  break
-                end
-              end
-
-              if not found
-                info[:error][dirname] ||= {
-                  :list => []
-                }
-
-                info[:error][dirname][:list] << {
-                  lineno:   nil,
-                  message:  error_lines,
-                  build:    error_lines
-                }
-              end
-            end
-          end
-
-          name = nil
-          error_lines = []
-        end
-      end
+      # name = nil
+      # error_lines = []
+      #
+      # last_lines.each do |line|
+      #   line.strip!
+      #
+      #   if line =~ /^\[ERROR\]\s+Failed\s+to\s+execute\s+.*\s+on\s+project\s+([\w_-]+):/
+      #     name = $1
+      #   end
+      #
+      #   if not name.nil?
+      #     error_lines << line
+      #   end
+      #
+      #   if line =~ /^\[ERROR\]\s+.*->\s+\[Help\s+1\]$/
+      #     if not name.nil?
+      #       dirname = map[name]
+      #
+      #       if not dirname.nil?
+      #         found = false
+      #
+      #         info[:error].keys.each do |file|
+      #           if File.include? dirname, file
+      #             found = true
+      #
+      #             break
+      #           end
+      #         end
+      #
+      #         if not found
+      #           info[:error][dirname] ||= {
+      #             :list => []
+      #           }
+      #
+      #           info[:error][dirname][:list] << {
+      #             lineno:   nil,
+      #             message:  error_lines,
+      #             build:    error_lines
+      #           }
+      #         end
+      #       end
+      #     end
+      #
+      #     name = nil
+      #     error_lines = []
+      #   end
+      # end
     end
 
     if status
       nil
     else
-      info
+      mvn_scminfo info
     end
   end
 
-  def send_mail errors, args = nil
+  def mvn_errors_puts errors
+    Util::Logger::puts ''
+    Util::Logger::puts '=' * 60
+    Util::Logger::puts ''
+
+    errors[:error].each do |file, info|
+      Util::Logger::puts file
+
+      if not info[:scm].nil? and not info[:scm][:author].nil?
+        Util::Logger::puts '责任人: %s' % info[:scm][:author]
+        Util::Logger::puts '版本: %s' % info[:scm][:rev]
+        Util::Logger::puts '日期: %s' % info[:scm][:date]
+      end
+
+      Util::Logger::puts '-' * 60
+
+      info[:list].each_with_index do |x, index|
+        if index > 0
+          Util::Logger::puts ''
+        end
+
+        Util::Logger::puts '%s行号: %s' % [INDENT, x[:lineno]]
+
+        x[:message].each do |line|
+          Util::Logger::puts '%s%s' % [INDENT, line]
+        end
+      end
+
+      Util::Logger::puts ''
+    end
+
+    if not errors[:failure].empty?
+      Util::Logger::puts '=' * 60
+      Util::Logger::puts ''
+
+      errors[:failure].each do |k, v|
+        Util::Logger::puts '%s(%s)' % [v[0], v[1]]
+      end
+
+      Util::Logger::puts ''
+    end
+
+    Util::Logger::puts '=' * 60
+  end
+
+  def mvn_errors_mail errors, args = nil
     args = {
       :mail_subject        => nil,
       :mail_threshold_file => nil,
@@ -793,26 +810,26 @@ module CompileErrors
     map = {}
     index = 0
 
-    errors[:error].each do |file, error_info|
+    errors[:error].each do |file, info|
       if not threshold_file.nil?
         if index > threshold_file
           break
         end
       end
 
-      if not threshold_day.nil? and not error_info[:scm].nil?
-        if error_info[:scm][:date].is_a? Time
-          if error_info[:scm][:date] < threshold_day
+      if not threshold_day.nil? and not info[:scm].nil?
+        if info[:scm][:date].is_a? Time
+          if info[:scm][:date] < threshold_day
             next
           end
         end
       end
 
-      addrs = args[:account] || error_info[:mail] || args[:mail_admin]
+      addrs = args[:account] || info[:scm][:mail] || args[:mail_admin]
 
       if not addrs.nil?
         map[addrs] ||= {}
-        map[addrs][file] = error_info
+        map[addrs][file] = info
       end
 
       index += 1
@@ -820,7 +837,7 @@ module CompileErrors
 
     status = true
 
-    map.each do |addrs, info|
+    map.each do |addrs, addrs_info|
       lines = []
 
       lines << '操作系统: <font color = "blue">%s</font><br>' % OS::name
@@ -829,21 +846,21 @@ module CompileErrors
 
       build_info = {}
 
-      info.each do |file, error_info|
+      addrs_info.each do |file, info|
         lines << '<h3><a href = "%s">%s</a></h3><br>' % [file, file]
         lines << '<pre>'
 
-        if not error_info[:scm].nil? and not error_info[:scm][:author].nil?
-          lines << '<b>责任人: <font color = "red">%s</font></b><br>' % error_info[:scm][:author]
-          lines << '<b>版本: %s</b>' % error_info[:scm][:rev]
-          lines << '<b>日期: %s</b>' % error_info[:scm][:date]
+        if not info[:scm].nil? and not info[:scm][:author].nil?
+          lines << '<b>责任人: <font color = "red">%s</font></b><br>' % info[:scm][:author]
+          lines << '<b>版本: %s</b>' % info[:scm][:rev]
+          lines << '<b>日期: %s</b>' % info[:scm][:date]
         end
 
         lines << ''
 
         message_info = []
 
-        error_info[:list].each do |x|
+        info[:list].each do |x|
           message_info << {
             :lineno   => x[:lineno],
             :message  => x[:message]
@@ -907,84 +924,39 @@ module CompileErrors
     status
   end
 
-  def artifactid_paths dirname = nil
-    dirname ||= '.'
-    map = {}
+  def mvn_scminfo errors
+    errors[:error].each do |file, info|
+      scminfo = POM::scm_info file
 
-    if File.file? File.join(dirname, 'pom.xml')
-      Dir.chdir dirname do
-        begin
-          doc = REXML::Document.file 'pom.xml'
-
-          REXML::XPath.each doc, '/project/artifactId' do |e|
-            if OS::windows?
-              map[e.text.to_s.strip.gsub('${prefix}', '')] = Dir.pwd
-            else
-              map[e.text.to_s.strip.gsub('${prefix}', 'lib')] = Dir.pwd
-            end
-
-            break
-          end
-
-          REXML::XPath.each doc, '//modules/module' do |e|
-            map.deep_merge! artifactid_paths(e.text.to_s.strip)
-          end
-        rescue
-        end
-      end
-    end
-
-    map
-  end
-
-  def scm_info errors
-    errors[:error].each do |file, error_info|
-      info = SCM::info file
-
-      if info.nil?
-        scm_home = SCM::home
-
-        if not scm_home.nil?
-          info = SCM::info scm_home
-        end
-      end
-
-      if info.nil?
-        error_info[:scm] = {
+      if scminfo.nil?
+        info[:scm] = {
           :author => nil,
+          :mail   => nil,
           :rev    => nil,
           :date   => nil
         }
 
         if File.exists? file
-          error_info[:scm][:date] = File.mtime file
+          info[:scm][:date] = File.mtime file
         end
       else
-        error_info[:scm] = info
-        account = info[:author]
+        author = info[:author]
+        mail = info[:mail]
 
-        if not account.nil?
-          mail = nil
-
-          if account =~ /<(.*)>/
-            account = $`.strip
-
-            if $1.include? '@'
-              mail = $1.strip.split(/[\/\\]/).last
-            end
-          end
-
-          error_info[:scm][:author] = '%s(%s)' % [account, nil]
-
-          if mail.nil?
-            if account =~ /\d+$/
+        if not author.nil?
+          if not mail.to_s.include? '@zte.com.cn'
+            if author =~ /\d+$/
               mail = '%s@zte.com.cn' % $&.strip
-              error_info[:scm][:author] = '%s(%s)' % [account, $&.strip]
             end
           end
-
-          error_info[:mail] = mail
         end
+
+        info[:scm] = {
+          :author => author,
+          :mail   => mail,
+          :rev    => scminfo[:rev],
+          :date   => scminfo[:date]
+        }
       end
     end
 
@@ -992,6 +964,6 @@ module CompileErrors
   end
 
   class << self
-    private :artifactid_paths, :scm_info
+    private :mvn_scminfo
   end
 end

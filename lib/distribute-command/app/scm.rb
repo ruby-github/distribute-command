@@ -122,7 +122,14 @@ module SVN
 
     cmdline += ' %s' % File.cmdline(path)
 
-    info = {}
+    info = {
+      :url    => nil,
+      :root   => nil,
+      :author => nil,
+      :mail   => nil,
+      :rev    => nil,
+      :date   => nil
+    }
 
     if CommandLine::cmdline cmdline do |line, stdin, wait_thr|
         authorization line, stdin
@@ -245,6 +252,7 @@ module SVN
           list << {
             rev:          rev,
             author:       author,
+            mail:         nil,
             date:         date,
             change_files: change_files,
             comment:      comment
@@ -408,6 +416,7 @@ module GIT
             if x.shift =~ /^commit\s+([0-9a-fA-F]+)$/
               rev = $1.strip
               author = nil
+              mail = nil
               date = nil
 
               loop do
@@ -419,6 +428,18 @@ module GIT
 
                 if line =~ /^Author:/
                   author = $'.strip
+
+                  if author =~ /<(.*)>/
+                    author = $`.strip
+
+                    if $1.include? '@'
+                      mail = $1.strip
+
+                      if mail =~ /\\/
+                        mail = $'.strip
+                      end
+                    end
+                  end
 
                   next
                 end
@@ -494,6 +515,7 @@ module GIT
               list << {
                 rev:          rev,
                 author:       author,
+                mail:         mail,
                 date:         date,
                 change_files: change_files,
                 comment:      comment

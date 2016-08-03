@@ -207,7 +207,7 @@ namespace :bn do
       status = true
 
       Dir.chdir home do
-        File.glob('*/trunk/code/thirdparty').each do |path|
+        File.glob('*/trunk/code/build/thirdparty').each do |path|
           name = nil
 
           if path =~ /\/trunk\//
@@ -841,7 +841,7 @@ namespace :bn do
 
           Compile::mvn File.join(home, path, 'pom', module_name), 'mvn clean -fn'
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn install -fn -U -Dmaven.test.skip=true'
+          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true
             errors << path
 
             status = false
@@ -897,7 +897,7 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn test -fn -U'
+          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn test -fn -U -T 5 -Djobs=5'
             errors << path
 
             status = false
@@ -1019,7 +1019,7 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn deploy -fn -U'
+          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn deploy -fn -U -T 5 -Djobs=5'
             errors << path
 
             status = false
