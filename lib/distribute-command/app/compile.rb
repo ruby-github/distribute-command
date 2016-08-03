@@ -158,6 +158,64 @@ module Compile
     end
   end
 
+  def check_xml home
+    xmls = []
+
+    POM::modules(home).each do |dir|
+      File.glob(File.join(dir, '{src,include,*conf*}/**/*.xml')).each do |file|
+        xmls << File.expand_path(file)
+      end
+    end
+
+    if File.directory? File.join(home, '../../public')
+      File.glob(File.join(home, '../../public/**/*.xml')).each do |file|
+        xmls << File.expand_path(file)
+      end
+    end
+
+    xmls.uniq!
+
+    xmls.each do |file|
+      begin
+        REXML::Document.file file
+      rescue
+        lineno = nil
+        lines = []
+
+        $!.to_s.lines do |line|
+          line.rstrip!
+
+          if line =~ /^Line:/
+            lineno = $'.strip.to_i
+          end
+
+          lines << line
+        end
+
+        errors[:error] ||= {}
+        errors[:error][file] = {
+          :list => {
+            lineno:   lineno,
+            message:  lines
+          }
+        }
+      end
+    end
+
+    if not errors.empty?
+      errors = mvn_scminfo errors
+      errors_puts errors
+
+      if sendmail
+        errors_mail errors
+      end
+
+      false
+    else
+      true
+    end
+  end
+
   # errors
   #   :error
   #     file

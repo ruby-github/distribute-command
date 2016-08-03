@@ -46,10 +46,6 @@ module Jenkins
     status
   end
 
-  def check_xml home
-    true
-  end
-
   def dashboard_load name
     if File.file? DASHBOARD_FILE
       info = YAML::load_file DASHBOARD_FILE

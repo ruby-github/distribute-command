@@ -82,22 +82,24 @@ module POM
     module_names.uniq
   end
 
-  def scm_info file
+  def scm_info file, expand = true
     info = SCM::info file
 
-    if info.nil?
-      dir = dirname file
+    if expand
+      if info.nil?
+        dir = dirname file
 
-      if not dir.nil?
-        info = SCM::info dir
+        if not dir.nil?
+          info = SCM::info dir
+        end
       end
-    end
 
-    if info.nil?
-      scm_home = SCM::home
+      if info.nil?
+        scm_home = SCM::home
 
-      if not scm_home.nil?
-        info = SCM::info scm_home
+        if not scm_home.nil?
+          info = SCM::info scm_home
+        end
       end
     end
 

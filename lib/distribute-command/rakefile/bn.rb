@@ -658,7 +658,7 @@ namespace :bn do
           #   status = false
           # end
 
-          if not Jenkins::check_xml File.join(home, path, 'pom', module_name)
+          if not Compile::check_xml File.join(home, path, 'pom', module_name)
             errors << path
 
             status = false
@@ -961,7 +961,7 @@ namespace :bn do
           #   status = false
           # end
 
-          if not Jenkins::check_xml File.join(home, path, 'pom', module_name)
+          if not Compile::check_xml File.join(home, path, 'pom', module_name)
             errors << path
 
             status = false

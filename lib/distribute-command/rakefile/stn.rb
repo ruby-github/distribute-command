@@ -503,7 +503,7 @@ namespace :stn do
         #   status = false
         # end
 
-        if not Jenkins::check_xml File.join(home, path)
+        if not Compile::check_xml File.join(home, path)
           errors << path
 
           status = false
