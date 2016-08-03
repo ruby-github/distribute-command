@@ -8,6 +8,7 @@ module Compile
       Dir.chdir path do
         status = true
 
+        errors = nil
         lines = []
 
         if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
@@ -19,144 +20,132 @@ module Compile
             lines << line
           end
 
-          status = false
-        end
+          errors = CompileErrors::mvn lines
 
-        errors = CompileErrors::mvn lines
-
-        if not errors.nil?
           status = false
         end
 
         if not status
-          if _retry
-            status = true
+          if not errors.nil?
+            if _retry
+              status = true
 
-            if cmdline =~ /mvn\s+deploy/
-              cmdline = 'mvn deploy -fn'
-            else
-              cmdline = 'mvn install -fn'
-            end
-
-            modules = []
-
-            errors[:failure].each do |k, v|
-              if v.last.nil?
-                next
+              if cmdline =~ /mvn\s+deploy/
+                cmdline = 'mvn deploy -fn'
+              else
+                cmdline = 'mvn install -fn'
               end
 
-              modules << v.last
-            end
+              modules = []
 
-            errors[:skipped].each do |k, v|
-              if v.last.nil?
-                next
+              errors[:failure].each do |k, v|
+                if v.last.nil?
+                  next
+                end
+
+                modules << v.last
               end
 
-              modules << v.last
-            end
-
-            modules.uniq!
-
-            if not modules.empty?
-              tmpfile = 'tmpdir/pom.xml'
-
-              File.delete File.dirname(tmpfile)
-
-              begin
-                doc = REXML::Document.file 'pom.xml'
-
-                REXML::XPath.each doc, '/project/build' do |e|
-                  doc.root.delete e
+              errors[:skipped].each do |k, v|
+                if v.last.nil?
+                  next
                 end
 
-                REXML::XPath.each doc, '/project/profiles' do |e|
-                  doc.root.delete e
-                end
+                modules << v.last
+              end
 
-                REXML::XPath.each doc, '/project/artifactId' do |e|
-                  e.text = "#{e.text.to_s.strip}-tmpdir"
+              modules.uniq!
 
-                  break
-                end
+              errors = nil
 
-                REXML::XPath.each doc, '//modules' do |e|
-                  e.children.each do |element|
-                    e.delete element
-                  end
-                end
+              if not modules.empty?
+                tmpfile = 'tmpdir/pom.xml'
 
-                REXML::XPath.each doc, '//modules' do |e|
-                  modules.each do |module_name|
-                    element = REXML::Element.new 'module'
-                    element.text = File.join '..', module_name
-                    e << element
+                File.delete File.dirname(tmpfile)
+
+                begin
+                  doc = REXML::Document.file 'pom.xml'
+
+                  REXML::XPath.each doc, '/project/build' do |e|
+                    doc.root.delete e
                   end
 
-                  break
-                end
+                  REXML::XPath.each doc, '/project/profiles' do |e|
+                    doc.root.delete e
+                  end
 
-                doc.to_file tmpfile
-              rescue
-                Util::Logger::exception $!
-              end
+                  REXML::XPath.each doc, '/project/artifactId' do |e|
+                    e.text = "#{e.text.to_s.strip}-tmpdir"
 
-              if File.file? tmpfile
-                Dir.chdir File.dirname(tmpfile) do
-                  lines = []
+                    break
+                  end
 
-                  if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
-                      if line =~ /(Press any key to continue|请按任意键继续)/
-                        stdin.puts
-                      end
+                  REXML::XPath.each doc, '//modules' do |e|
+                    e.children.each do |element|
+                      e.delete element
+                    end
+                  end
 
-                      Util::Logger::puts line
-                      lines << line
+                  REXML::XPath.each doc, '//modules' do |e|
+                    modules.each do |module_name|
+                      element = REXML::Element.new 'module'
+                      element.text = File.join '..', module_name
+                      e << element
                     end
 
-                    status = false
+                    break
+                  end
+
+                  doc.to_file tmpfile
+                rescue
+                  Util::Logger::exception $!
+                end
+
+                if File.file? tmpfile
+                  Dir.chdir File.dirname(tmpfile) do
+                    lines = []
+
+                    if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                        if line =~ /(Press any key to continue|请按任意键继续)/
+                          stdin.puts
+                        end
+
+                        Util::Logger::puts line
+                        lines << line
+                      end
+
+                      errors = CompileErrors::mvn lines
+
+                      status = false
+                    end
+                  end
+                else
+                  status = false
+                end
+              else
+                lines = []
+
+                if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                    if line =~ /(Press any key to continue|请按任意键继续)/
+                      stdin.puts
+                    end
+
+                    Util::Logger::puts line
+                    lines << line
                   end
 
                   errors = CompileErrors::mvn lines
 
-                  if not errors.nil?
-                    status = false
-                  end
+                  status = false
                 end
-              else
-                status = false
-              end
-            else
-              lines = []
-
-              if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
-                  if line =~ /(Press any key to continue|请按任意键继续)/
-                    stdin.puts
-                  end
-
-                  Util::Logger::puts line
-                  lines << line
-                end
-
-                status = false
-              end
-
-              errors = CompileErrors::mvn lines
-
-              if not errors.nil?
-                status = false
               end
             end
           end
         end
 
-        if not status
-          if errors.nil?
-            CompileErrors::puts errors
-          end
+        if not errors.nil?
+          CompileErrors::puts errors
         end
-
-        Util::Logger::head errors.to_string
 
         status
       end
