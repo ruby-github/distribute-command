@@ -175,6 +175,8 @@ module Compile
 
     xmls.uniq!
 
+    errors = {}
+
     xmls.each do |file|
       begin
         REXML::Document.file file
