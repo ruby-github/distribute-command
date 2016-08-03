@@ -191,7 +191,7 @@ namespace :stn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        if not Compile::mvn path, cmdline, _retry
+        if not Compile::mvn path, cmdline, _retry, true
           status = false
         end
       end
@@ -395,7 +395,7 @@ namespace :stn do
 
         Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-        if not Compile::mvn File.join(home, path), 'mvn install -fn -U -Dmaven.test.skip=true'
+        if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true
           errors << path
 
           status = false
@@ -446,7 +446,7 @@ namespace :stn do
           next
         end
 
-        if not Compile::mvn File.join(home, path), 'mvn test -fn -U'
+        if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true
           errors << path
 
           status = false
@@ -497,7 +497,7 @@ namespace :stn do
           next
         end
 
-        # if not Compile::mvn File.join(home, path), 'mvn findbugs:findbugs -fn -U'
+        # if not Compile::mvn File.join(home, path), 'mvn findbugs:findbugs -fn -U', false, true
         #   errors << path
         #
         #   status = false
@@ -554,7 +554,7 @@ namespace :stn do
           next
         end
 
-        if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U'
+        if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true
           errors << path
 
           status = false

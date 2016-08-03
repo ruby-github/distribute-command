@@ -1,7 +1,7 @@
 module Compile
   module_function
 
-  def mvn path, cmdline = nil, _retry = false
+  def mvn path, cmdline = nil, _retry = false, sendmail = false
     cmdline ||= 'mvn install -fn'
 
     if File.directory? path
@@ -144,7 +144,11 @@ module Compile
         end
 
         if not errors.nil?
-          mvn_errors_puts errors
+          errors_puts errors
+
+          if sendmail
+            errors_mail errors
+          end
         end
 
         status
@@ -737,7 +741,7 @@ module Compile
     end
   end
 
-  def mvn_errors_puts errors
+  def errors_puts errors
     Util::Logger::puts ''
     Util::Logger::puts '=' * 60
     Util::Logger::puts ''
@@ -782,7 +786,7 @@ module Compile
     Util::Logger::puts '=' * 60
   end
 
-  def mvn_errors_mail errors, args = nil
+  def errors_mail errors, args = nil
     args = {
       :mail_subject        => nil,
       :mail_threshold_file => nil,

@@ -211,7 +211,7 @@ namespace :bn do
           name = nil
 
           if path =~ /\/trunk\//
-            name = defaults[File.join(File.basename($`)), 'trunk']
+            name = defaults[File.join(File.basename($`), 'trunk')]
           end
 
           if name.nil?
@@ -272,7 +272,7 @@ namespace :bn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        if not Compile::mvn path, cmdline, _retry
+        if not Compile::mvn path, cmdline, _retry, true
           status = false
         end
       end
@@ -310,7 +310,7 @@ namespace :bn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        if not Compile::mvn path, cmdline, _retry
+        if not Compile::mvn path, cmdline, _retry, true
           status = false
         end
       end
@@ -538,7 +538,7 @@ namespace :bn do
 
           Compile::mvn File.join(home, path, 'pom', module_name), 'mvn clean -fn'
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn install -fn -U -Dmaven.test.skip=true'
+          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true
             errors << path
 
             status = false
@@ -594,7 +594,7 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn test -fn -U'
+          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn test -fn -U -T 5', true, true
             errors << path
 
             status = false
@@ -652,7 +652,7 @@ namespace :bn do
             next
           end
 
-          # if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn findbugs:findbugs -fn -U'
+          # if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn findbugs:findbugs -fn -U', false, true
           #   errors << path
           #
           #   status = false
@@ -716,7 +716,7 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn deploy -fn -U'
+          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn deploy -fn -U', false, true
             errors << path
 
             status = false
@@ -841,7 +841,7 @@ namespace :bn do
 
           Compile::mvn File.join(home, path, 'pom', module_name), 'mvn clean -fn'
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true
+          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true
             errors << path
 
             status = false
@@ -897,7 +897,7 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn test -fn -U -T 5 -Djobs=5'
+          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn test -fn -U -T 5 -Djobs=5', true, true
             errors << path
 
             status = false
@@ -955,7 +955,7 @@ namespace :bn do
             next
           end
 
-          # if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn exec:exec -fn -U'
+          # if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn exec:exec -fn -U', false, true
           #   errors << path
           #
           #   status = false
@@ -1019,7 +1019,7 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn deploy -fn -U -T 5 -Djobs=5'
+          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn deploy -fn -U', false, true
             errors << path
 
             status = false

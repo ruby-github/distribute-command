@@ -16,7 +16,7 @@
 #
 # Boolean
 #
-# $mail_send
+# $sendmail
 # $xml_comment_indent, $xml_text_indent
 # $x64
 #
