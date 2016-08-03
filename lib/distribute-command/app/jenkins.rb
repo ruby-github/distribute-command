@@ -337,7 +337,7 @@ module Jenkins
                       :authors=> []
                     }
 
-                    changes[lang][group][:paths] << dir
+                    changes[lang][group][:paths] << File.join(dir, 'pom', group)
                     changes[lang][group][:authors] += authors
                   end
                 end

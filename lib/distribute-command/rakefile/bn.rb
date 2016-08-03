@@ -450,7 +450,9 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              paths += File.glob '*/trunk/code/build'
+              File.glob('*/trunk/code/build').each do |path|
+                paths << File.join(path, 'pom', module_name)
+              end
             end
           end
         else
@@ -532,13 +534,13 @@ namespace :bn do
             next
           end
 
-          if not File.directory? File.join(home, path, 'pom', module_name)
+          if not File.directory? File.join(home, path)
             next
           end
 
-          Compile::mvn File.join(home, path, 'pom', module_name), 'mvn clean -fn'
+          Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true
+          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true
             errors << path
 
             status = false
@@ -568,7 +570,9 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              paths += File.glob '*/trunk/code/build'
+              File.glob('*/trunk/code/build').each do |path|
+                paths << File.join(path, 'pom', module_name)
+              end
             end
           end
         else
@@ -590,11 +594,11 @@ namespace :bn do
             next
           end
 
-          if not File.directory? File.join(home, path, 'pom', module_name)
+          if not File.directory? File.join(home, path)
             next
           end
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn test -fn -U -T 5', true, true
+          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true
             errors << path
 
             status = false
@@ -624,7 +628,9 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              paths += File.glob '*/trunk/code/build'
+              File.glob('*/trunk/code/build').each do |path|
+                paths << File.join(path, 'pom', module_name)
+              end
             end
           end
         else
@@ -648,17 +654,17 @@ namespace :bn do
             next
           end
 
-          if not File.directory? File.join(home, path, 'pom', module_name)
+          if not File.directory? File.join(home, path)
             next
           end
 
-          # if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn findbugs:findbugs -fn -U', false, true
+          # if not Compile::mvn File.join(home, path), 'mvn findbugs:findbugs -fn -U', false, true
           #   errors << path
           #
           #   status = false
           # end
 
-          if not Compile::check_xml File.join(home, path, 'pom', module_name)
+          if not Compile::check_xml File.join(home, path)
             errors << path
 
             status = false
@@ -688,7 +694,9 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              paths += File.glob '*/trunk/code/build'
+              File.glob('*/trunk/code/build').each do |path|
+                paths << File.join(path, 'pom', module_name)
+              end
             end
           end
         else
@@ -712,11 +720,11 @@ namespace :bn do
             next
           end
 
-          if not File.directory? File.join(home, path, 'pom', module_name)
+          if not File.directory? File.join(home, path)
             next
           end
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn deploy -fn -U', false, true
+          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true
             errors << path
 
             status = false
@@ -758,7 +766,9 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              paths += File.glob '*/trunk/code_c/build'
+              File.glob('*/trunk/code_c/build').each do |path|
+                paths << File.join(path, 'pom', module_name)
+              end
             end
           end
         else
@@ -835,13 +845,13 @@ namespace :bn do
             next
           end
 
-          if not File.directory? File.join(home, path, 'pom', module_name)
+          if not File.directory? File.join(home, path)
             next
           end
 
-          Compile::mvn File.join(home, path, 'pom', module_name), 'mvn clean -fn'
+          Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true
+          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true
             errors << path
 
             status = false
@@ -871,7 +881,9 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              paths += File.glob '*/trunk/code_c/build'
+              File.glob('*/trunk/code_c/build').each do |path|
+                paths << File.join(path, 'pom', module_name)
+              end
             end
           end
         else
@@ -893,11 +905,11 @@ namespace :bn do
             next
           end
 
-          if not File.directory? File.join(home, path, 'pom', module_name)
+          if not File.directory? File.join(home, path)
             next
           end
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn test -fn -U -T 5 -Djobs=5', true, true
+          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true
             errors << path
 
             status = false
@@ -927,7 +939,9 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              paths += File.glob '*/trunk/code_c/build'
+              File.glob('*/trunk/code_c/build').each do |path|
+                paths << File.join(path, 'pom', module_name)
+              end
             end
           end
         else
@@ -951,17 +965,17 @@ namespace :bn do
             next
           end
 
-          if not File.directory? File.join(home, path, 'pom', module_name)
+          if not File.directory? File.join(home, path)
             next
           end
 
-          # if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn exec:exec -fn -U', false, true
+          # if not Compile::mvn File.join(home, path), 'mvn exec:exec -fn -U', false, true
           #   errors << path
           #
           #   status = false
           # end
 
-          if not Compile::check_xml File.join(home, path, 'pom', module_name)
+          if not Compile::check_xml File.join(home, path)
             errors << path
 
             status = false
@@ -991,7 +1005,9 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              paths += File.glob '*/trunk/code_c/build'
+              File.glob('*/trunk/code_c/build').each do |path|
+                paths << File.join(path, 'pom', module_name)
+              end
             end
           end
         else
@@ -1015,11 +1031,11 @@ namespace :bn do
             next
           end
 
-          if not File.directory? File.join(home, path, 'pom', module_name)
+          if not File.directory? File.join(home, path)
             next
           end
 
-          if not Compile::mvn File.join(home, path, 'pom', module_name), 'mvn deploy -fn -U', false, true
+          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true
             errors << path
 
             status = false
