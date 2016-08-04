@@ -262,6 +262,10 @@ namespace :bn do
         name = defaults.keys
       end
 
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
+
       status = true
 
       name.to_array.each do |module_name|
@@ -298,6 +302,18 @@ namespace :bn do
 
       if name.nil?
         name = defaults.keys
+      end
+
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
+
+      if ENV['INTERFACE_OUTPUT_HOME'].nil?
+        ENV['INTERFACE_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['interface'], 'code_c/build/output'
+      end
+
+      if ENV['PLATFORM_OUTPUT_HOME'].nil?
+        ENV['PLATFORM_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['platform'], 'code_c/build/output'
       end
 
       status = true
@@ -566,6 +582,10 @@ namespace :bn do
         end
       end
 
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
+
       status = true
 
       if not module_name.nil?
@@ -686,6 +706,10 @@ namespace :bn do
       module_name = args[:module_name].to_s.nil
       list = args[:list].to_s.nil
 
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
+
       status = true
 
       if not module_name.nil?
@@ -743,6 +767,10 @@ namespace :bn do
       home = args[:home].to_s.nil || ($home || 'code')
       module_name = args[:module_name].to_s.nil
       list = args[:list].to_s.nil
+
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
 
       status = true
 
@@ -809,6 +837,10 @@ namespace :bn do
       home = args[:home].to_s.nil || ($home || 'code')
       module_name = args[:module_name].to_s.nil
       list = args[:list].to_s.nil
+
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
 
       status = true
 
@@ -880,6 +912,18 @@ namespace :bn do
         if branch == File.basename(branch)
           branch = File.join 'branches', branch
         end
+      end
+
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
+
+      if ENV['INTERFACE_OUTPUT_HOME'].nil?
+        ENV['INTERFACE_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['interface'], 'code_c/build/output'
+      end
+
+      if ENV['PLATFORM_OUTPUT_HOME'].nil?
+        ENV['PLATFORM_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['platform'], 'code_c/build/output'
       end
 
       status = true
@@ -997,6 +1041,22 @@ namespace :bn do
       module_name = args[:module_name].to_s.nil
       list = args[:list].to_s.nil
 
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
+
+      if ENV['INTERFACE_OUTPUT_HOME'].nil?
+        ENV['INTERFACE_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['interface'], 'code_c/build/output'
+      end
+
+      if ENV['PLATFORM_OUTPUT_HOME'].nil?
+        ENV['PLATFORM_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['platform'], 'code_c/build/output'
+      end
+
+      if ENV['NECOMMON_OUTPUT_HOME'].nil?
+        ENV['NECOMMON_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['necommon'], 'code_c/build/output'
+      end
+
       status = true
 
       if not module_name.nil?
@@ -1033,6 +1093,16 @@ namespace :bn do
             next
           end
 
+          if path =~ /\/trunk\//
+            name = BN_CPP_PATHS.key File.join(File.basename($`), 'trunk')
+
+            if not name.nil?
+              if ENV["#{name.upcase}_OUTPUT_HOME"].nil?
+                ENV["#{name.upcase}_OUTPUT_HOME"] = File.join File.expand_path(home), BN_CPP_PATHS[name], 'code_c/build/output'
+              end
+            end
+          end
+
           if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true
             errors << path
 
@@ -1054,6 +1124,18 @@ namespace :bn do
       home = args[:home].to_s.nil || ($home || 'code')
       module_name = args[:module_name].to_s.nil
       list = args[:list].to_s.nil
+
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
+
+      if ENV['INTERFACE_OUTPUT_HOME'].nil?
+        ENV['INTERFACE_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['interface'], 'code_c/build/output'
+      end
+
+      if ENV['PLATFORM_OUTPUT_HOME'].nil?
+        ENV['PLATFORM_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['platform'], 'code_c/build/output'
+      end
 
       status = true
 
@@ -1120,6 +1202,18 @@ namespace :bn do
       home = args[:home].to_s.nil || ($home || 'code')
       module_name = args[:module_name].to_s.nil
       list = args[:list].to_s.nil
+
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
+
+      if ENV['INTERFACE_OUTPUT_HOME'].nil?
+        ENV['INTERFACE_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['interface'], 'code_c/build/output'
+      end
+
+      if ENV['PLATFORM_OUTPUT_HOME'].nil?
+        ENV['PLATFORM_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['platform'], 'code_c/build/output'
+      end
 
       status = true
 
