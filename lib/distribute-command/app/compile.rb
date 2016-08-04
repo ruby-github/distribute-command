@@ -24,8 +24,12 @@ module Compile
             lines << line
           end
 
-          errors = mvn_errors lines
+          status = false
+        end
 
+        errors = mvn_errors lines
+
+        if not errors.nil?
           status = false
         end
 
@@ -124,8 +128,12 @@ module Compile
                         lines << line
                       end
 
-                      errors = mvn_errors lines
+                      status = false
+                    end
 
+                    errors = mvn_errors lines
+
+                    if not errors.nil?
                       status = false
                     end
                   end
@@ -146,8 +154,12 @@ module Compile
                     lines << line
                   end
 
-                  errors = mvn_errors lines
+                  status = false
+                end
 
+                errors = mvn_errors lines
+
+                if not errors.nil?
                   status = false
                 end
               end
@@ -872,9 +884,10 @@ module Compile
     Util::Logger::puts ''
 
     errors[:error].each do |file, info|
+      Util::Logger::puts ''
       Util::Logger::puts file
 
-      if not info[:scm].nil? and not info[:scm][:author].nil?
+      if not info[:scm].nil?
         Util::Logger::puts '责任人: %s' % info[:scm][:author]
         Util::Logger::puts '版本: %s' % info[:scm][:rev]
         Util::Logger::puts '日期: %s' % info[:scm][:date]
@@ -1046,8 +1059,8 @@ module Compile
           info[:scm][:date] = File.mtime file
         end
       else
-        author = info[:author]
-        mail = info[:mail]
+        author = scminfo[:author]
+        mail = scminfo[:mail]
 
         if not author.nil?
           if not mail.to_s.include? '@zte.com.cn'
