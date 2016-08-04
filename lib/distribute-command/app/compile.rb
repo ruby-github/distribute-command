@@ -3,6 +3,7 @@ module Compile
 
   BN_MAX_SIZE_SERVER = 160
   BN_MAX_SIZE_CLIENT = 140
+  MAIL_THRESHOLD_DAY = 5
 
   def mvn path, cmdline = nil, _retry = false, sendmail = false
     cmdline ||= 'mvn install -fn'
@@ -916,6 +917,14 @@ module Compile
     map = {}
 
     errors[:error].each do |file, info|
+      if not info[:scm].nil?
+        if info[:scm][:date].is_a? Time
+          if info[:scm][:date] < (Time.now - MAIL_THRESHOLD_DAY * 24 * 3600)
+            next
+          end
+        end
+      end
+
       addrs = args[:addrs] || info[:scm][:mail] || $mail_admin
 
       if not addrs.nil?
