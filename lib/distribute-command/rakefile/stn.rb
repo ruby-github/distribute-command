@@ -503,7 +503,7 @@ namespace :stn do
         #   status = false
         # end
 
-        if not Compile::check_xml File.join(home, path)
+        if not Compile::check_xml File.join(home, path), true
           errors << path
 
           status = false

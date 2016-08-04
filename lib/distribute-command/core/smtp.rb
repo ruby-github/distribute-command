@@ -16,12 +16,15 @@ module Net
   #   text
   #   username
   def send_smtp address, from_addr, to_addrs, opt = {}
+    address ||= '10.30.18.230'
+    from_addr ||= 'admin@zte.com.cn'
+
     opt = {
       username: $smtp_username || 'ZhouYanQing181524',
       password: $smtp_password || 'smtp@2013',
       cc: $mail_cc,
       admin: $mail_admin
-    }.merge opt
+    }.merge (opt || {})
 
     if not $sendmail
       send_smtp_puts address, from_addr, to_addrs, opt

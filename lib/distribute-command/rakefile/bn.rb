@@ -43,6 +43,12 @@ BN_REPOS = {
 
 BN_REPOS_DEVTOOLS = 'https://10.5.72.55:8443/svn/BN_DEVKIT'
 
+BN_MAIL_ADDRS_IPTN    = ['10011354@zte.com.cn', '10041721@zte.com.cn', '10040195@zte.com.cn', '10033733@zte.com.cn'] # 彭鑫111354, 操小明141721, 赖洪水140195, 张晓冬133733
+BN_MAIL_ADDRS_IPTN_NJ = ['10011531@zte.com.cn'] # 赵宇111531
+BN_MAIL_ADDRS_NAF     = ['10033121@zte.com.cn', '10041713@zte.com.cn'] # 吉才颂133121, 吴高科141713
+BN_MAIL_ADDRS_E2E     = ['10035566@zte.com.cn'] # 李发献135566
+BN_MAIL_ADDRS_WDM     = ['10008896@zte.com.cn'] # 张新立108896
+
 namespace :bn do
   namespace :update do
     task :update, [:name, :branch, :repo, :home, :username, :password] do |t, args|
@@ -398,6 +404,124 @@ namespace :bn do
     end
   end
 
+  namespace :check do
+    task :check, [:name, :home] do |t, args|
+      name = args[:name].to_s.nil
+      home = args[:home].to_s.nil || ($home || 'code')
+
+      defaults = BN_PATHS
+
+      if name.nil?
+        name = defaults.keys
+      end
+
+      status = true
+
+      ignores = []
+
+      IO.readlines(File.join(gem_dir('distribute-command'), 'doc/bn/ignore_check_list.txt')).each do |line|
+        line.strip!
+
+        if line.empty?
+          next
+        end
+
+        ignores << line
+      end
+
+      name.to_array.each do |module_name|
+        if not defaults.keys.include? module_name
+          Util::Logger::error 'no such module @bn:check:check - %s' % module_name
+          status = false
+
+          next
+        end
+
+        case module_name
+        when 'naf'
+          addrs = BN_MAIL_ADDRS_NAF
+        when 'e2e'
+          addrs = BN_MAIL_ADDRS_E2E
+        when 'wdm'
+          addrs = BN_MAIL_ADDRS_WDM
+        when 'ptn2', 'ip'
+          addrs = BN_MAIL_ADDRS_IPTN_NJ
+        else
+          addrs = BN_MAIL_ADDRS_IPTN
+        end
+
+        path = File.join home, defaults[module_name], 'code/build/output'
+
+        if not Compile::check_size path, true, addrs do |file|
+            not ignores.include? File.join(path, file)
+          end
+
+          status = false
+        end
+      end
+
+      status.exit
+    end
+
+    task :check_cpp, [:name, :home] do |t, args|
+      name = args[:name].to_s.nil
+      home = args[:home].to_s.nil || ($home || 'code')
+
+      defaults = BN_CPP_PATHS
+
+      if name.nil?
+        name = defaults.keys
+      end
+
+      status = true
+
+      ignores = []
+
+      IO.readlines(File.join(gem_dir('distribute-command'), 'doc/bn/ignore_check_list.txt')).each do |line|
+        line.strip!
+
+        if line.empty?
+          next
+        end
+
+        ignores << line
+      end
+
+      name.to_array.each do |module_name|
+        if not defaults.keys.include? module_name
+          Util::Logger::error 'no such module @bn:check:check_cpp - %s' % module_name
+          status = false
+
+          next
+        end
+
+        case module_name
+        when 'naf'
+          addrs = BN_MAIL_ADDRS_NAF
+        when 'e2e'
+          addrs = BN_MAIL_ADDRS_E2E
+        when 'wdm'
+          addrs = BN_MAIL_ADDRS_WDM
+        when 'ptn2', 'ip'
+          addrs = BN_MAIL_ADDRS_IPTN_NJ
+        else
+          addrs = BN_MAIL_ADDRS_IPTN
+        end
+
+        path = File.join home, defaults[module_name], 'code_c/build/output'
+
+        if not Compile::check_size path, true, addrs do |file|
+            not ignores.include? File.join(path, file)
+          end
+
+          status = false
+        end
+      end
+
+      status.exit
+    end
+  end
+
   namespace :dashboard do
     task :polling, [:home, :username, :password] do |t, args|
       home = args[:home].to_s.nil || ($home || 'code')
@@ -664,7 +788,7 @@ namespace :bn do
           #   status = false
           # end
 
-          if not Compile::check_xml File.join(home, path)
+          if not Compile::check_xml File.join(home, path), true
             errors << path
 
             status = false
@@ -975,7 +1099,7 @@ namespace :bn do
           #   status = false
           # end
 
-          if not Compile::check_xml File.join(home, path)
+          if not Compile::check_xml File.join(home, path), true
             errors << path
 
             status = false

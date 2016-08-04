@@ -1,6 +1,9 @@
 module Compile
   module_function
 
+  BN_MAX_SIZE_SERVER = 160
+  BN_MAX_SIZE_CLIENT = 140
+
   def mvn path, cmdline = nil, _retry = false, sendmail = false
     cmdline ||= 'mvn install -fn'
 
@@ -55,6 +58,12 @@ module Compile
               end
 
               modules.uniq!
+
+              if modules.size == 1
+                if File.expand_path(modules.first) == Dir.pwd
+                  modules = []
+                end
+              end
 
               errors = nil
 
@@ -122,6 +131,8 @@ module Compile
                 else
                   status = false
                 end
+
+                File.delete File.dirname(tmpfile)
               else
                 lines = []
 
@@ -158,7 +169,7 @@ module Compile
     end
   end
 
-  def check_xml home
+  def check_xml home, sendmail = false
     xmls = []
 
     POM::modules(home).each do |dir|
@@ -209,7 +220,60 @@ module Compile
       errors_puts errors
 
       if sendmail
-        errors_mail errors
+        errors_mail errors, subject: '<CHECK 通知>XML文件格式错误, 请尽快处理'
+      end
+
+      false
+    else
+      true
+    end
+  end
+
+  def check_size home, sendmail = false, addrs = nil
+    errors = []
+
+    if File.directory? home
+      Dir.chdir home do
+        File.glob('**/*').each do |file|
+          if not File.file? file
+            next
+          end
+
+          if block_given?
+            if not yield file
+              next
+            end
+          end
+
+          if file.include? 'ums-server'
+            if file.bytesize <= BN_MAX_SIZE_SERVER
+              next
+            end
+          else
+            if file.bytesize <= BN_MAX_SIZE_CLIENT
+              next
+            end
+          end
+
+          errors << file
+        end
+      end
+    end
+
+    if not errors.empty?
+      errors.each do |file|
+        Util::Logger::error file
+      end
+
+      if sendmail
+        subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [BN_MAX_SIZE_CLIENT, BN_MAX_SIZE_SERVER]
+
+        opt = {
+          :subject  => 'Subject: %s' % subject,
+          :html     => errors.join("\n")
+        }
+
+        Net::send_smtp nil, nil, addrs, opt
       end
 
       false
@@ -847,61 +911,36 @@ module Compile
   end
 
   def errors_mail errors, args = nil
-    args = {
-      :mail_subject        => nil,
-      :mail_threshold_file => nil,
-      :mail_threshold_day  => nil,
-    }.deep_merge (args || {})
-
-    args[:admin] = (args[:admin] || []).to_array + ($mail_admin || []).to_array
-    args[:admin].uniq!
-
-    args[:cc] = (args[:cc] || []).to_array + ($mail_cc || []).to_array
-    args[:cc].uniq!
-
-    if args[:mail_threshold_file].to_i > 0
-      threshold_file = args[:mail_threshold_file].to_i
-    else
-      threshold_file = nil
-    end
-
-    if args[:mail_threshold_day].to_i > 0
-      threshold_day = Time.now - args[:mail_threshold_day].to_i * 24 * 3600
-    else
-      threshold_day = nil
-    end
+    args ||= {}
 
     map = {}
-    index = 0
 
     errors[:error].each do |file, info|
-      if not threshold_file.nil?
-        if index > threshold_file
-          break
-        end
-      end
-
-      if not threshold_day.nil? and not info[:scm].nil?
-        if info[:scm][:date].is_a? Time
-          if info[:scm][:date] < threshold_day
-            next
-          end
-        end
-      end
-
-      addrs = args[:account] || info[:scm][:mail] || args[:mail_admin]
+      addrs = args[:addrs] || info[:scm][:mail] || $mail_admin
 
       if not addrs.nil?
         map[addrs] ||= {}
         map[addrs][file] = info
       end
-
-      index += 1
     end
 
     status = true
 
+    opt = {}
+
+    opt[:admin] = (args[:admin] || []).to_array + ($mail_admin || []).to_array
+    opt[:admin].uniq!
+
+    opt[:cc] = (args[:cc] || []).to_array + ($mail_cc || []).to_array
+    opt[:cc].uniq!
+
     map.each do |addrs, addrs_info|
+      if $x64
+        opt[:subject] = 'Subject: %s(%s-X64)' % [(args[:subject] || '<BUILD 通知>编译失败, 请尽快处理'), OS::name]
+      else
+        opt[:subject] = 'Subject: %s(%s)' % [(args[:subject] || '<BUILD 通知>编译失败, 请尽快处理'), OS::name]
+      end
+
       lines = []
 
       lines << '操作系统: <font color = "blue">%s</font><br>' % OS::name
@@ -951,15 +990,9 @@ module Compile
         lines << '<br>'
       end
 
-      if not Net::send_smtp '10.30.18.230', 'admin@zte.com.cn', addrs, args do |mail|
-          if $x64
-            mail.subject = 'Subject: %s(%s-X64)' % [(args[:mail_subject] || '<BUILD 通知>编译失败, 请尽快处理'), OS::name]
-          else
-            mail.subject = 'Subject: %s(%s)' % [(args[:mail_subject] || '<BUILD 通知>编译失败, 请尽快处理'), OS::name]
-          end
+      opt[:html] = lines.join "\n"
 
-          mail.html = lines.join "\n"
-
+      if not Net::send_smtp nil, nil, addrs, opt do |mail|
           File.tmpdir do |dir|
             build_info.each do |k, v|
               filename = File.join dir, 'build(%s).log' % File.basename(k.to_s, '.*')
