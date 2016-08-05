@@ -332,6 +332,9 @@ module Compile
       :skipped  => {}
     }
 
+    map = POM::artifactid_paths
+    cur_artifactid = nil
+
     lines.each_with_index do |line, index|
       line = line.rstrip
       cur_lines << line
@@ -416,6 +419,24 @@ module Compile
 
       if start
         if line =~ /^\[INFO\]\s+Building\s+/
+          cur_artifactid = $'.split(/\s+/).first
+
+          if not file.nil?
+            if cur_lines.first =~ /^\[INFO\]\s+----+$/
+              cur_lines.shift
+            end
+
+            info[:error][file] ||= {
+              :list => []
+            }
+
+            info[:error][file][:list] << {
+              lineno:   lineno,
+              message:  error_lines,
+              build:    cur_lines
+            }
+          end
+
           file = nil
           lineno = nil
           error_lines = []
@@ -430,7 +451,7 @@ module Compile
           next
         end
 
-        if line =~ /^\[ERROR\]\s+(.+):\[(\d+),\d+\]/
+        if line =~ /^\[ERROR\]\s+(.+):\[(\d+),\d+\]/ or line =~ /^\[ERROR\]\s+(.+)\[(\d+):\d+\]/
           match_data = $~
 
           if not file.nil?
@@ -807,8 +828,6 @@ module Compile
       }
     end
 
-    map = POM::artifactid_paths
-
     info[:failure].each do |k, v|
       if map.has_key? k
         info[:failure][k] = [v, File.relative_path(map[k])]
@@ -818,6 +837,24 @@ module Compile
     info[:skipped].each do |k, v|
       if map.has_key? k
         info[:skipped][k] = [v, File.relative_path(map[k])]
+      end
+    end
+
+    if not info[:failure].empty?
+      if info[:error].empty?
+        info[:failure].each do |k, v|
+          file = File.expand_path v.last
+
+          info[:error][file] ||= {
+            :list => []
+          }
+
+          info[:error][file][:list] << {
+            lineno:   nil,
+            message:  v.first,
+            build:    v.first
+          }
+        end
       end
     end
 
