@@ -490,6 +490,12 @@ module Compile
             end
           end
 
+          if not File.exist? file
+            if not map[cur_artifactid].nil?
+              file = File.expand_path file, map[cur_artifactid]
+            end
+          end
+
           next
         end
 
