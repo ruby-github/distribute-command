@@ -594,8 +594,8 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              File.glob('*/trunk/code/build').each do |path|
-                paths << File.join(path, 'pom', module_name)
+              File.glob(File.join('*/trunk/code/build/pom', module_name)).each do |path|
+                paths << path
               end
             end
           end
@@ -718,8 +718,8 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              File.glob('*/trunk/code/build').each do |path|
-                paths << File.join(path, 'pom', module_name)
+              File.glob(File.join('*/trunk/code/build/pom', module_name)).each do |path|
+                paths << path
               end
             end
           end
@@ -780,8 +780,8 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              File.glob('*/trunk/code/build').each do |path|
-                paths << File.join(path, 'pom', module_name)
+              File.glob(File.join('*/trunk/code/build/pom', module_name)).each do |path|
+                paths << path
               end
             end
           end
@@ -850,8 +850,8 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              File.glob('*/trunk/code/build').each do |path|
-                paths << File.join(path, 'pom', module_name)
+              File.glob(File.join('*/trunk/code/build/pom', module_name)).each do |path|
+                paths << path
               end
             end
           end
@@ -934,8 +934,8 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              File.glob('*/trunk/code_c/build').each do |path|
-                paths << File.join(path, 'pom', module_name)
+              File.glob(File.join('*/trunk/code_c/build/pom', module_name)).each do |path|
+                paths << path
               end
             end
           end
@@ -1065,8 +1065,8 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              File.glob('*/trunk/code_c/build').each do |path|
-                paths << File.join(path, 'pom', module_name)
+              File.glob(File.join('*/trunk/code_c/build/pom', module_name)).each do |path|
+                paths << path
               end
             end
           end
@@ -1145,8 +1145,8 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              File.glob('*/trunk/code_c/build').each do |path|
-                paths << File.join(path, 'pom', module_name)
+              File.glob(File.join('*/trunk/code_c/build/pom', module_name)).each do |path|
+                paths << path
               end
             end
           end
@@ -1223,8 +1223,8 @@ namespace :bn do
         if list.nil?
           if File.directory? home
             Dir.chdir home do
-              File.glob('*/trunk/code_c/build').each do |path|
-                paths << File.join(path, 'pom', module_name)
+              File.glob(File.join('*/trunk/code_c/build/pom', module_name)).each do |path|
+                paths << path
               end
             end
           end
