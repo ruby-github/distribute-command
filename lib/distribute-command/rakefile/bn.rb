@@ -268,6 +268,8 @@ namespace :bn do
 
       status = true
 
+      errors_list = []
+
       name.to_array.each do |module_name|
         if not defaults.keys.include? module_name
           Util::Logger::error 'no such module @bn:compile:mvn - %s' % module_name
@@ -282,8 +284,23 @@ namespace :bn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        if not Compile::mvn path, cmdline, _retry, true
+        if not Compile::mvn path, cmdline, _retry, true do |errors|
+            errors_list << errors
+
+            false
+          end
+
           status = false
+        end
+      end
+
+      if not status
+        errors_list.each do |errors|
+          Compile::errors_puts errors
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors
         end
       end
 
@@ -669,6 +686,7 @@ namespace :bn do
         end
 
         errors = []
+        errors_list = []
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -684,7 +702,12 @@ namespace :bn do
 
           Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true
+          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
+              errors_list << _errors
+
+              false
+            end
+
             errors << path
 
             status = false
@@ -692,6 +715,16 @@ namespace :bn do
         end
 
         Jenkins::dashboard_dump 'compile', errors
+
+        if not status
+          errors_list.each do |errors|
+            Compile::errors_puts errors
+          end
+
+          errors_list.each do |errors|
+            Compile::errors_mail errors
+          end
+        end
       else
         Util::Logger::error 'name is nil'
 
@@ -733,6 +766,7 @@ namespace :bn do
         paths.uniq!
 
         errors = []
+        errors_list = []
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -746,7 +780,12 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true
+          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
+              errors_list << _errors
+
+              false
+            end
+
             errors << path
 
             status = false
@@ -754,6 +793,16 @@ namespace :bn do
         end
 
         Jenkins::dashboard_dump 'test', errors
+
+        if not status
+          errors_list.each do |errors|
+            Compile::errors_puts errors
+          end
+
+          errors_list.each do |errors|
+            Compile::errors_mail errors
+          end
+        end
       else
         Util::Logger::error 'name is nil'
 
@@ -797,6 +846,7 @@ namespace :bn do
         status = true
 
         errors = []
+        errors_list = []
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -810,7 +860,12 @@ namespace :bn do
             next
           end
 
-          # if not Compile::mvn File.join(home, path), 'mvn findbugs:findbugs -fn -U', false, true
+          # if not Compile::mvn File.join(home, path), 'mvn findbugs:findbugs -fn -U', false, true do |_errors|
+          #     errors_list << _errors
+          #
+          #     false
+          #   end
+          #
           #   errors << path
           #
           #   status = false
@@ -824,6 +879,16 @@ namespace :bn do
         end
 
         Jenkins::dashboard_dump 'check', errors
+
+        if not status
+          errors_list.each do |errors|
+            Compile::errors_puts errors
+          end
+
+          errors_list.each do |errors|
+            Compile::errors_mail errors
+          end
+        end
       else
         Util::Logger::error 'name is nil'
 
@@ -867,6 +932,7 @@ namespace :bn do
         status = true
 
         errors = []
+        errors_list = []
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -880,7 +946,12 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true
+          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+              errors_list << _errors
+
+              false
+            end
+
             errors << path
 
             status = false
@@ -888,6 +959,16 @@ namespace :bn do
         end
 
         Jenkins::dashboard_dump 'deploy', errors
+
+        if not status
+          errors_list.each do |errors|
+            Compile::errors_puts errors
+          end
+
+          errors_list.each do |errors|
+            Compile::errors_mail errors
+          end
+        end
       else
         Util::Logger::error 'name is nil'
 
@@ -1004,6 +1085,7 @@ namespace :bn do
         end
 
         errors = []
+        errors_list = []
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -1019,7 +1101,12 @@ namespace :bn do
 
           Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true
+          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true do |_errors|
+              errors_list << _errors
+
+              false
+            end
+
             errors << path
 
             status = false
@@ -1027,6 +1114,16 @@ namespace :bn do
         end
 
         Jenkins::dashboard_dump 'compile', errors
+
+        if not status
+          errors_list.each do |errors|
+            Compile::errors_puts errors
+          end
+
+          errors_list.each do |errors|
+            Compile::errors_mail errors
+          end
+        end
       else
         Util::Logger::error 'name is nil'
 
@@ -1080,6 +1177,7 @@ namespace :bn do
         paths.uniq!
 
         errors = []
+        errors_list = []
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -1103,7 +1201,12 @@ namespace :bn do
             end
           end
 
-          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true
+          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true do |_errors|
+              errors_list << _errors
+
+              false
+            end
+
             errors << path
 
             status = false
@@ -1111,6 +1214,16 @@ namespace :bn do
         end
 
         Jenkins::dashboard_dump 'test', errors
+
+        if not status
+          errors_list.each do |errors|
+            Compile::errors_puts errors
+          end
+
+          errors_list.each do |errors|
+            Compile::errors_mail errors
+          end
+        end
       else
         Util::Logger::error 'name is nil'
 
@@ -1162,6 +1275,7 @@ namespace :bn do
         status = true
 
         errors = []
+        errors_list = []
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -1175,7 +1289,12 @@ namespace :bn do
             next
           end
 
-          # if not Compile::mvn File.join(home, path), 'mvn exec:exec -fn -U', false, true
+          # if not Compile::mvn File.join(home, path), 'mvn exec:exec -fn -U', false, true do |_errors|
+          #     errors_list << _errors
+          #
+          #     false
+          #   end
+          #
           #   errors << path
           #
           #   status = false
@@ -1189,6 +1308,16 @@ namespace :bn do
         end
 
         Jenkins::dashboard_dump 'check', errors
+
+        if not status
+          errors_list.each do |errors|
+            Compile::errors_puts errors
+          end
+
+          errors_list.each do |errors|
+            Compile::errors_mail errors
+          end
+        end
       else
         Util::Logger::error 'name is nil'
 
@@ -1240,6 +1369,7 @@ namespace :bn do
         status = true
 
         errors = []
+        errors_list = []
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -1253,7 +1383,12 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true
+          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+              errors_list << _errors
+
+              false
+            end
+
             errors << path
 
             status = false
@@ -1261,6 +1396,16 @@ namespace :bn do
         end
 
         Jenkins::dashboard_dump 'deploy', errors
+
+        if not status
+          errors_list.each do |errors|
+            Compile::errors_puts errors
+          end
+
+          errors_list.each do |errors|
+            Compile::errors_mail errors
+          end
+        end
       else
         Util::Logger::error 'name is nil'
 

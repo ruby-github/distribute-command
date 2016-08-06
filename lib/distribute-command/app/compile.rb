@@ -168,10 +168,20 @@ module Compile
         end
 
         if not errors.nil?
-          errors_puts errors
+          if block_given?
+            if yield errors
+              errors_puts errors
 
-          if sendmail
-            errors_mail errors
+              if sendmail
+                errors_mail errors
+              end
+            end
+          else
+            errors_puts errors
+
+            if sendmail
+              errors_mail errors
+            end
           end
         end
 

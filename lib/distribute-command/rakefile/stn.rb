@@ -173,6 +173,8 @@ namespace :stn do
 
       status = true
 
+      errors_list = []
+
       name.to_array.each do |module_name|
         if not defaults.keys.include? module_name
           Util::Logger::error 'no such module @stn:compile:mvn - %s' % module_name
@@ -191,8 +193,23 @@ namespace :stn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        if not Compile::mvn path, cmdline, _retry, true
+        if not Compile::mvn path, cmdline, _retry, true do |errors|
+            errors_list << errors
+
+            false
+          end
+
           status = false
+        end
+      end
+
+      if not status
+        errors_list.each do |errors|
+          Compile::errors_puts errors
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors
         end
       end
 
@@ -384,6 +401,7 @@ namespace :stn do
       end
 
       errors = []
+      errors_list = []
 
       paths.each do |path|
         if not File.directory? File.join(home, path)
@@ -395,7 +413,12 @@ namespace :stn do
 
         Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-        if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true
+        if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
+            errors_list << _errors
+
+            false
+          end
+
           errors << path
 
           status = false
@@ -403,6 +426,16 @@ namespace :stn do
       end
 
       Jenkins::dashboard_dump 'compile', errors
+
+      if not status
+        errors_list.each do |errors|
+          Compile::errors_puts errors
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors
+        end
+      end
 
       status.exit
     end
@@ -437,6 +470,7 @@ namespace :stn do
       status = true
 
       errors = []
+      errors_list = []
 
       paths.each do |path|
         if not File.directory? File.join(home, path)
@@ -446,7 +480,12 @@ namespace :stn do
           next
         end
 
-        if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true
+        if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
+            errors_list << _errors
+
+            false
+          end
+
           errors << path
 
           status = false
@@ -454,6 +493,16 @@ namespace :stn do
       end
 
       Jenkins::dashboard_dump 'test', errors
+
+      if not status
+        errors_list.each do |errors|
+          Compile::errors_puts errors
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors
+        end
+      end
 
       status.exit
     end
@@ -488,6 +537,7 @@ namespace :stn do
       status = true
 
       errors = []
+      errors_list = []
 
       paths.each do |path|
         if not File.directory? File.join(home, path)
@@ -497,7 +547,12 @@ namespace :stn do
           next
         end
 
-        # if not Compile::mvn File.join(home, path), 'mvn findbugs:findbugs -fn -U', false, true
+        # if not Compile::mvn File.join(home, path), 'mvn findbugs:findbugs -fn -U', false, true do |_errors|
+        #     errors_list << _errors
+        #
+        #     false
+        #   end
+        #
         #   errors << path
         #
         #   status = false
@@ -511,6 +566,16 @@ namespace :stn do
       end
 
       Jenkins::dashboard_dump 'check', errors
+
+      if not status
+        errors_list.each do |errors|
+          Compile::errors_puts errors
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors
+        end
+      end
 
       status.exit
     end
@@ -545,6 +610,7 @@ namespace :stn do
       status = true
 
       errors = []
+      errors_list = []
 
       paths.each do |path|
         if not File.directory? File.join(home, path)
@@ -554,10 +620,25 @@ namespace :stn do
           next
         end
 
-        if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true
+        if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+            errors_list << _errors
+
+            false
+          end
+
           errors << path
 
           status = false
+        end
+      end
+
+      if not status
+        errors_list.each do |errors|
+          Compile::errors_puts errors
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors
         end
       end
 
