@@ -49,6 +49,12 @@ BN_MAIL_ADDRS_NAF     = ['10033121@zte.com.cn', '10041713@zte.com.cn'] # 吉才�
 BN_MAIL_ADDRS_E2E     = ['10035566@zte.com.cn'] # 李发献135566
 BN_MAIL_ADDRS_WDM     = ['10008896@zte.com.cn'] # 张新立108896
 
+BN_METRIC_ID_IPTN     = '310001114849'
+BN_METRIC_ID_IPTN_NJ  = '310001114719'
+BN_METRIC_ID_NAF      = '310001115511'
+BN_METRIC_ID_E2E      = '310001115567'
+BN_METRIC_ID_WDM      = '310001115017'
+
 namespace :bn do
   namespace :update do
     task :update, [:name, :branch, :repo, :home, :username, :password] do |t, args|
@@ -163,6 +169,42 @@ namespace :bn do
           end
         end
       else
+        status = false
+      end
+
+      status.exit
+    end
+
+    task :version, [:home] do |t, args|
+      home = args[:home].to_s.nil || ($home || 'code')
+
+      defaults = BN_PATHS
+
+      status = true
+
+      if File.directory? home
+        versions = {}
+
+        defaults.each do |k, v|
+          info = SCM::info v
+
+          if info.nil?
+            status = false
+
+            next
+          end
+
+          versions[k] = info[:rev]
+        end
+
+        File.open 'version.txt', 'w' do |f|
+          versions.each do |name, version|
+            f.puts [name, version].join(': ')
+          end
+        end
+      else
+        Util::Logger::error 'no such directory @bn:update:version - %s' % File.expand_path(home)
+
         status = false
       end
 
@@ -284,13 +326,39 @@ namespace :bn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        if not Compile::mvn path, cmdline, _retry, true do |errors|
-            errors_list << errors
+        case module_name
+        when 'e2e'
+          metric_id = BN_METRIC_ID_E2E
+        when 'wdm'
+          metric_id = BN_METRIC_ID_WDM
+        when 'naf', 'xmlfile'
+          metric_id = BN_METRIC_ID_NAF
+        when 'ptn2', 'ip'
+          metric_id = BN_METRIC_ID_IPTN_NJ
+        else
+          metric_id = BN_METRIC_ID_IPTN
+        end
 
-            false
+        if $metric
+          if not Jenkins::build_metric metric_id, true do
+              Compile::mvn path, cmdline, _retry, true do |errors|
+                errors_list << errors
+
+                false
+              end
+            end
+
+            status = false
           end
+        else
+          if not Compile::mvn path, cmdline, _retry, true do |errors|
+              errors_list << errors
 
-          status = false
+              false
+            end
+
+            status = false
+          end
         end
       end
 
@@ -335,6 +403,8 @@ namespace :bn do
 
       status = true
 
+      errors_list = []
+
       name.to_array.each do |module_name|
         if not defaults.keys.include? module_name
           Util::Logger::error 'no such module @bn:compile:mvn_cpp - %s' % module_name
@@ -349,8 +419,49 @@ namespace :bn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        if not Compile::mvn path, cmdline, _retry, true
-          status = false
+        case module_name
+        when 'e2e'
+          metric_id = BN_METRIC_ID_E2E
+        when 'wdm'
+          metric_id = BN_METRIC_ID_WDM
+        when 'naf', 'xmlfile'
+          metric_id = BN_METRIC_ID_NAF
+        when 'ptn2', 'ip'
+          metric_id = BN_METRIC_ID_IPTN_NJ
+        else
+          metric_id = BN_METRIC_ID_IPTN
+        end
+
+        if $metric
+          if not Jenkins::build_metric metric_id, true do
+              Compile::mvn path, cmdline, _retry, true do |errors|
+                errors_list << errors
+
+                false
+              end
+            end
+
+            status = false
+          end
+        else
+          if not Compile::mvn path, cmdline, _retry, true do |errors|
+              errors_list << errors
+
+              false
+            end
+
+            status = false
+          end
+        end
+      end
+
+      if not status
+        errors_list.each do |errors|
+          Compile::errors_puts errors
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors
         end
       end
 
@@ -688,6 +799,19 @@ namespace :bn do
         errors = []
         errors_list = []
 
+        case module_name
+        when 'e2e-1', 'e2e-2', 'e2e-3'
+          metric_id = BN_METRIC_ID_E2E
+        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
+          metric_id = BN_METRIC_ID_WDM
+        when 'naf'
+          metric_id = BN_METRIC_ID_NAF
+        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
+          metric_id = BN_METRIC_ID_IPTN_NJ
+        else
+          metric_id = BN_METRIC_ID_IPTN
+        end
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard:compile - %s' % File.join(home, path)
@@ -702,15 +826,30 @@ namespace :bn do
 
           Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
-              errors_list << _errors
+          if $metric
+            if not Jenkins::build_metric metric_id, false do
+                Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
+                  errors_list << _errors
 
-              false
+                  false
+                end
+              end
+
+              errors << path
+
+              status = false
             end
+          else
+            if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
+                errors_list << _errors
 
-            errors << path
+                false
+              end
 
-            status = false
+              errors << path
+
+              status = false
+            end
           end
         end
 
@@ -768,6 +907,19 @@ namespace :bn do
         errors = []
         errors_list = []
 
+        case module_name
+        when 'e2e-1', 'e2e-2', 'e2e-3'
+          metric_id = BN_METRIC_ID_E2E
+        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
+          metric_id = BN_METRIC_ID_WDM
+        when 'naf'
+          metric_id = BN_METRIC_ID_NAF
+        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
+          metric_id = BN_METRIC_ID_IPTN_NJ
+        else
+          metric_id = BN_METRIC_ID_IPTN
+        end
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard:test - %s' % File.join(home, path)
@@ -780,15 +932,30 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
-              errors_list << _errors
+          if $metric
+            if not Jenkins::build_metric metric_id, false do
+                Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
+                  errors_list << _errors
 
-              false
+                  false
+                end
+              end
+
+              errors << path
+
+              status = false
             end
+          else
+            if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
+                errors_list << _errors
 
-            errors << path
+                false
+              end
 
-            status = false
+              errors << path
+
+              status = false
+            end
           end
         end
 
@@ -848,6 +1015,19 @@ namespace :bn do
         errors = []
         errors_list = []
 
+        case module_name
+        when 'e2e-1', 'e2e-2', 'e2e-3'
+          metric_id = BN_METRIC_ID_E2E
+        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
+          metric_id = BN_METRIC_ID_WDM
+        when 'naf'
+          metric_id = BN_METRIC_ID_NAF
+        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
+          metric_id = BN_METRIC_ID_IPTN_NJ
+        else
+          metric_id = BN_METRIC_ID_IPTN
+        end
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard:check - %s' % File.join(home, path)
@@ -871,10 +1051,21 @@ namespace :bn do
           #   status = false
           # end
 
-          if not Compile::check_xml File.join(home, path), true
-            errors << path
+          if $metric
+            if not Jenkins::build_metric metric_id, false do
+                Compile::check_xml File.join(home, path), true
+              end
 
-            status = false
+              errors << path
+
+              status = false
+            end
+          else
+            if not Compile::check_xml File.join(home, path), true
+              errors << path
+
+              status = false
+            end
           end
         end
 
@@ -934,6 +1125,19 @@ namespace :bn do
         errors = []
         errors_list = []
 
+        case module_name
+        when 'e2e-1', 'e2e-2', 'e2e-3'
+          metric_id = BN_METRIC_ID_E2E
+        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
+          metric_id = BN_METRIC_ID_WDM
+        when 'naf'
+          metric_id = BN_METRIC_ID_NAF
+        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
+          metric_id = BN_METRIC_ID_IPTN_NJ
+        else
+          metric_id = BN_METRIC_ID_IPTN
+        end
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard:deploy - %s' % File.join(home, path)
@@ -946,15 +1150,30 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
-              errors_list << _errors
+          if $metric
+            if not Jenkins::build_metric metric_id, false do
+                Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+                  errors_list << _errors
 
-              false
+                  false
+                end
+              end
+
+              errors << path
+
+              status = false
             end
+          else
+            if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+                errors_list << _errors
 
-            errors << path
+                false
+              end
 
-            status = false
+              errors << path
+
+              status = false
+            end
           end
         end
 
@@ -1087,6 +1306,19 @@ namespace :bn do
         errors = []
         errors_list = []
 
+        case module_name
+        when 'e2e-1', 'e2e-2', 'e2e-3'
+          metric_id = BN_METRIC_ID_E2E
+        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
+          metric_id = BN_METRIC_ID_WDM
+        when 'naf'
+          metric_id = BN_METRIC_ID_NAF
+        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
+          metric_id = BN_METRIC_ID_IPTN_NJ
+        else
+          metric_id = BN_METRIC_ID_IPTN
+        end
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard_cpp:compile - %s' % File.join(home, path)
@@ -1101,15 +1333,30 @@ namespace :bn do
 
           Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true do |_errors|
-              errors_list << _errors
+          if $metric
+            if not Jenkins::build_metric metric_id, false do
+                Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true do |_errors|
+                  errors_list << _errors
 
-              false
+                  false
+                end
+              end
+
+              errors << path
+
+              status = false
             end
+          else
+            if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true do |_errors|
+                errors_list << _errors
 
-            errors << path
+                false
+              end
 
-            status = false
+              errors << path
+
+              status = false
+            end
           end
         end
 
@@ -1179,6 +1426,19 @@ namespace :bn do
         errors = []
         errors_list = []
 
+        case module_name
+        when 'e2e-1', 'e2e-2', 'e2e-3'
+          metric_id = BN_METRIC_ID_E2E
+        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
+          metric_id = BN_METRIC_ID_WDM
+        when 'naf'
+          metric_id = BN_METRIC_ID_NAF
+        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
+          metric_id = BN_METRIC_ID_IPTN_NJ
+        else
+          metric_id = BN_METRIC_ID_IPTN
+        end
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard_cpp:test - %s' % File.join(home, path)
@@ -1201,15 +1461,30 @@ namespace :bn do
             end
           end
 
-          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true do |_errors|
-              errors_list << _errors
+          if $metric
+            if not Jenkins::build_metric metric_id, false do
+                Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true do |_errors|
+                  errors_list << _errors
 
-              false
+                  false
+                end
+              end
+
+              errors << path
+
+              status = false
             end
+          else
+            if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true do |_errors|
+                errors_list << _errors
 
-            errors << path
+                false
+              end
 
-            status = false
+              errors << path
+
+              status = false
+            end
           end
         end
 
@@ -1277,6 +1552,19 @@ namespace :bn do
         errors = []
         errors_list = []
 
+        case module_name
+        when 'e2e-1', 'e2e-2', 'e2e-3'
+          metric_id = BN_METRIC_ID_E2E
+        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
+          metric_id = BN_METRIC_ID_WDM
+        when 'naf'
+          metric_id = BN_METRIC_ID_NAF
+        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
+          metric_id = BN_METRIC_ID_IPTN_NJ
+        else
+          metric_id = BN_METRIC_ID_IPTN
+        end
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard_cpp:check - %s' % File.join(home, path)
@@ -1300,10 +1588,21 @@ namespace :bn do
           #   status = false
           # end
 
-          if not Compile::check_xml File.join(home, path), true
-            errors << path
+          if $metric
+            if not Jenkins::build_metric metric_id, false do
+                Compile::check_xml File.join(home, path), true
+              end
 
-            status = false
+              errors << path
+
+              status = false
+            end
+          else
+            if not Compile::check_xml File.join(home, path), true
+              errors << path
+
+              status = false
+            end
           end
         end
 
@@ -1371,6 +1670,19 @@ namespace :bn do
         errors = []
         errors_list = []
 
+        case module_name
+        when 'e2e-1', 'e2e-2', 'e2e-3'
+          metric_id = BN_METRIC_ID_E2E
+        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
+          metric_id = BN_METRIC_ID_WDM
+        when 'naf'
+          metric_id = BN_METRIC_ID_NAF
+        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
+          metric_id = BN_METRIC_ID_IPTN_NJ
+        else
+          metric_id = BN_METRIC_ID_IPTN
+        end
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard_cpp:deploy - %s' % File.join(home, path)
@@ -1383,15 +1695,30 @@ namespace :bn do
             next
           end
 
-          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
-              errors_list << _errors
+          if $metric
+            if not Jenkins::build_metric metric_id, false do
+                Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+                  errors_list << _errors
 
-              false
+                  false
+                end
+              end
+
+              errors << path
+
+              status = false
             end
+          else
+            if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+                errors_list << _errors
 
-            errors << path
+                false
+              end
 
-            status = false
+              errors << path
+
+              status = false
+            end
           end
         end
 
@@ -1418,6 +1745,32 @@ namespace :bn do
 
   namespace :patch do
     task :patch, [:name] do |t, args|
+    end
+
+    task :init do |t, args|
+    end
+
+    task :clear, [:home] do |t, args|
+      home = args[:home].to_s.nil || ($home || 'code')
+
+      status = true
+
+      if File.directory? home
+        Dir.chdir home do
+          File.glob('*/trunk/.{git,svn}').each do |dir|
+            if not File.delete dir do |file|
+                Util::Logger::puts file
+
+                file
+              end
+
+              status = false
+            end
+          end
+        end
+      end
+
+      status.exit
     end
   end
 end

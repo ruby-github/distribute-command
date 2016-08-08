@@ -24,6 +24,8 @@ STN_REPOS = {
   'installation'=> 'http://10.5.64.19/git/sdn_installation'
 }
 
+STN_METRIC_ID = '310001113886'
+
 namespace :stn do
   namespace :update do
     task :update, [:name, :branch, :repo, :home, :username, :password] do |t, args|
@@ -88,6 +90,42 @@ namespace :stn do
             end
           end
         end
+      end
+
+      status.exit
+    end
+
+    task :version, [:home] do |t, args|
+      home = args[:home].to_s.nil || ($home || 'code')
+
+      defaults = STN_PATHS
+
+      status = true
+
+      if File.directory? home
+        versions = {}
+
+        defaults.each do |k, v|
+          info = SCM::info v
+
+          if info.nil?
+            status = false
+
+            next
+          end
+
+          versions[k] = info[:rev]
+        end
+
+        File.open 'version.txt', 'w' do |f|
+          versions.each do |name, version|
+            f.puts [name, version].join(': ')
+          end
+        end
+      else
+        Util::Logger::error 'no such directory @stn:update:version - %s' % File.expand_path(home)
+
+        status = false
       end
 
       status.exit
@@ -193,13 +231,28 @@ namespace :stn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        if not Compile::mvn path, cmdline, _retry, true do |errors|
-            errors_list << errors
+        metric_id = STN_METRIC_ID
 
-            false
+        if $metric
+          if not Jenkins::build_metric metric_id, true do
+              Compile::mvn path, cmdline, _retry, true do |errors|
+                errors_list << errors
+
+                false
+              end
+            end
+
+            status = false
           end
+        else
+          if not Compile::mvn path, cmdline, _retry, true do |errors|
+              errors_list << errors
 
-          status = false
+              false
+            end
+
+            status = false
+          end
         end
       end
 
@@ -413,15 +466,32 @@ namespace :stn do
 
         Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-        if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
-            errors_list << _errors
+        metric_id = STN_METRIC_ID
 
-            false
+        if $metric
+          if not Jenkins::build_metric metric_id, false do
+              Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
+                errors_list << _errors
+
+                false
+              end
+            end
+
+            errors << path
+
+            status = false
           end
+        else
+          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
+              errors_list << _errors
 
-          errors << path
+              false
+            end
 
-          status = false
+            errors << path
+
+            status = false
+          end
         end
       end
 
@@ -480,15 +550,32 @@ namespace :stn do
           next
         end
 
-        if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
-            errors_list << _errors
+        metric_id = STN_METRIC_ID
 
-            false
+        if $metric
+          if not Jenkins::build_metric metric_id, false do
+              Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
+                errors_list << _errors
+
+                false
+              end
+            end
+
+            errors << path
+
+            status = false
           end
+        else
+          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
+              errors_list << _errors
 
-          errors << path
+              false
+            end
 
-          status = false
+            errors << path
+
+            status = false
+          end
         end
       end
 
@@ -558,10 +645,23 @@ namespace :stn do
         #   status = false
         # end
 
-        if not Compile::check_xml File.join(home, path), true
-          errors << path
+        metric_id = STN_METRIC_ID
 
-          status = false
+        if $metric
+          if not Jenkins::build_metric metric_id, false do
+              Compile::check_xml File.join(home, path), true
+            end
+
+            errors << path
+
+            status = false
+          end
+        else
+          if not Compile::check_xml File.join(home, path), true
+            errors << path
+
+            status = false
+          end
         end
       end
 
@@ -620,15 +720,32 @@ namespace :stn do
           next
         end
 
-        if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
-            errors_list << _errors
+        metric_id = STN_METRIC_ID
 
-            false
+        if $metric
+          if not Jenkins::build_metric metric_id, false do
+              Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+                errors_list << _errors
+
+                false
+              end
+            end
+
+            errors << path
+
+            status = false
           end
+        else
+          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+              errors_list << _errors
 
-          errors << path
+              false
+            end
 
-          status = false
+            errors << path
+
+            status = false
+          end
         end
       end
 
@@ -650,6 +767,32 @@ namespace :stn do
 
   namespace :patch do
     task :patch do |t, args|
+    end
+
+    task :init do |t, args|
+    end
+
+    task :clear, [:home] do |t, args|
+      home = args[:home].to_s.nil || ($home || 'code')
+
+      status = true
+
+      if File.directory? home
+        Dir.chdir home do
+          File.glob('*/trunk/.{git,svn}').each do |dir|
+            if not File.delete dir do |file|
+                Util::Logger::puts file
+
+                file
+              end
+
+              status = false
+            end
+          end
+        end
+      end
+
+      status.exit
     end
   end
 end
