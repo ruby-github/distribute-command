@@ -391,13 +391,57 @@ module DistributeCommand
       callback = @args['callback'].to_s.nil
 
       if not path.nil? and not to_path.nil?
-        if File.exist? path
-          status = true
+        status = true
 
-          if ip.nil?
+        if ip.nil?
+          thread = Thread.new do
+            File.copy path, to_path do |src, dest|
+              Util::Logger::info src
+
+              [src, dest]
+            end
+          end
+
+          thread.join
+
+          if not thread.value
+            status = false
+          end
+
+          if not callback.nil?
+            sleep 1
+
+            if DistributeCommand::Callback::respond_to? callback
+              thread = Thread.new do
+                string = "DistributeCommand::Callback::#{callback}"
+
+                CommandLine::function string, true, nil, @args.merge({'status' => status}) do |line, stdin, wait_thr|
+                  Util::Logger::puts line
+                end
+              end
+
+              thread.join
+
+              if not thread.value
+                status = false
+              end
+            else
+              Util::Logger::exception 'No found function @ command_copy - DistributeCommand::Callback::%s' % callback
+
+              status = false
+            end
+          end
+        else
+          drb = DRb::Object.new
+
+          if drb.connect ip
             thread = Thread.new do
-              File.copy path, to_path do |src, dest|
-                Util::Logger::info src
+              drb.copy path, to_path do |src, dest|
+                if dest.nil?
+                  Util::Logger::exception src
+                else
+                  Util::Logger::info src
+                end
 
                 [src, dest]
               end
@@ -412,39 +456,9 @@ module DistributeCommand
             if not callback.nil?
               sleep 1
 
-              if DistributeCommand::Callback::respond_to? callback
-                thread = Thread.new do
-                  string = "DistributeCommand::Callback::#{callback}"
-
-                  CommandLine::function string, true, nil, @args.merge({'status' => status}) do |line, stdin, wait_thr|
-                    Util::Logger::puts line
-                  end
-                end
-
-                thread.join
-
-                if not thread.value
-                  status = false
-                end
-              else
-                Util::Logger::exception 'No found function @ command_copy - DistributeCommand::Callback::%s' % callback
-
-                status = false
-              end
-            end
-          else
-            drb = DRb::Object.new
-
-            if drb.connect ip
               thread = Thread.new do
-                drb.copy path, to_path do |src, dest|
-                  if dest.nil?
-                    Util::Logger::exception src
-                  else
-                    Util::Logger::info src
-                  end
-
-                  [src, dest]
+                drb.callback callback, true, @args.merge({'status' => status}) do |line|
+                  Util::Logger::puts line
                 end
               end
 
@@ -453,40 +467,20 @@ module DistributeCommand
               if not thread.value
                 status = false
               end
-
-              if not callback.nil?
-                sleep 1
-
-                thread = Thread.new do
-                  drb.callback callback, true, @args.merge({'status' => status}) do |line|
-                    Util::Logger::puts line
-                  end
-                end
-
-                thread.join
-
-                if not thread.value
-                  status = false
-                end
-              end
-
-              if not drb.errors.nil?
-                $errors ||= []
-                $errors += drb.errors
-              end
-            else
-              status = false
             end
 
-            drb.close
+            if not drb.errors.nil?
+              $errors ||= []
+              $errors += drb.errors
+            end
+          else
+            status = false
           end
 
-          status
-        else
-          Util::Logger::exception 'No such file or directory @ command_copy - %s' % path
-
-          false
+          drb.close
         end
+
+        status
       else
         false
       end

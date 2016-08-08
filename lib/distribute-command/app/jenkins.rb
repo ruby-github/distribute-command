@@ -196,23 +196,23 @@ module Jenkins
                   end
 
                   if dir.include? 'trunk/code_c/'
-                    # if dir.include? 'trunk/code_c/database/'
-                    #   if File.file? File.join(dirname, 'code_c/database/dbscript/pom.xml')
-                    #     dir_dbscript = File.join dirname, 'code_c/database/dbscript'
-                    #
-                    #     if File.file? File.join(dir, 'xml/daobuilder.xml')
-                    #       map[:cpp] ||= {}
-                    #       map[:cpp][dir_dbscript] ||= []
-                    #       map[:cpp][dir_dbscript] << author
-                    #     end
-                    #
-                    #     if not File.directory? File.join(dir_dbscript, 'install')
-                    #       map[:cpp] ||= {}
-                    #       map[:cpp][dir_dbscript] ||= []
-                    #       map[:cpp][dir_dbscript] << author
-                    #     end
-                    #   end
-                    # end
+                    if dir.include? 'trunk/code_c/database/'
+                      if File.file? File.join(dirname, 'code_c/database/dbscript/pom.xml')
+                        dir_dbscript = File.join dirname, 'code_c/database/dbscript'
+
+                        if File.file? File.join(dir, 'xml/daobuilder.xml')
+                          map[:cpp] ||= {}
+                          map[:cpp][dir_dbscript] ||= []
+                          map[:cpp][dir_dbscript] << author
+                        end
+
+                        if not File.directory? File.join(dir_dbscript, 'install')
+                          map[:cpp] ||= {}
+                          map[:cpp][dir_dbscript] ||= []
+                          map[:cpp][dir_dbscript] << author
+                        end
+                      end
+                    end
 
                     map[:cpp] ||= {}
                     map[:cpp][dir] ||= []
@@ -337,7 +337,7 @@ module Jenkins
                       :authors=> []
                     }
 
-                    changes[lang][group][:paths] << File.join(dir, 'pom', group)
+                    changes[lang][group][:paths] << pom_path # File.join(dir, 'pom', group)
                     changes[lang][group][:authors] += authors
                   end
                 end
