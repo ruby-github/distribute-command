@@ -662,7 +662,9 @@ module Jenkins
         'bn_test'       => {
           :authorization=> ['bnbuild'],
           :script_path  => 'bn/test.groovy',
-          :parameters   => []
+          :parameters   => [
+            ['version', '版本号', '']
+          ]
         },
 
         'bn_update_devtools'    => {
@@ -854,7 +856,9 @@ module Jenkins
         'stn_test'    => {
           :authorization=> ['stnbuild'],
           :script_path  => 'stn/test.groovy',
-          :parameters   => []
+          :parameters   => [
+            ['version', '版本号', '']
+          ]
         },
 
         'stn_update_module' => {
@@ -946,6 +950,18 @@ module Jenkins
         pipeline = Jenkins::Pipeline.new k
         pipeline.build v
       end
+
+      args = {
+        :script_path  => 'command.groovy',
+        :parameters   => [
+          ['home',      '工作目录', ''],
+          ['configure', '配置文件', ''],
+          ['version',   '版本号',   '']
+        ]
+      }
+
+      pipeline = Jenkins::Pipeline.new 'command'
+      pipeline.build args
     end
   end
 

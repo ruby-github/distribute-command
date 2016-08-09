@@ -23,13 +23,15 @@ module DistributeCommand
 
         @sequence = Sequence.new
         @sequence.load doc.root, opt
+
+        true
       rescue
         Util::Logger::exception $!
 
         @sequence = nil
-      end
 
-      @sequence
+        false
+      end
     end
 
     def exec
@@ -52,6 +54,24 @@ module DistributeCommand
       end
 
       status
+    end
+
+    def ips reboot_drb = false
+      if not @sequence.nil?
+        ips = @sequence.ips
+
+        if not ips.nil?
+          if reboot_drb
+            OS::remote_reboot_drb ips
+
+            sleep 30
+          end
+        end
+
+        ips
+      else
+        nil
+      end
     end
   end
 end

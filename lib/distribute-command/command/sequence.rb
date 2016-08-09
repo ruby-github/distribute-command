@@ -1,5 +1,7 @@
 module DistributeCommand
   class CommandBase
+    attr_reader :args
+
     def initialize args = nil
       @args = args || {}
     end
@@ -181,6 +183,25 @@ module DistributeCommand
           end
         end
       end
+    end
+
+    def ips
+      ips = []
+
+      @sequence_list.each do |sequence|
+        if sequence.is_a? Sequence
+          ips += sequence.ips
+        else
+          if not sequence.args['ip'].nil?
+            ips << sequence.args['ip']
+          end
+        end
+      end
+
+      ips.sort!
+      ips.uniq!
+
+      ips
     end
 
     def to_string
