@@ -771,7 +771,7 @@ module DistributeCommand
 
       element << list_element
 
-      if element.attributes['clean'].to_s.strip == 'true'
+      if args['clean'].to_s.boolean(false)
         # 清除测试用例
 
         delete_e = REXML::Element.new 'delete'

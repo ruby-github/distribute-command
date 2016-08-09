@@ -326,17 +326,23 @@ module DistributeCommand
 
           time = Time.now
 
-          case @name
-          when 'copy'
-            status = command_copy ip
-          when 'delete'
-            status = command_delete ip
-          when 'mkdir'
-            status = command_mkdir ip
-          when 'cmdline'
-            status = command_cmdline ip
-          when 'function'
-            status = command_function ip
+          begin
+            case @name
+            when 'copy'
+              status = command_copy ip
+            when 'delete'
+              status = command_delete ip
+            when 'mkdir'
+              status = command_mkdir ip
+            when 'cmdline'
+              status = command_cmdline ip
+            when 'function'
+              status = command_function ip
+            end
+          rescue
+            Util::Logger::exception $!
+
+            status = false
           end
 
           if @args['skipfail']
