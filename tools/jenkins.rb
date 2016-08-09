@@ -802,6 +802,18 @@ module Jenkins
 
       cppcheck = Jenkins::CppCheck.new 'bn_cppcheck'
       cppcheck.build
+
+      args = {
+        :script_path  => 'bn/command.groovy',
+        :parameters   => [
+          ['home',      '工作目录', 'bn/daily/windows'],
+          ['configure', '配置文件', 'installation.xml'],
+          ['version',   '版本号',   '']
+        ]
+      }
+
+      pipeline = Jenkins::Pipeline.new 'bn_command'
+      pipeline.build args
     end
 
     def stn_build
@@ -952,15 +964,15 @@ module Jenkins
       end
 
       args = {
-        :script_path  => 'command.groovy',
+        :script_path  => 'stn/command.groovy',
         :parameters   => [
-          ['home',      '工作目录', ''],
-          ['configure', '配置文件', ''],
+          ['home',      '工作目录', 'stn/daily'],
+          ['configure', '配置文件', 'installation.xml'],
           ['version',   '版本号',   '']
         ]
       }
 
-      pipeline = Jenkins::Pipeline.new 'command'
+      pipeline = Jenkins::Pipeline.new 'stn_command'
       pipeline.build args
     end
   end
