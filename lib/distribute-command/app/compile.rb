@@ -239,11 +239,20 @@ module Compile
     end
 
     if not errors.empty?
-      errors = mvn_scminfo errors
-      errors_puts errors
+      if block_given?
+        if yield errors
+          errors_puts errors
 
-      if sendmail
-        errors_mail errors, subject: '<CHECK 通知>XML文件格式错误, 请尽快处理'
+          if sendmail
+            errors_mail errors, subject: '<CHECK 通知>XML文件格式错误, 请尽快处理'
+          end
+        end
+      else
+        errors_puts errors
+
+        if sendmail
+          errors_mail errors, subject: '<CHECK 通知>XML文件格式错误, 请尽快处理'
+        end
       end
 
       false
@@ -263,7 +272,7 @@ module Compile
           end
 
           if block_given?
-            if not yield file
+            if not yield file, nil
               next
             end
           end
@@ -284,19 +293,38 @@ module Compile
     end
 
     if not errors.empty?
-      errors.each do |file|
-        Util::Logger::error file
-      end
+      if block_given?
+        if yield nil, errors
+          errors.each do |file|
+            Util::Logger::error file
+          end
 
-      if sendmail
-        subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [BN_MAX_SIZE_CLIENT, BN_MAX_SIZE_SERVER]
+          if sendmail
+            subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [BN_MAX_SIZE_CLIENT, BN_MAX_SIZE_SERVER]
 
-        opt = {
-          :subject  => 'Subject: %s' % subject,
-          :html     => errors.join("\n")
-        }
+            opt = {
+              :subject  => 'Subject: %s' % subject,
+              :html     => errors.join("\n")
+            }
 
-        Net::send_smtp nil, nil, addrs, opt
+            Net::send_smtp nil, nil, addrs, opt
+          end
+        end
+      else
+        errors.each do |file|
+          Util::Logger::error file
+        end
+
+        if sendmail
+          subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [BN_MAX_SIZE_CLIENT, BN_MAX_SIZE_SERVER]
+
+          opt = {
+            :subject  => 'Subject: %s' % subject,
+            :html     => errors.join("\n")
+          }
+
+          Net::send_smtp nil, nil, addrs, opt
+        end
       end
 
       false

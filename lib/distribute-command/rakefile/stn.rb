@@ -649,7 +649,11 @@ namespace :stn do
 
         if $metric
           if not Jenkins::build_metric metric_id, false do
-              Compile::check_xml File.join(home, path), true
+              Compile::check_xml File.join(home, path), true do |_errors|
+                errors_list << _errors
+
+                false
+              end
             end
 
             errors << path
@@ -657,7 +661,12 @@ namespace :stn do
             status = false
           end
         else
-          if not Compile::check_xml File.join(home, path), true
+          if not Compile::check_xml File.join(home, path), true do |_errors|
+              errors_list << _errors
+
+              false
+            end
+
             errors << path
 
             status = false
@@ -673,7 +682,7 @@ namespace :stn do
         end
 
         errors_list.each do |errors|
-          Compile::errors_mail errors
+          Compile::errors_mail errors, subject: '<CHECK 通知>XML文件格式错误, 请尽快处理'
         end
       end
 

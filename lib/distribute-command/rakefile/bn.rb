@@ -562,6 +562,7 @@ namespace :bn do
       status = true
 
       ignores = []
+      errors_list = []
 
       IO.readlines(File.join(gem_dir('distribute-command'), 'doc/bn/ignore_check_list.txt')).each do |line|
         line.strip!
@@ -596,11 +597,29 @@ namespace :bn do
 
         path = File.join home, defaults[module_name], 'code/build/output'
 
-        if not Compile::check_size path, true, addrs do |file|
-            not ignores.include? File.join(path, file)
+        if not Compile::check_size path, true, addrs do |file, errors|
+            if not file.nil?
+              not ignores.include? File.join(path, file)
+            else
+              errors_list << errors
+
+              false
+            end
           end
 
           status = false
+        end
+      end
+
+      if not status
+        errors_list.each do |errors|
+          errors.each do |file|
+            Util::Logger::error file
+          end
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors, subject: '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [Compile::BN_MAX_SIZE_CLIENT, Compile::BN_MAX_SIZE_SERVER]
         end
       end
 
@@ -1053,7 +1072,11 @@ namespace :bn do
 
           if $metric
             if not Jenkins::build_metric metric_id, false do
-                Compile::check_xml File.join(home, path), true
+                Compile::check_xml File.join(home, path), true do |_errors|
+                  errors_list << _errors
+
+                  false
+                end
               end
 
               errors << path
@@ -1061,7 +1084,12 @@ namespace :bn do
               status = false
             end
           else
-            if not Compile::check_xml File.join(home, path), true
+            if not Compile::check_xml File.join(home, path), true do |_errors|
+                errors_list << _errors
+
+                false
+              end
+
               errors << path
 
               status = false
@@ -1077,7 +1105,7 @@ namespace :bn do
           end
 
           errors_list.each do |errors|
-            Compile::errors_mail errors
+            Compile::errors_mail errors, subject: '<CHECK 通知>XML文件格式错误, 请尽快处理'
           end
         end
       else
@@ -1590,7 +1618,11 @@ namespace :bn do
 
           if $metric
             if not Jenkins::build_metric metric_id, false do
-                Compile::check_xml File.join(home, path), true
+                Compile::check_xml File.join(home, path), true do |_errors|
+                  errors_list << _errors
+
+                  false
+                end
               end
 
               errors << path
@@ -1598,7 +1630,12 @@ namespace :bn do
               status = false
             end
           else
-            if not Compile::check_xml File.join(home, path), true
+            if not Compile::check_xml File.join(home, path), true do |_errors|
+                errors_list << _errors
+
+                false
+              end
+
               errors << path
 
               status = false
@@ -1614,7 +1651,7 @@ namespace :bn do
           end
 
           errors_list.each do |errors|
-            Compile::errors_mail errors
+            Compile::errors_mail errors, subject: '<CHECK 通知>XML文件格式错误, 请尽快处理'
           end
         end
       else
