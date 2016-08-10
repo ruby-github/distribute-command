@@ -6,6 +6,17 @@ module Compile
   MAIL_THRESHOLD_DAY = 5
 
   def mvn path, cmdline = nil, _retry = false, sendmail = false
+    if $x64
+      case OS.name
+      when :windows
+        ENV['WIN64'] = '1'
+      when :linux
+        ENV['LINUX64'] = '1'
+      when :solaris
+        ENV['SOLARIS64'] = '1'
+      end
+    end
+
     cmdline ||= 'mvn install -fn'
 
     if File.directory? path
