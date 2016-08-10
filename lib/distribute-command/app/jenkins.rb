@@ -4,46 +4,57 @@ module Jenkins
   DASHBOARD_FILE = 'dashboard.yml'
   VERSION_INFO_FILE = 'version_info.yml'
 
+  HTTP_METRIC = 'http://10.41.213.28/WebService/ZTE.Wireline.WebService/BuildAPI.ashx'
   JENKINS_BUILD = 'build --username admin --password admin-1234'
 
-  def build_metric project, night = true
-    http = 'http://10.41.213.28/WebService/ZTE.Wireline.WebService/BuildAPI.ashx'
+  def buildstart_metric project, night = true
+    if $metric
+      if night
+        buildtype = 'night'
+      else
+        buildtype = 'CI'
+      end
 
-    if night
-      buildtype = 'night'
-    else
-      buildtype = 'CI'
-    end
-
-    cmdline = 'curl --data "action=buildstart&project=%s&buildtype=%s" %s' % [project, buildtype, http]
-
-    Util::Logger::puts cmdline
-
-    id = nil
-
-    begin
-      id = `#{cmdline}`
-    rescue
-      id = nil
-    end
-
-    status = yield
-
-    if status
-      success = 'success'
-    else
-      success = 'failed'
-    end
-
-    if not id.nil?
-      cmdline = 'curl --data "action=buildend&buildid=%s&buildresult=%s" %s' % [id, success, http]
+      cmdline = 'curl --data "action=buildstart&project=%s&buildtype=%s" %s' % [project, buildtype, HTTP_METRIC]
 
       Util::Logger::puts cmdline
 
-      system cmdline
-    end
+      id = nil
 
-    status
+      begin
+        id = `#{cmdline}`
+      rescue
+        id = nil
+      end
+
+      id
+    else
+      nil
+    end
+  end
+
+  def buildend_metric id, status
+    if $metric
+      if status
+        success = 'success'
+      else
+        success = 'failed'
+      end
+
+      if not id.nil?
+        cmdline = 'curl --data "action=buildend&buildid=%s&buildresult=%s" %s' % [id, success, HTTP_METRIC]
+
+        Util::Logger::puts cmdline
+
+        system cmdline
+
+        true
+      else
+        false
+      end
+    else
+      true
+    end
   end
 
   def dashboard_load name

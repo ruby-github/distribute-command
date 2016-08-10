@@ -339,26 +339,19 @@ namespace :bn do
           metric_id = BN_METRIC_ID_IPTN
         end
 
-        if $metric
-          if not Jenkins::build_metric metric_id, true do
-              Compile::mvn path, cmdline, _retry, true do |errors|
-                errors_list << errors
+        id = Jenkins::buildstart_metric metric_id, true
 
-                false
-              end
-            end
+        if Compile::mvn path, cmdline, _retry, true do |errors|
+            errors_list << errors
 
-            status = false
+            false
           end
+
+          Jenkins::buildend_metric id, true
         else
-          if not Compile::mvn path, cmdline, _retry, true do |errors|
-              errors_list << errors
+          Jenkins::buildend_metric id, false
 
-              false
-            end
-
-            status = false
-          end
+          status = false
         end
       end
 
@@ -432,26 +425,19 @@ namespace :bn do
           metric_id = BN_METRIC_ID_IPTN
         end
 
-        if $metric
-          if not Jenkins::build_metric metric_id, true do
-              Compile::mvn path, cmdline, _retry, true do |errors|
-                errors_list << errors
+        id = Jenkins::buildstart_metric metric_id, true
 
-                false
-              end
-            end
+        if Compile::mvn path, cmdline, _retry, true do |errors|
+            errors_list << errors
 
-            status = false
+            false
           end
+
+          Jenkins::buildend_metric id, true
         else
-          if not Compile::mvn path, cmdline, _retry, true do |errors|
-              errors_list << errors
+          Jenkins::buildend_metric id, false
 
-              false
-            end
-
-            status = false
-          end
+          status = false
         end
       end
 
@@ -831,6 +817,8 @@ namespace :bn do
           metric_id = BN_METRIC_ID_IPTN
         end
 
+        id = Jenkins::buildstart_metric metric_id, false
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard:compile - %s' % File.join(home, path)
@@ -845,33 +833,19 @@ namespace :bn do
 
           Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-          if $metric
-            if not Jenkins::build_metric metric_id, false do
-                Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
-                  errors_list << _errors
+          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
+              errors_list << _errors
 
-                  false
-                end
-              end
-
-              errors << path
-
-              status = false
+              false
             end
-          else
-            if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Dmaven.test.skip=true', true, true do |_errors|
-                errors_list << _errors
 
-                false
-              end
+            errors << path
 
-              errors << path
-
-              status = false
-            end
+            status = false
           end
         end
 
+        Jenkins::buildend_metric id, status
         Jenkins::dashboard_dump 'compile', errors
 
         if not status
@@ -939,6 +913,8 @@ namespace :bn do
           metric_id = BN_METRIC_ID_IPTN
         end
 
+        id = Jenkins::buildstart_metric metric_id, false
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard:test - %s' % File.join(home, path)
@@ -951,33 +927,19 @@ namespace :bn do
             next
           end
 
-          if $metric
-            if not Jenkins::build_metric metric_id, false do
-                Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
-                  errors_list << _errors
+          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
+              errors_list << _errors
 
-                  false
-                end
-              end
-
-              errors << path
-
-              status = false
+              false
             end
-          else
-            if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
-                errors_list << _errors
 
-                false
-              end
+            errors << path
 
-              errors << path
-
-              status = false
-            end
+            status = false
           end
         end
 
+        Jenkins::buildend_metric id, status
         Jenkins::dashboard_dump 'test', errors
 
         if not status
@@ -1047,6 +1009,8 @@ namespace :bn do
           metric_id = BN_METRIC_ID_IPTN
         end
 
+        id = Jenkins::buildstart_metric metric_id, false
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard:check - %s' % File.join(home, path)
@@ -1070,33 +1034,19 @@ namespace :bn do
           #   status = false
           # end
 
-          if $metric
-            if not Jenkins::build_metric metric_id, false do
-                Compile::check_xml File.join(home, path), true do |_errors|
-                  errors_list << _errors
+          if not Compile::check_xml File.join(home, path), true do |_errors|
+              errors_list << _errors
 
-                  false
-                end
-              end
-
-              errors << path
-
-              status = false
+              false
             end
-          else
-            if not Compile::check_xml File.join(home, path), true do |_errors|
-                errors_list << _errors
 
-                false
-              end
+            errors << path
 
-              errors << path
-
-              status = false
-            end
+            status = false
           end
         end
 
+        Jenkins::buildend_metric id, status
         Jenkins::dashboard_dump 'check', errors
 
         if not status
@@ -1166,6 +1116,8 @@ namespace :bn do
           metric_id = BN_METRIC_ID_IPTN
         end
 
+        id = Jenkins::buildstart_metric metric_id, false
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard:deploy - %s' % File.join(home, path)
@@ -1178,33 +1130,19 @@ namespace :bn do
             next
           end
 
-          if $metric
-            if not Jenkins::build_metric metric_id, false do
-                Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
-                  errors_list << _errors
+          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+              errors_list << _errors
 
-                  false
-                end
-              end
-
-              errors << path
-
-              status = false
+              false
             end
-          else
-            if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
-                errors_list << _errors
 
-                false
-              end
+            errors << path
 
-              errors << path
-
-              status = false
-            end
+            status = false
           end
         end
 
+        Jenkins::buildend_metric id, status
         Jenkins::dashboard_dump 'deploy', errors
 
         if not status
@@ -1347,6 +1285,8 @@ namespace :bn do
           metric_id = BN_METRIC_ID_IPTN
         end
 
+        id = Jenkins::buildstart_metric metric_id, false
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard_cpp:compile - %s' % File.join(home, path)
@@ -1361,33 +1301,19 @@ namespace :bn do
 
           Compile::mvn File.join(home, path), 'mvn clean -fn'
 
-          if $metric
-            if not Jenkins::build_metric metric_id, false do
-                Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true do |_errors|
-                  errors_list << _errors
+          if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true do |_errors|
+              errors_list << _errors
 
-                  false
-                end
-              end
-
-              errors << path
-
-              status = false
+              false
             end
-          else
-            if not Compile::mvn File.join(home, path), 'mvn install -fn -U -T 5 -Djobs=5 -Dmaven.test.skip=true', true, true do |_errors|
-                errors_list << _errors
 
-                false
-              end
+            errors << path
 
-              errors << path
-
-              status = false
-            end
+            status = false
           end
         end
 
+        Jenkins::buildend_metric id, status
         Jenkins::dashboard_dump 'compile', errors
 
         if not status
@@ -1467,6 +1393,8 @@ namespace :bn do
           metric_id = BN_METRIC_ID_IPTN
         end
 
+        id = Jenkins::buildstart_metric metric_id, false
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard_cpp:test - %s' % File.join(home, path)
@@ -1489,33 +1417,19 @@ namespace :bn do
             end
           end
 
-          if $metric
-            if not Jenkins::build_metric metric_id, false do
-                Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true do |_errors|
-                  errors_list << _errors
+          if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true do |_errors|
+              errors_list << _errors
 
-                  false
-                end
-              end
-
-              errors << path
-
-              status = false
+              false
             end
-          else
-            if not Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true do |_errors|
-                errors_list << _errors
 
-                false
-              end
+            errors << path
 
-              errors << path
-
-              status = false
-            end
+            status = false
           end
         end
 
+        Jenkins::buildend_metric id, status
         Jenkins::dashboard_dump 'test', errors
 
         if not status
@@ -1593,6 +1507,8 @@ namespace :bn do
           metric_id = BN_METRIC_ID_IPTN
         end
 
+        id = Jenkins::buildstart_metric metric_id, false
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard_cpp:check - %s' % File.join(home, path)
@@ -1616,33 +1532,19 @@ namespace :bn do
           #   status = false
           # end
 
-          if $metric
-            if not Jenkins::build_metric metric_id, false do
-                Compile::check_xml File.join(home, path), true do |_errors|
-                  errors_list << _errors
+          if not Compile::check_xml File.join(home, path), true do |_errors|
+              errors_list << _errors
 
-                  false
-                end
-              end
-
-              errors << path
-
-              status = false
+              false
             end
-          else
-            if not Compile::check_xml File.join(home, path), true do |_errors|
-                errors_list << _errors
 
-                false
-              end
+            errors << path
 
-              errors << path
-
-              status = false
-            end
+            status = false
           end
         end
 
+        Jenkins::buildend_metric id, status
         Jenkins::dashboard_dump 'check', errors
 
         if not status
@@ -1720,6 +1622,8 @@ namespace :bn do
           metric_id = BN_METRIC_ID_IPTN
         end
 
+        id = Jenkins::buildstart_metric metric_id, false
+
         paths.each do |path|
           if not File.directory? File.join(home, path)
             Util::Logger::error 'no such directory @bn:dashboard_cpp:deploy - %s' % File.join(home, path)
@@ -1732,33 +1636,19 @@ namespace :bn do
             next
           end
 
-          if $metric
-            if not Jenkins::build_metric metric_id, false do
-                Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
-                  errors_list << _errors
+          if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
+              errors_list << _errors
 
-                  false
-                end
-              end
-
-              errors << path
-
-              status = false
+              false
             end
-          else
-            if not Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
-                errors_list << _errors
 
-                false
-              end
+            errors << path
 
-              errors << path
-
-              status = false
-            end
+            status = false
           end
         end
 
+        Jenkins::buildend_metric id, status
         Jenkins::dashboard_dump 'deploy', errors
 
         if not status
