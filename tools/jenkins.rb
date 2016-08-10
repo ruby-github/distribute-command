@@ -1272,9 +1272,9 @@ module Jenkins
       args = {
         :script_path  => 'bn/patch_module.groovy',
         :parameters   => [
-          ['agent',       'Agent名称', ''],
-          ['name',        '补丁名称',  ''],
-          ['module_name', '模块名称',  '']
+          ['os',          'OS名称',   ''],
+          ['name',        '补丁名称', ''],
+          ['module_name', '模块名称', '']
         ]
       }
 
@@ -1284,8 +1284,8 @@ module Jenkins
       args = {
         :script_path  => 'bn/patch.groovy',
         :parameters   => [
-          ['agent', 'Agent名称', ''],
-          ['name',  '补丁名称',  '']
+          ['os',    'OS名称',   ''],
+          ['name',  '补丁名称', '']
         ]
       }
 
@@ -1297,7 +1297,7 @@ module Jenkins
           line = [
             'timestamps {',
             '  stage "补丁制作"',
-            '  build job: "bn_patch", parameters: [[$class: "StringParameterValue", name: "agent", value: "%s"],[$class: "StringParameterValue", name: "name", value: "%s"]]' % [osname.to_s, name],
+            '  build job: "bn_patch", parameters: [[$class: "StringParameterValue", name: "os", value: "%s"],[$class: "StringParameterValue", name: "name", value: "%s"]]' % [osname.to_s, name],
             '}'
           ]
 
