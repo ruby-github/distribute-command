@@ -1372,13 +1372,13 @@ if $0 == __FILE__
 
   Dir.chdir 'jobs' do
     build = Jenkins::Base.new
-    build.build
+    #build.build
 
     build = Jenkins::Build.new
-    build.build
+    #build.build
 
     build = Jenkins::Dashboard.new
-    build.build
+    #build.build
 
     build = Jenkins::Patch.new
 

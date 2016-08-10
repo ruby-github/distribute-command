@@ -4,10 +4,11 @@ module Compile
   BN_MAX_SIZE_SERVER = 160
   BN_MAX_SIZE_CLIENT = 140
   MAIL_THRESHOLD_DAY = 5
+  PATH = ENV['PATH']
 
   def mvn path, cmdline = nil, _retry = false, sendmail = false
     if $x64
-      case OS.name
+      case OS::name
       when :windows
         ENV['WIN64'] = '1'
       when :linux
@@ -15,6 +16,10 @@ module Compile
       when :solaris
         ENV['SOLARIS64'] = '1'
       end
+    end
+
+    if OS::windows?
+      ENV['PATH'] = [PATH, File.join(ENV['DEVTOOLS_ROOT'], 'vc/bin')].join ';'
     end
 
     cmdline ||= 'mvn install -fn'
