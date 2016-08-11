@@ -1294,6 +1294,7 @@ module Jenkins
         @bn_init = true
 
         args = {
+          :authorization=> ['bnbuild'],
           :script_path  => 'bn/patch_install.groovy',
           :parameters   => [
             ['os',              'OS名称(windows, windows32, linux, solaris)',   'windows'],
@@ -1366,6 +1367,7 @@ module Jenkins
         @stn_init = true
 
         args = {
+          :authorization=> ['stnbuild'],
           :script_path  => 'stn/patch_install.groovy',
           :parameters   => [
             ['name',            '补丁名称',     ''],
