@@ -602,6 +602,11 @@ module Jenkins
         ['agent', 'Agent名称', 'linux']
       ]
 
+      parameters_test = [
+        ['home',  '工作目录',   'd:/build/main'],
+        ['agent', 'Agent名称',  'windows']
+      ]
+
       {
         'bn_build'      => {
           :script_path  => 'bn/build.groovy',
@@ -728,7 +733,11 @@ module Jenkins
           ]
         }
       }.each do |k, v|
-        v[:parameters] = parameters + v[:parameters]
+        if k == 'bn_test'
+          v[:parameters] = parameters + v[:parameters]
+        else
+          v[:parameters] = parameters_test + v[:parameters]
+        end
 
         pipeline = Jenkins::Pipeline.new k
         pipeline.build v
@@ -818,8 +827,13 @@ module Jenkins
 
     def stn_build
       parameters = [
-        ['home', '工作目录', '/home/user/build/stn/main'],
-        ['agent', 'Agent名称', 'linux']
+        ['home',  '工作目录',   '/home/user/build/stn/main'],
+        ['agent', 'Agent名称',  'linux']
+      ]
+
+      parameters_test = [
+        ['home',  '工作目录',   'f:/build/stn/main'],
+        ['agent', 'Agent名称',  'windows']
       ]
 
       {
@@ -911,7 +925,11 @@ module Jenkins
           ]
         }
       }.each do |k, v|
-        v[:parameters] = parameters + v[:parameters]
+        if k == 'stn_test'
+          v[:parameters] = parameters + v[:parameters]
+        else
+          v[:parameters] = parameters_test + v[:parameters]
+        end
 
         pipeline = Jenkins::Pipeline.new k
         pipeline.build v
@@ -966,7 +984,7 @@ module Jenkins
       args = {
         :script_path  => 'stn/command.groovy',
         :parameters   => [
-          ['home',      '工作目录', 'stn/daily'],
+          ['home',      '工作目录', 'stn/daily/windows'],
           ['configure', '配置文件', 'installation.xml'],
           ['version',   '版本号',   '']
         ]
@@ -993,7 +1011,7 @@ module Jenkins
         ['compile', '版本编译', true],
         ['install', '版本制作', true],
         ['check',   '版本检查', false],
-        ['test',    '版本测试', false],
+        ['test',    '版本测试', true],
         ['force',   '全量编译', true],
 
         ['version',         '版本号',     ''],
@@ -1068,7 +1086,7 @@ module Jenkins
         ['compile', '版本编译', true],
         ['install', '版本制作', true],
         ['check',   '版本检查', false],
-        ['test',    '版本测试', false],
+        ['test',    '版本测试', true],
         ['force',   '全量编译', true],
 
         ['version',         '版本号',     ''],

@@ -7,19 +7,21 @@ module Compile
   PATH = ENV['PATH']
 
   def mvn path, cmdline = nil, _retry = false, sendmail = false
-    if $x64
-      case OS::name
-      when :windows
-        ENV['WIN64'] = '1'
-      when :linux
-        ENV['LINUX64'] = '1'
-      when :solaris
-        ENV['SOLARIS64'] = '1'
+    if not ENV['DEVTOOLS_ROOT'].nil?
+      if $x64
+        case OS::name
+        when :windows
+          ENV['WIN64'] = '1'
+        when :linux
+          ENV['LINUX64'] = '1'
+        when :solaris
+          ENV['SOLARIS64'] = '1'
+        end
       end
-    end
 
-    if OS::windows?
-      ENV['PATH'] = [PATH, File.join(ENV['DEVTOOLS_ROOT'], 'vc/bin')].join ';'
+      if OS::windows?
+        ENV['PATH'] = [PATH, File.join(ENV['DEVTOOLS_ROOT'], 'vc/bin')].join ';'
+      end
     end
 
     cmdline ||= 'mvn install -fn'
