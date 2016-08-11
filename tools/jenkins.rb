@@ -1296,8 +1296,12 @@ module Jenkins
         args = {
           :script_path  => 'bn/patch_install.groovy',
           :parameters   => [
-            ['os',    'OS名称',   ''],
-            ['name',  '补丁名称', '']
+            ['os',              'OS名称(windows,windows32,linux,solaris)',  'windows'],
+            ['name',            '补丁名称',     ''],
+            ['version',         '版本号',       ''],
+            ['display_version', '显示版本号',   ''],
+            ['sp_next',         '下一个SP补丁', false],
+            ['type',            '版本类型',     '']
           ]
         }
 
@@ -1307,7 +1311,7 @@ module Jenkins
         args = {
           :script_path  => 'bn/patch_module.groovy',
           :parameters   => [
-            ['os',          'OS名称',   ''],
+            ['os',          'OS名称(windows,windows32,linux,solaris)',  ''],
             ['name',        '补丁名称', ''],
             ['module_name', '模块名称', '']
           ]
@@ -1319,7 +1323,7 @@ module Jenkins
         args = {
           :script_path  => 'bn/patch.groovy',
           :parameters   => [
-            ['os',    'OS名称',   ''],
+            ['os',    'OS名称(windows,windows32,linux,solaris)',  ''],
             ['name',  '补丁名称', '']
           ]
         }
@@ -1360,6 +1364,19 @@ module Jenkins
     def stn_build names
       if not @stn_init
         @stn_init = true
+
+        args = {
+          :script_path  => 'stn/patch_install.groovy',
+          :parameters   => [
+            ['name',            '补丁名称',     ''],
+            ['version',         '版本号',       ''],
+            ['display_version', '显示版本号',   ''],
+            ['sp_next',         '下一个SP补丁', false]
+          ]
+        }
+
+        pipeline = Jenkins::Pipeline.new 'stn_patch_install'
+        pipeline.build args
 
         args = {
           :script_path  => 'stn/patch_module.groovy',
