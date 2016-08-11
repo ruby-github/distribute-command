@@ -337,6 +337,61 @@ namespace :stn do
     end
   end
 
+  namespace :check do
+    task :check_xml, [:name, :home] do |t, args|
+      name = args[:name].to_s.nil
+      home = args[:home].to_s.nil || ($home || 'code')
+
+      defaults = STN_PATHS
+
+      if name.nil?
+        name = defaults.keys
+      end
+
+      status = true
+
+      errors_list = []
+
+      name.to_array.each do |module_name|
+        if not defaults.keys.include? module_name
+          Util::Logger::error 'no such module @stn:check:check_xml - %s' % module_name
+          status = false
+
+          next
+        end
+
+        if module_name == 'u3_interface'
+          path = File.join home, defaults[module_name], 'sdn/build'
+        else
+          path = File.join home, defaults[module_name], 'code/build'
+        end
+
+        if not Compile::check_xml path, true do |errors|
+            errors_list << errors
+
+            false
+          end
+
+          status = false
+        end
+      end
+
+      if not status
+        errors_list.each do |errors|
+          errors.each do |file|
+            Util::Logger::error file
+          end
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors, subject: '<CHECK 通知>XML文件格式错误, 请尽快处理'
+        end
+      end
+
+      status.exit
+    end
+  end
+
   namespace :dashboard do
     task :polling, [:home, :username, :password] do |t, args|
       home = args[:home].to_s.nil || ($home || 'code')

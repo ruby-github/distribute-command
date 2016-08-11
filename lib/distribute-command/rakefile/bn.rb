@@ -669,6 +669,104 @@ namespace :bn do
 
       status.exit
     end
+
+    task :check_xml, [:name, :home] do |t, args|
+      name = args[:name].to_s.nil
+      home = args[:home].to_s.nil || ($home || 'code')
+
+      defaults = BN_PATHS
+
+      if name.nil?
+        name = defaults.keys
+      end
+
+      status = true
+
+      errors_list = []
+
+      name.to_array.each do |module_name|
+        if not defaults.keys.include? module_name
+          Util::Logger::error 'no such module @bn:check:check_xml - %s' % module_name
+          status = false
+
+          next
+        end
+
+        path = File.join home, defaults[module_name], 'code/build'
+
+        if not Compile::check_xml path, true do |errors|
+            errors_list << errors
+
+            false
+          end
+
+          status = false
+        end
+      end
+
+      if not status
+        errors_list.each do |errors|
+          errors.each do |file|
+            Util::Logger::error file
+          end
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors, subject: '<CHECK 通知>XML文件格式错误, 请尽快处理'
+        end
+      end
+
+      status.exit
+    end
+
+    task :check_xml_cpp, [:name, :home] do |t, args|
+      name = args[:name].to_s.nil
+      home = args[:home].to_s.nil || ($home || 'code')
+
+      defaults = BN_CPP_PATHS
+
+      if name.nil?
+        name = defaults.keys
+      end
+
+      status = true
+
+      errors_list = []
+
+      name.to_array.each do |module_name|
+        if not defaults.keys.include? module_name
+          Util::Logger::error 'no such module @bn:check:check_xml_cpp - %s' % module_name
+          status = false
+
+          next
+        end
+
+        path = File.join home, defaults[module_name], 'code_c/build'
+
+        if not Compile::check_xml path, true do |errors|
+            errors_list << errors
+
+            false
+          end
+
+          status = false
+        end
+      end
+
+      if not status
+        errors_list.each do |errors|
+          errors.each do |file|
+            Util::Logger::error file
+          end
+        end
+
+        errors_list.each do |errors|
+          Compile::errors_mail errors, subject: '<CHECK 通知>XML文件格式错误, 请尽快处理'
+        end
+      end
+
+      status.exit
+    end
   end
 
   namespace :dashboard do

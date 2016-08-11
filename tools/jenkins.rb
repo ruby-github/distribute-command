@@ -1010,7 +1010,7 @@ module Jenkins
         ['update',  '版本更新', true],
         ['compile', '版本编译', true],
         ['install', '版本制作', true],
-        ['check',   '版本检查', false],
+        ['check',   '版本检查', true],
         ['test',    '版本测试', true],
         ['force',   '全量编译', true],
 
@@ -1085,7 +1085,7 @@ module Jenkins
         ['update',  '版本更新', true],
         ['compile', '版本编译', true],
         ['install', '版本制作', true],
-        ['check',   '版本检查', false],
+        ['check',   '版本检查', true],
         ['test',    '版本测试', true],
         ['force',   '全量编译', true],
 
