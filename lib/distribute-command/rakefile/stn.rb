@@ -765,7 +765,34 @@ namespace :stn do
   end
 
   namespace :patch do
-    task :patch do |t, args|
+    task :install, [:build_home, :version, :display_version, :sp_next] do |t, args|
+      build_home = args[:build_home].to_s.nil || ($build_home || 'build')
+      version = args[:version].to_s.nil || $version
+      display_version = args[:display_version].to_s.nil || ($display_version || version)
+      sp_next = args[:sp_next].to_s.boolean false
+
+      status = true
+
+      if not Install::install_patch build_home, version, display_version, sp_next, 'stn'
+        status = false
+      end
+
+      status.exit
+    end
+
+    task :patch, [:build_home, :code_home] do |t, args|
+      build_home = args[:build_home].to_s.nil || ($build_home || 'build')
+      code_home = args[:code_home].to_s.nil || ($home || 'code')
+
+      status = true
+
+      patch = Patch::Stn.new build_home, code_home
+
+      if not patch.patch File.join(build_home, 'xml/sdn')
+        status = false
+      end
+
+      status.exit
     end
 
     task :init do |t, args|

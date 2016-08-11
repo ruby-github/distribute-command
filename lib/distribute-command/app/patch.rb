@@ -1,9 +1,10 @@
 module Patch
   class Bn
-    def initialize home, source_home, devtools_home, output_home
+    def initialize build_home, code_home
     end
 
     def patch name
+      true
     end
 
     private
@@ -37,6 +38,8 @@ module Patch
     #   }
     # ]
     def load file
+      file = File.normalize file
+
       begin
         doc = REXML::Document.file file
 
@@ -372,6 +375,12 @@ module Patch
         'BN_PTN2',
         'BN_IP'
       ]
+    end
+  end
+
+  class Stn < Bn
+    def patch
+      true
     end
   end
 end

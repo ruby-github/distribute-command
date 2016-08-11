@@ -106,6 +106,8 @@ module Install
     true
   end
 
+  # -------------------------------------------------------
+
   def installation home, version, type = nil
     type ||= 'ems'
 
@@ -726,10 +728,11 @@ module Install
               end
 
               if not File.delete delete_files do |file|
-                Util::Logger::info file
+                  Util::Logger::info file
 
-                file
-              end
+                  file
+                end
+
                 return false
               end
 
@@ -870,5 +873,1215 @@ module Install
 
   class << self
     private :installation, :installdisk, :expandname, :ignore?, :zip, :cut_installation_upgrade
+  end
+end
+
+module Install
+  module_function
+
+  def install_patch build_home, version, display_version, sp_next = false, type = nil
+    build_home = File.normalize build_home
+    type ||= 'ems'
+
+    installation_home = File.join installation(File.join(build_home, 'patch/installation'), type), 'patch'
+    patch_home = File.join build_home, 'patch/patch'
+
+    if not File.directory? patch_home
+      Util::Logger::error 'no such directory - %s' % patch_home
+
+      return false
+    end
+
+    ids = []
+
+    Dir.chdir patch_home do
+      File.glob('*/patch').each do |x|
+        id = File.dirname x
+
+        if id =~ /^\d{8}_\d{4}$/
+          ids << id
+        end
+      end
+    end
+
+    ids.sort!
+
+    if ids.empty?
+      return true
+    end
+
+    suffix = patchname installation_home, ids.last, version, sp_next, type
+    names_suffix = patchset installation_home, version, type
+    spname = patch_spname installation_home, version, sp_next, type
+
+    map = {}
+
+    Dir.chdir home do
+      ids.each do |id|
+        file = File.glob(File.join(id, '*.xml')).first
+
+        if file.nil?
+          next
+        end
+
+        info = load_patch_file file, type
+
+        if info.nil?
+          return false
+        end
+
+        if info[:version] == '2.0'
+          File.glob(File.join(id, 'patch', '*', type.to_s)).each do |dirname|
+            if not File.directory? dirname
+              next
+            end
+
+            ppuname = File.basename File.dirname(dirname)
+
+            if ppuname == 'ip'
+              ppuname = 'bn-ip'
+            else
+              ppuname = 'bn'
+            end
+
+            if type.to_s == 'service'
+              ppuname = 'bn-servicetools'
+            end
+
+            Dir.chdir dirname do
+              list = File.glob '*'
+
+              if list.empty?
+                map[ppuname] ||= {
+                  :zip  => {
+                    :zip    => {},
+                    :ignore => []
+                  },
+                  :dbs  => {},
+                  :ids  => {},
+                  :pmu  => false
+                }
+
+                map[ppuname][:ids][id] = info
+              else
+                list.each do |x|
+                  case x
+                  when 'ppu'
+                    Dir.chdir x do
+                      File.glob('*').each do |ppu|
+                        map[ppu] ||= {
+                          :zip  => {
+                            :zip    => {},
+                            :ignore => []
+                          },
+                          :dbs  => {},
+                          :ids  => {},
+                          :pmu  => false
+                        }
+
+                        Dir.chdir ppu do
+                          File.glob('*').each do |ppu_x|
+                            if ppu_x == 'install'
+                              File.glob('install/*').each do |install_file|
+                                if File.directory? install_file
+                                  if install_file == 'install/dbscript-patch'
+                                    File.glob('install/dbscript-patch/**/*').each do |file|
+                                      if file =~ /install\/dbscript-patch\/(dbscript[-\w]*)\//
+                                        map[ppu][:zip][:zip][File.join('scripts', '%s%s' % [ppu, names_suffix.last], $1, $')] = File.join home, dirname, x, ppu, file
+                                      end
+                                    end
+                                  else
+                                    File.glob(File.join(install_file, '**/*')).each do |file|
+                                      map[ppu][:zip][:zip][file] = File.join home, dirname, x, ppu, file
+                                    end
+                                  end
+                                else
+                                  map[ppu][:zip][:zip][install_file] = File.join home, dirname, x, ppu, install_file
+                                end
+                              end
+                            else
+                              File.glob(File.join(ppu_x, '**/*')).each do |file|
+                                map[ppu][:zip][:zip][file] = File.join home, dirname, x, ppu, file
+                              end
+                            end
+                          end
+
+                          dbs = load_db_update_info
+
+                          if dbs.nil?
+                            return false
+                          end
+
+                          dbs.each do |data_source, paths|
+                            map[ppu][:dbs][data_source] ||= {}
+                            map[ppu][:dbs][data_source].deep_merge! paths
+                          end
+
+                          map[ppu][:ids][id] = info
+                        end
+                      end
+                    end
+                  when 'pmu'
+                    Dir.chdir x do
+                      File.glob('*').each do |pmu|
+                        map[pmu] ||= {
+                          :zip  => {
+                            :zip    => {},
+                            :ignore => []
+                          },
+                          :dbs  => {},
+                          :ids  => {},
+                          :pmu  => true
+                        }
+
+                        Dir.chdir pmu do
+                          File.glob('*').each do |pmu_x|
+                            if pmu_x == 'install'
+                              File.glob('install/*').each do |install_file|
+                                if File.directory? install_file
+                                  if install_file == 'install/dbscript-patch'
+                                    File.glob('install/dbscript-patch/**/*').each do |file|
+                                      if file =~ /install\/dbscript-patch\/(dbscript[-\w]*)\//
+                                        map[pmu][:zip][:zip][File.join('scripts', '%s%s' % [pmu, names_suffix.last], $1, $')] = File.join home, dirname, x, pmu, file
+                                      end
+                                    end
+                                  else
+                                    File.glob(File.join(install_file, '**/*')).each do |file|
+                                      map[pmu][:zip][:zip][file] = File.join home, dirname, x, pmu, file
+                                    end
+                                  end
+                                else
+                                  map[pmu][:zip][:zip][install_file] = File.join home, dirname, x, pmu, install_file
+                                end
+                              end
+                            else
+                              File.glob(File.join(pmu_x, '**/*')).each do |file|
+                                map[pmu][:zip][:zip][file] = File.join home, dirname, x, pmu, file
+                              end
+                            end
+                          end
+
+                          dbs = load_db_update_info
+
+                          if dbs.nil?
+                            return false
+                          end
+
+                          dbs.each do |data_source, paths|
+                            map[pmu][:dbs][data_source] ||= {}
+                            map[pmu][:dbs][data_source].deep_merge! paths
+                          end
+
+                          map[pmu][:ids][id] = info
+                        end
+                      end
+                    end
+                  else
+                    map[ppuname] ||= {
+                      :zip  => {
+                        :zip    => {},
+                        :ignore => []
+                      },
+                      :dbs  => {},
+                      :ids  => {},
+                      :pmu  => false
+                    }
+
+                    if x == 'install'
+                      File.glob('install/*').each do |install_file|
+                        if File.directory? install_file
+                          if install_file == 'install/dbscript-patch'
+                            File.glob('install/dbscript-patch/**/*').each do |file|
+                              if file =~ /install\/dbscript-patch\/(dbscript[-\w]*)\//
+                                map[ppuname][:zip][:zip][File.join('scripts', '%s%s' % [ppuname, names_suffix.last], $1, $')] = File.join home, dirname, file
+                              end
+                            end
+                          else
+                            File.glob(File.join(install_file, '**/*')).each do |file|
+                              map[ppuname][:zip][:zip][file] = File.join home, dirname, file
+                            end
+                          end
+                        else
+                          map[ppuname][:zip][:zip][install_file] = File.join home, dirname, install_file
+                        end
+                      end
+                    else
+                      File.glob(File.join(x, '**/*')).each do |file|
+                        map[ppuname][:zip][:zip][file] = File.join home, dirname, file
+                      end
+                    end
+
+                    dbs = load_db_update_info
+
+                    if dbs.nil?
+                      return false
+                    end
+
+                    dbs.each do |data_source, paths|
+                      map[ppuname][:dbs][data_source] ||= {}
+                      map[ppuname][:dbs][data_source].deep_merge! paths
+                    end
+
+                    map[ppuname][:ids][id] = info
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+    tmpdir = File.tmpdir
+
+    map.each do |k, v|
+      name = '%s%s' % [k, suffix]
+      names = names_suffix.map { |x| '%s%s' % [k, x] }
+
+      deletes = {}
+
+      v[:ids].sort.each do |id, info|
+        info[:delete].each do |x|
+          if x =~ /^(install|res|tools|uif|ums|uuf)/
+            deletes[x] = id
+          end
+        end
+      end
+
+      deletes.each do |x, id|
+        if v[:zip][:zip].has_key? x
+          cur_id = File.relative_path(v[:zip][:zip][x], home).split('/').first
+
+          if cur_id =~ /^[0-9_]+$/
+            if cur_id < id
+              v[:zip][:zip].delete x
+            end
+          end
+        end
+      end
+
+      if v[:pmu]
+        path = patchset_update_info name, names, tmpdir, version, display_version, deletes.keys.sort, type, k.split('-').first, k
+      else
+        path = patchset_update_info name, names, tmpdir, version, display_version, deletes.keys.sort, type, k, nil
+      end
+
+      v[:zip][:zip][File.basename(path)] = path
+
+      path = ums_db_update_info names.last, v[:dbs]
+      v[:zip][:zip][File.basename(path)] = path
+
+      path = patchinfo v[:ids], home, type
+      v[:zip][:zip][File.basename(path)] = path
+
+      opt = {
+        'zipname' => name
+      }
+
+      extends_info = patch_extends code_home, '*/trunk/installdisk/extends.xml', type, opt
+
+      if extends_info.nil?
+        return false
+      end
+
+      extends_info.each do |name, actions|
+        actions.each do |action, info|
+          info[:zip].each do |src, dest|
+            v[:zip][:zip][src] = dest
+          end
+
+          v[:zip][:ignore] += info[:ignore]
+        end
+      end
+
+      if v[:zip][:zip].empty?
+        next
+      end
+
+      v[:info] = {
+        :patch  => {
+          :info => {
+            name  => {
+              :version          => version,
+              :display_version  => display_version,
+              :zip              => {},
+              :ignore           => v[:zip][:ignore]
+            }
+          }
+        }
+      }
+
+      v[:zip][:zip].each do |dest, src|
+        v[:info][:patch][:info][name][:zip][src] = dest
+      end
+
+      if ['ems', 'upgrade'].include? type.to_s and k == 'bn'
+        append = ppuinfo version, '%s %s' % [display_version, spname], tmpdir
+      else
+        append = nil
+      end
+
+      status = true
+
+      if not zip '.', v[:info], tmpdir, nil, nil, type, append do |name, ver|
+          File.join installation_home, '%s.zip' % name
+        end
+
+        status = false
+      end
+
+      if status
+        changedesc File.join(installation_home, name), v[:ids], home, type
+      end
+
+      if not File.delete tmpdir
+        return false
+      end
+
+      if not status
+        return false
+      end
+    end
+
+    # update info
+    update_ids = {}
+
+    Dir.chdir home do
+      File.glob('*').each do |id|
+        if id =~ /^\d{8}_\d{4}$/
+          Dir.chdir id do
+            update = true
+
+            File.glob('*').each do |x|
+              if File.directory? x
+                update = false
+
+                break
+              end
+            end
+
+            if update
+              File.glob('*.xml').each do |x|
+                update_ids[id] = load_patch_file x, type
+
+                break
+              end
+            end
+          end
+        end
+      end
+    end
+
+    if not update_ids.empty?
+      changedesc File.join(installation_home, 'update%s' % suffix), update_ids
+    end
+
+    true
+  end
+
+  def install_lct_patch build_home, version, display_version
+    build_home = File.normalize build_home
+
+    installation_home = installation File.join(build_home, 'patch/installation'), 'lct'
+    patch_home = File.join build_home, 'patch/patch'
+
+    if not File.directory? installation_home
+      Util::Logger::error 'no such directory - %s' % installation_home
+
+      return false
+    end
+
+    if not File.directory? patch_home
+      Util::Logger::error 'no such directory - %s' % patch_home
+
+      return false
+    end
+
+    paths = []
+
+    Dir.chdir patch_home do
+      File.glob('*/patch/*/lct').each do |x|
+        id = x.split('/').first
+
+        if id =~ /^\d{8}_\d{4}$/
+          paths << File.join(patch_home, x)
+        end
+      end
+    end
+
+    if paths.empty?
+      return true
+    end
+
+    tmpdir = File.tmpdir
+
+    Dir.chdir installation_home do
+      paths.each do |path|
+        if not File.copy path, File.join(tmpdir, 'patch') do |src, dest|
+            Util::Logger::info src
+
+            [src, dest]
+          end
+
+          File.delete tmpdir
+
+          return false
+        end
+      end
+
+      File.glob('lct_*_setup.exe').each do |name|
+        dirname = File.join tmpdir, File.basename(name)
+
+        cmdline = '7z x %s -o%s' % [name, File.cmdline(File.join(dirname, 'lct'))]
+
+        if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+            Util::Logger::puts line
+          end
+
+          File.delete tmpdir
+
+          return false
+        end
+
+        if not File.copy File.join(tmpdir, 'patch'), File.join(dirname, 'lct') do |src, dest|
+            Util::Logger::info src
+
+            [src, dest]
+          end
+
+          File.delete tmpdir
+
+          return false
+        end
+
+        if not File.copy File.join(gem_dir('distribute-command'), 'doc/bin/lct'), dirname do |src, dest|
+            Util::Logger::info src
+
+            [src, dest]
+          end
+
+          File.delete tmpdir
+
+          return false
+        end
+
+        Dir.chdir dirname do
+          [
+            '7z a -m0=LZMA lct.7z ./lct/*',
+            'copy /b 7z.sfx+config.txt+lct.7z lct_setup.exe'
+          ].each do |cmdline|
+            if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                Util::Logger::puts line
+              end
+
+              File.delete tmpdir
+
+              return false
+            end
+          end
+        end
+
+        if not File.delete name do |file|
+            Util::Logger::info file
+
+            file
+          end
+
+          return false
+        end
+
+        if not File.copy File.join(dirname, 'lct_setup.exe'), name do |src, dest|
+            Util::Logger::info src
+
+            [src, dest]
+          end
+
+          return false
+        end
+
+        if not File.delete File.join(dirname, 'lct_setup.exe') do |file|
+            Util::Logger::info file
+
+            file
+          end
+
+          return false
+        end
+      end
+    end
+
+    File.delete tmpdir
+
+    true
+  end
+
+  # -------------------------------------------------------
+
+  def patchname installation_home, id, version, sp_next = false, type = nil
+    prefix = '-%s-SP' % version
+    last_sp = 0
+    last_index = 0
+
+    if File.directory? installation_home
+      Dir.chdir installation_home do
+        File.glob('*%s*.zip' % prefix).each do |name|
+          if name =~ /-SP(\d+)\(001-(\d+)\)/
+            last_sp = [last_sp, $1.to_i].max
+            last_index = [last_index, $2.to_i].max
+          else
+            if name =~ /-SP(\d+)\((\d+)\)/
+              last_sp = [last_sp, $1.to_i].max
+              last_index = [last_index, $2.to_i].max
+            end
+          end
+        end
+      end
+    end
+
+    if sp_next or last_sp == 0
+      last_sp += 1
+    end
+
+    '%s%03d(%03d)-%s' % [prefix, last_sp, last_index.next, id]
+  end
+
+  def patchset installation_home, version, type = nil
+    prefix = '-%s-SP' % version
+    last_index = 0
+
+    if File.directory? installation_home
+      Dir.chdir installation_home do
+        File.glob('*%s*.zip' % prefix).each do |name|
+          if name =~ /-SP(\d+)\(001-(\d+)\)/
+            last_index = [last_index, $2.to_i].max
+          else
+            if name =~ /-SP(\d+)\((\d+)\)/
+              last_index = [last_index, $2.to_i].max
+            end
+          end
+        end
+      end
+    end
+
+    last_index += 1
+
+    names = []
+
+    last_index.times do |i|
+      names << '-%s-%03d' % [version, i.next]
+    end
+
+    names
+  end
+
+  def patch_spname installation_home, version, sp_next = false, type = nil
+    prefix = '-%s-SP' % version
+    last_sp = 0
+
+    if File.directory? installation_home
+      Dir.chdir installation_home do
+        File.glob('*%s*.zip' % prefix).each do |name|
+          if name =~ /-SP(\d+)\(001-(\d+)\)/
+            last_sp = [last_sp, $1.to_i].max
+          else
+            if name =~ /-SP(\d+)\((\d+)\)/
+              last_sp = [last_sp, $1.to_i].max
+            end
+          end
+        end
+      end
+    end
+
+    if sp_next or last_sp == 0
+      last_sp += 1
+    end
+
+    'SP%03d' % last_sp
+  end
+
+  def ppuinfo version, display_version, tempdir
+    # ums-server/procs/ppus/bn.ppu/ppuinfo.xml
+    # ums-server/procs/ppus/e2e.ppu/ppuinfo.xml
+
+    doc = REXML::Document.new '<ppu/>'
+    display_element = REXML::Element.new 'display-name'
+    info_element = REXML::Element.new 'info'
+    doc.root << display_element
+    doc.root << info_element
+
+    display_element.attributes['en_US'] = 'BN-xTN'
+    display_element.attributes['zh_CN'] = 'BN-xTN'
+
+    info_element.attributes['display-version'] = display_version.to_s
+    info_element.attributes['en_US'] = 'Bearer Network Transport Common Module'
+    info_element.attributes['version'] = version.to_s
+    info_element.attributes['zh_CN'] = '承载传输公用组件'
+
+    doc.to_file File.join(tmpdir, 'ppuinfo', 'ums-server/procs/ppus/bn.ppu/ppuinfo.xml'), 'gb2312'
+    doc.to_file File.join(tmpdir, 'ppuinfo', 'ums-client/procs/ppus/bn.ppu/ppuinfo.xml'), 'gb2312'
+
+    display_element.attributes['en_US'] = 'E2E'
+    display_element.attributes['zh_CN'] = 'E2E'
+
+    info_element.attributes['display-version'] = display_version.to_s
+    info_element.attributes['en_US'] = 'End-To-End Module'
+    info_element.attributes['version'] = version.to_s
+    info_element.attributes['zh_CN'] = '端到端组件'
+
+    doc.to_file File.join(tmpdir, 'ppuinfo', 'ums-server/procs/ppus/e2e.ppu/ppuinfo.xml'), 'gb2312'
+    doc.to_file File.join(tmpdir, 'ppuinfo', 'ums-client/procs/ppus/e2e.ppu/ppuinfo.xml'), 'gb2312'
+
+    File.glob(File.join(tmpdir, 'ppuinfo', 'ums-*/procs/ppus/*/ppuinfo.xml')).each do |file|
+      str = IO.read file
+
+      File.open file, 'w' do |f|
+        f.puts str.gsub('\'', '"')
+      end
+    end
+
+    {
+      File.join(tmpdir, 'ppuinfo', 'ums-server/procs/ppus/bn.ppu/ppuinfo.xml') => 'ums-server/procs/ppus/bn.ppu/ppuinfo.xml',
+      File.join(tmpdir, 'ppuinfo', 'ums-server/procs/ppus/e2e.ppu/ppuinfo.xml') => 'ums-server/procs/ppus/e2e.ppu/ppuinfo.xml',
+      File.join(tmpdir, 'ppuinfo', 'ums-client/procs/ppus/bn.ppu/ppuinfo.xml') => 'ums-client/procs/ppus/bn.ppu/ppuinfo.xml',
+      File.join(tmpdir, 'ppuinfo', 'ums-client/procs/ppus/e2e.ppu/ppuinfo.xml') => 'ums-client/procs/ppus/e2e.ppu/ppuinfo.xml'
+    }
+  end
+
+  def patchset_update_info zipname, names, tmpdir, version, display_version, deletes = nil, type = nil, ppuname = nil, pmuname = nil
+    deletes ||= []
+    type ||= 'ems'
+
+    doc = REXML::Document.new '<update-info/>'
+
+    ppuname ||= 'bn'
+
+    case ppuname
+    when 'bn-ip'
+      ppuname = 'bn'
+      pmuname = 'bn-ip'
+    when 'bn'
+      if type.to_s == 'ems'
+        ppuname = 'e2e'
+      end
+    end
+
+    doc.root.attributes['ppuname'] = ppuname
+
+    if not pmuname.nil?
+      doc.root.attributes['pmuname'] = pmuname
+    end
+
+    if type.to_s == 'service'
+      doc.root.attributes['ppuname'] = 'bn'
+      doc.root.attributes['pmuname'] = 'bn-servicetools'
+      doc.root.attributes['hotpatch'] = 'true'
+    end
+
+    element = REXML::Element.new 'description'
+
+    e = REXML::Element.new 'zh_cn'
+    e.text = 'NetNumen U31统一网管系统%s' % display_version
+    element << e
+
+    e = REXML::Element.new 'en_us'
+    e.text = 'NetNumen U31 Unified Network Management System %s' % display_version
+    element << e
+
+    doc.root << element
+
+    if type.to_s == 'service'
+      element = REXML::Element.new 'hotpatch'
+      element.attributes['restart-client'] = 'true'
+      element.attributes['run-operation'] = 'true'
+
+      doc.root << element
+
+      element = REXML::Element.new 'pmus'
+      e = REXML::Element.new 'pmu'
+      e.attributes['name'] = 'bn-servicetools'
+      element << e
+
+      doc.root << element
+    end
+
+    element = REXML::Element.new 'src-version'
+    e = REXML::Element.new 'version'
+    e.attributes['main'] = version
+    element << e
+    doc.root << element
+
+    element = REXML::Element.new 'patchs'
+
+    names.each do |x|
+      e = REXML::Element.new 'patch'
+      e.text = x
+      element << e
+    end
+
+    doc.root << element
+
+    if not deletes.empty?
+      element = REXML::Element.new 'delete-file-list'
+
+      deletes.each do |x|
+        e = REXML::Element.new 'file-item'
+        e.attributes['delfile'] = x
+        element << e
+      end
+
+      doc.root << element
+    end
+
+    doc.to_file File.join(tmpdir, 'update-info', zipname, 'patchset-update-info.xml')
+
+    File.join tmpdir, 'update-info'
+  end
+
+  def ums_db_update_info patchname, dbs, tmpdir
+    doc = REXML::Document.new '<install-db/>'
+
+    dbs.each do |data_source, xpaths|
+      element = REXML::Element.new 'data-source'
+      element.attributes['key'] = data_source
+
+      xpaths.each do |xpath, info|
+        list = xpath.split '/'
+        e = nil
+        cur_e = nil
+
+        list.each do |x|
+          if e.nil?
+            e = REXML::Element.new x
+            cur_e = e
+          else
+            tmp_e = REXML::Element.new x
+            cur_e << tmp_e
+            cur_e = tmp_e
+          end
+        end
+
+        if not e.nil?
+          info.each do |filename, opt|
+            item_element = REXML::Element.new 'item'
+
+            opt.each do |k, v|
+              item_element.attributes[k] = v
+            end
+
+            cur_e << item_element
+          end
+
+          element << e
+        end
+      end
+
+      doc.root << element
+    end
+
+    doc.to_file File.join(tmpdir, 'scripts', patchname, 'ums-db-update-info.xml')
+
+    File.join tmpdir, 'scripts'
+  end
+
+  def patchinfo ids, tmpdir, home = nil, type = nil
+    doc = REXML::Document.new '<update/>'
+    doc_defect = REXML::Document.new '<update/>'
+
+    ids.each do |id, info|
+      info_list = []
+
+      if not home.nil? and File.directory? File.join(home, id, 'ids')
+        File.glob(File.join(home, id, 'ids', '*.xml')).each do |file|
+          ids_info = load_patch_file file, type
+
+          if ids_info.nil?
+            next
+          end
+
+          info_list << ids_info
+        end
+      else
+        info_list << info
+      end
+
+      info_list.each do |x|
+        element = REXML::Element.new 'info'
+        element.attributes['name'] = id
+
+        ['提交人员', '开发经理', '变更描述'].each do |name|
+          e = REXML::Element.new 'attr'
+          e.text = x[:info][name]
+          e.attributes['name'] = name
+
+          element << e
+        end
+
+        if ['故障'].include? x[:info]['变更类型']
+          doc_defect.root << element
+        else
+          doc.root << element
+        end
+      end
+    end
+
+    dirname = File.join tmpdir, 'update', 'patchinfo', Time.now.strftime('%Y%m%d%H%M%S')
+
+    doc.to_file File.join(dirname, 'update.xml')
+    doc_defect.to_file File.join(dirname, 'update_defect.xml')
+
+    File.join tmpdir, 'update'
+  end
+
+  def changedesc name, ids, home = nil, type = nil
+    if OS::windows?
+      begin
+        application = Excel::Application.new
+        wk = application.add File.join(gem_dir('distribute-command'), 'doc/bn/patchinfo_template.xltx')
+        sht = wk.worksheet 1
+
+        line = 2
+
+        ids.each do |id, info|
+          info_list = []
+
+          if not home.nil? and File.directory? File.join(home, id, 'ids')
+            File.glob(File.join(home, id, 'ids', '*.xml')).each do |file|
+              ids_info = load_patch_file file, type
+
+              if ids_info.nil?
+                next
+              end
+
+              info_list << ids_info
+            end
+          else
+            info_list << info
+          end
+
+          info_list.each do |x|
+            # 变更来源
+            sht.set line, 1, x[:info]['变更来源']
+            # 变更类型
+            sht.set line, 2, x[:info]['变更类型']
+            # 开发组
+            sht.set line, 3, x[:info]['开发经理']
+            # 提交人
+            sht.set line, 4, x[:info]['提交人员']
+            # 故障ID/需求特征项ID
+            sht.set line, 5, x[:info]['关联故障']
+            # 变更描述
+            sht.set line, 6, x[:info]['变更描述']
+            # 变更波及分析及测试建议
+            sht.set line, 7, x[:info]['影响分析']
+            # 集成测试人
+            # 集成测试结果
+            # 补丁编号
+            sht.set line, 10, id
+            # 源文件
+            sht.set line, 11, x[:source].join("\n")
+            # 补丁文件
+            sht.set line, 12, x[:deploy].join("\n")
+            # 走查人员
+            sht.set line, 16, x[:info]['走查人员']
+            # 走查结果
+            sht.set line, 17, x[:info]['走查结果']
+
+            line += 1
+          end
+        end
+
+        sht.worksheet.UsedRange.WrapText = false
+
+        wk.save name
+        wk.close
+
+        true
+      rescue
+        Util::Logger::exception $!
+
+        false
+      end
+    else
+      doc = REXML::Document.new '<patchinfo/>'
+
+      ids.each do |id, info|
+        info_list = []
+
+        if not home.nil? and File.directory? File.join(home, id, 'ids')
+          File.glob(File.join(home, id, 'ids', '*.xml')).each do |file|
+            ids_info = load_patch_file file, type
+
+            if ids_info.nil?
+              next
+            end
+
+            info_list << ids_info
+          end
+        else
+          info_list << info
+        end
+
+        info_list.each do |x|
+          element = REXML::Element.new 'info'
+          element.attributes['id'] = id
+
+          e = REXML::Element.new 'attr'
+          e.text = x[:info]['变更来源']
+          e.attributes['name'] = '变更来源'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.text = x[:info]['变更类型']
+          e.attributes['name'] = '变更类型'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.text = x[:info]['开发经理']
+          e.attributes['name'] = '开发组'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.text = x[:info]['提交人员']
+          e.attributes['name'] = '提交人'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.text = x[:info]['关联故障']
+          e.attributes['name'] = '故障ID/需求特征项ID'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.text = x[:info]['变更描述']
+          e.attributes['name'] = '变更描述'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.text = x[:info]['影响分析']
+          e.attributes['name'] = '变更波及分析及测试建议'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.attributes['name'] = '集成测试人'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.attributes['name'] = '集成测试结果'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.text = id
+          e.attributes['name'] = '补丁编号'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.text = x[:source].join("\n")
+          e.attributes['name'] = '源文件'
+          element << e
+
+          e = REXML::Element.new 'attr'
+          e.text = x[:deploy].join("\n")
+          e.attributes['name'] = '补丁文件'
+          element << e
+
+          doc.root << element
+        end
+      end
+
+      doc.to_file '%s.xml' % name
+
+      true
+    end
+  end
+
+  # map
+  #   name
+  #     action
+  #       :zip
+  #         src: dest
+  #       :ignore
+  #         - path
+  def patch_extends home, xpath, type = nil, opt = {}
+    type ||= 'ems'
+
+    Dir.chdir home do
+      map = {}
+
+      File.glob(xpath).each do |file|
+        begin
+          doc = REXML::Document.file file
+        rescue
+          Util::Logger::exception $!
+
+          return nil
+        end
+
+        name = nil
+
+        if file =~ /\/trunk\//
+          name = File.basename $`
+        end
+
+        if name.nil?
+          return nil
+        end
+
+        REXML::XPath.each(doc.root, type.to_s) do |e|
+          e.each_element do |element|
+            action = element.name
+            dirname = element.attributes['dirname'].to_s
+
+            map[name] ||= {}
+            map[name][action] ||= {
+              :zip    => {},
+              :ignore => []
+            }
+
+            REXML::XPath.each(element, 'file') do |file_element|
+              src = file_element.attributes['name']
+              dest = file_element.attributes['dest']
+
+              if not src.nil? and not dest.nil?
+                map[name][action][:zip][dest.strip.vars(opt)] = File.join name, 'trunk', dirname, src.strip.vars(opt)
+              end
+            end
+
+            REXML::XPath.each(element, 'ignore') do |ignore_element|
+              ignore_path = ignore_element.attributes['name'].to_s.strip.vars opt
+
+              Dir.chdir File.join(name, 'trunk', dirname) do
+                File.glob(ignore_path).each do |path|
+                  map[name][action][:ignore] << File.join(name, 'trunk', dirname, path)
+                end
+              end
+            end
+          end
+        end
+      end
+
+      map
+    end
+  end
+
+  def load_patch_file file, type = nil
+    begin
+      doc = REXML::Document.file file
+    rescue
+      Util::Logger::exception $!
+
+      return nil
+    end
+
+    map = {
+      :version  => doc.root.attributes['version'].to_s,
+      :source   => [],
+      :deploy   => [],
+      :delete   => [],
+      :info     => {}
+    }
+
+    REXML::XPath.each(doc, '/patches/patch') do |e|
+      home = e.attributes['name'].to_s
+
+      REXML::XPath.each(e, 'source/attr') do |element|
+        map[:source] << File.join(home, element.attributes['name'].to_s)
+      end
+
+      if map[:version] == '2.0'
+        REXML::XPath.each(e, 'deploy/deploy/attr') do |element|
+          dest = element.text.to_s.nil
+
+          if dest.nil?
+            src = element.attributes['name'].to_s
+
+            if src =~ /^(sdn,code|code_c)\/build\/output\//
+              dest = $'
+            end
+          end
+
+          if not dest.nil?
+            cur_type = element.attributes['type'].to_s.strip.nil
+
+            if dest =~ /^ums-(\w+)/
+              if ['nms', 'lct'].include? $1
+                cur_type = $1
+
+                dest.gsub! 'ums-%s' % $1, 'ums-client'
+              end
+            end
+
+            cur_type ||= 'ems'
+
+            if cur_type == type.to_s
+              map[:deploy] << dest
+            end
+          end
+        end
+
+        REXML::XPath.each(e, 'deploy/delete/attr') do |element|
+          cur_type = (element.attributes['type'].to_s.strip.nil || 'ems').split(',') {|x| x.strip}
+
+          if cur_type.include? type.to_s
+            map[:delete] << element.attributes['name'].to_s
+          end
+        end
+      end
+
+      REXML::XPath.each(e, 'info/attr') do |element|
+        map[:info][element.attributes['name'].to_s] = element.text.to_s
+      end
+    end
+
+    map
+  end
+
+  def load_db_update_info
+    file = 'install/dbscript-patch/ums-db-update-info.xml'
+
+    dbs = {}
+
+    if File.file? file
+      begin
+        doc = REXML::Document.file file
+      rescue
+        Util::Logger::exception $!
+
+        return nil
+      end
+
+      REXML::XPath.each(doc, '/install-db/data-source') do |e|
+        data_source = e.attributes['key'].to_s.strip
+        dbs[data_source] ||= {}
+
+        REXML::XPath.each(e, '*//item[@filename]') do |element|
+          xpath = element.parent.xpath.gsub /\/install-db\/data-source[\[\d\]]*\//, ''
+          filename = element.attributes['filename'].to_s.strip
+
+          opt = {}
+
+          element.attributes.each do |k, v|
+            opt[k] = v
+          end
+
+          if opt['filename'].nil? or opt['rollback'].nil?
+            Util::Logger::error '%s[%s] filename or rollback is empty' % [file, element.xpath]
+
+            return nil
+          end
+
+          xpath.gsub! /\[\d+\]/, ''
+
+          dbs[data_source][xpath] ||= {}
+          dbs[data_source][xpath][filename] = opt
+        end
+      end
+    end
+
+    dbs
+  end
+
+  class << self
+    private :patchname, :patchset, :patch_spname, :ppuinfo
+    private :patchset_update_info, :ums_db_update_info, :patchinfo, :changedesc
+    private :patch_extends, :load_patch_file, :load_db_update_info
   end
 end

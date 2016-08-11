@@ -1769,7 +1769,68 @@ namespace :bn do
   end
 
   namespace :patch do
-    task :patch, [:name] do |t, args|
+    task :install, [:build_home, :version, :display_version, :sp_next, :type] do |t, args|
+      build_home = args[:build_home].to_s.nil || ($build_home || 'build')
+      version = args[:version].to_s.nil || $version
+      display_version = args[:display_version].to_s.nil || ($display_version || version)
+      sp_next = args[:sp_next].to_s.boolean false
+      type = args[:type].to_s.nil
+
+      status = true
+
+      if not Install::install_patch build_home, version, display_version, sp_next, type
+        status = false
+      end
+
+      status.exit
+    end
+
+    task :install_lct, [:build_home, :version, :display_version] do |t, args|
+      build_home = args[:build_home].to_s.nil || ($build_home || 'build')
+      version = args[:version].to_s.nil || $version
+      display_version = args[:display_version].to_s.nil || ($display_version || version)
+
+      status = true
+
+      if not Install::install_patch_lct build_home, version, display_version
+        status = false
+      end
+
+      status.exit
+    end
+
+    task :patch, [:name, :build_home, :code_home] do |t, args|
+      name = args[:name].to_s.nil
+      build_home = args[:build_home].to_s.nil || ($build_home || 'build')
+      code_home = args[:code_home].to_s.nil || ($home || 'code')
+
+      if ENV['DEVTOOLS_ROOT'].nil?
+        ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
+      end
+
+      if ENV['INTERFACE_OUTPUT_HOME'].nil?
+        ENV['INTERFACE_OUTPUT_HOME'] = File.join File.expand_path(File.join(build_home, 'code')), BN_CPP_PATHS['interface'], 'code_c/build/output'
+      end
+
+      if ENV['PLATFORM_OUTPUT_HOME'].nil?
+        ENV['PLATFORM_OUTPUT_HOME'] = File.join File.expand_path(File.join(build_home, 'code')), BN_CPP_PATHS['platform'], 'code_c/build/output'
+      end
+
+      if name.nil?
+        name = ['ptn', 'e2e', 'naf', 'wdm']
+      end
+
+      status = true
+
+      patch = Patch::Bn.new build_home, code_home
+
+      name.to_array.each do |_name|
+        if not patch.patch File.join(build_home, 'xml', _name)
+          status = false
+        end
+      end
+
+      status.exit
     end
 
     task :init do |t, args|

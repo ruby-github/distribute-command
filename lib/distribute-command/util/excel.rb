@@ -67,7 +67,11 @@ module Excel
           File.delete file
         end
 
-        @workbook.SaveAs File.expand_path(file).gsub('/', '\\')
+        if File.mkdir File.dirname(file)
+          @workbook.SaveAs File.expand_path(file).gsub('/', '\\')
+        else
+          false
+        end
       end
     end
 
@@ -98,8 +102,6 @@ module Excel
 
       data
     end
-
-    private
 
     def get row, col
       @worksheet.Cells(row, col).Value.to_s.utf8.strip
