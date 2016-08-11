@@ -1284,31 +1284,51 @@ module Jenkins
   end
 
   class Patch
+    def initialize
+      @bn_init = false
+      @stn_init = false
+    end
+
     def bn_build names, osnames = nil
+      if not @bn_init
+        @bn_init = true
+
+        args = {
+          :script_path  => 'bn/patch_install.groovy',
+          :parameters   => [
+            ['os',    'OS名称',   ''],
+            ['name',  '补丁名称', '']
+          ]
+        }
+
+        pipeline = Jenkins::Pipeline.new 'bn_patch_install'
+        pipeline.build args
+
+        args = {
+          :script_path  => 'bn/patch_module.groovy',
+          :parameters   => [
+            ['os',          'OS名称',   ''],
+            ['name',        '补丁名称', ''],
+            ['module_name', '模块名称', '']
+          ]
+        }
+
+        pipeline = Jenkins::Pipeline.new 'bn_patch_module'
+        pipeline.build args
+
+        args = {
+          :script_path  => 'bn/patch.groovy',
+          :parameters   => [
+            ['os',    'OS名称',   ''],
+            ['name',  '补丁名称', '']
+          ]
+        }
+
+        pipeline = Jenkins::Pipeline.new 'bn_patch'
+        pipeline.build args
+      end
+
       osnames ||= [:linux, :solaris, :windows, :windows32]
-
-      args = {
-        :script_path  => 'bn/patch_module.groovy',
-        :parameters   => [
-          ['os',          'OS名称',   ''],
-          ['name',        '补丁名称', ''],
-          ['module_name', '模块名称', '']
-        ]
-      }
-
-      pipeline = Jenkins::Pipeline.new 'bn_patch_module'
-      pipeline.build args
-
-      args = {
-        :script_path  => 'bn/patch.groovy',
-        :parameters   => [
-          ['os',    'OS名称',   ''],
-          ['name',  '补丁名称', '']
-        ]
-      }
-
-      pipeline = Jenkins::Pipeline.new 'bn_patch'
-      pipeline.build args
 
       names.to_array.each do |name|
         osnames.to_array.each do |osname|
@@ -1338,25 +1358,29 @@ module Jenkins
     end
 
     def stn_build names
-      args = {
-        :script_path  => 'stn/patch_module.groovy',
-        :parameters   => [
-          ['name', '补丁名称', '']
-        ]
-      }
+      if not @stn_init
+        @stn_init = true
 
-      pipeline = Jenkins::Pipeline.new 'stn_patch_module'
-      pipeline.build args
+        args = {
+          :script_path  => 'stn/patch_module.groovy',
+          :parameters   => [
+            ['name', '补丁名称', '']
+          ]
+        }
 
-      args = {
-        :script_path  => 'stn/patch.groovy',
-        :parameters   => [
-          ['name', '补丁名称', '']
-        ]
-      }
+        pipeline = Jenkins::Pipeline.new 'stn_patch_module'
+        pipeline.build args
 
-      pipeline = Jenkins::Pipeline.new 'stn_patch'
-      pipeline.build args
+        args = {
+          :script_path  => 'stn/patch.groovy',
+          :parameters   => [
+            ['name', '补丁名称', '']
+          ]
+        }
+
+        pipeline = Jenkins::Pipeline.new 'stn_patch'
+        pipeline.build args
+      end
 
       names.to_array.each do |name|
         line = [
