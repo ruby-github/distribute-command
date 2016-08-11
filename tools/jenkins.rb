@@ -1296,8 +1296,8 @@ module Jenkins
         args = {
           :script_path  => 'bn/patch_install.groovy',
           :parameters   => [
-            ['os',              'OS名称(windows,windows32,linux,solaris)',  'windows'],
-            ['name',            '补丁名称',     ''],
+            ['os',              'OS名称(windows, windows32, linux, solaris)',   'windows'],
+            ['name',            '补丁名称(例如dev/20160801, release/20160606)', ''],
             ['version',         '版本号',       ''],
             ['display_version', '显示版本号',   ''],
             ['sp_next',         '下一个SP补丁', false],
@@ -1311,8 +1311,8 @@ module Jenkins
         args = {
           :script_path  => 'bn/patch_module.groovy',
           :parameters   => [
-            ['os',          'OS名称(windows,windows32,linux,solaris)',  ''],
-            ['name',        '补丁名称', ''],
+            ['os',          'OS名称(windows, windows32, linux, solaris)',   'windows'],
+            ['name',        '补丁名称(例如dev/20160801, release/20160606)', ''],
             ['module_name', '模块名称', '']
           ]
         }
@@ -1323,8 +1323,8 @@ module Jenkins
         args = {
           :script_path  => 'bn/patch.groovy',
           :parameters   => [
-            ['os',    'OS名称(windows,windows32,linux,solaris)',  ''],
-            ['name',  '补丁名称', '']
+            ['os',    'OS名称(windows, windows32, linux, solaris)',   'windows'],
+            ['name',  '补丁名称(例如dev/20160801, release/20160606)', ''],
           ]
         }
 
