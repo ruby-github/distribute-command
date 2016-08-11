@@ -1018,7 +1018,7 @@ module ASN1
         @@tags = {}
       end
 
-      paths.to_array do |path|
+      paths.to_array.each do |path|
         path = File.normalize path
 
         if File.basename(path) == 'asn.jar'

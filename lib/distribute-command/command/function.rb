@@ -321,13 +321,13 @@ module DistributeCommand
           drb = nil
         end
 
-        if File.directory? File.join(home, 'asn1')
-          ASN1::Asn1::import File.glob(File.join(home, 'asn1/**/*.jar')), true
-        end
-
         if status
           $distributecommand_asn1 = true
         end
+      end
+
+      if File.directory? File.join(home, 'asn1')
+        ASN1::Asn1::import File.glob(File.join(home, 'asn1/**/*.jar')), true
       end
 
       if File.directory? home
