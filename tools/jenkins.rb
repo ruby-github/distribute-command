@@ -734,9 +734,9 @@ module Jenkins
         }
       }.each do |k, v|
         if k == 'bn_test'
-          v[:parameters] = parameters + v[:parameters]
-        else
           v[:parameters] = parameters_test + v[:parameters]
+        else
+          v[:parameters] = parameters + v[:parameters]
         end
 
         pipeline = Jenkins::Pipeline.new k
@@ -927,9 +927,9 @@ module Jenkins
         }
       }.each do |k, v|
         if k == 'stn_test'
-          v[:parameters] = parameters + v[:parameters]
-        else
           v[:parameters] = parameters_test + v[:parameters]
+        else
+          v[:parameters] = parameters + v[:parameters]
         end
 
         pipeline = Jenkins::Pipeline.new k
@@ -1435,13 +1435,13 @@ if $0 == __FILE__
 
   Dir.chdir 'jobs' do
     build = Jenkins::Base.new
-    #build.build
+    build.build
 
     build = Jenkins::Build.new
-    #build.build
+    build.build
 
     build = Jenkins::Dashboard.new
-    #build.build
+    build.build
 
     build = Jenkins::Patch.new
 
