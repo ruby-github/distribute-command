@@ -813,6 +813,7 @@ module Jenkins
       cppcheck.build
 
       args = {
+        :authorization=> ['bnbuild'],
         :script_path  => 'bn/command.groovy',
         :parameters   => [
           ['home',      '工作目录', 'bn/daily/windows'],
@@ -982,6 +983,7 @@ module Jenkins
       end
 
       args = {
+        :authorization=> ['bnbuild'],
         :script_path  => 'stn/command.groovy',
         :parameters   => [
           ['home',      '工作目录', 'stn/daily/windows'],
