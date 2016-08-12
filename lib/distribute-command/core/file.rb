@@ -143,11 +143,11 @@ class File
     end
   end
 
-  def self.lock filename, mode = 'r+'
+  def self.lock filename, mode = 'r+:utf-8'
     filename = expand_path filename
 
     if not file? filename
-      open filename, 'w' do |file|
+      open filename, 'w:utf-8' do |file|
       end
     end
 
