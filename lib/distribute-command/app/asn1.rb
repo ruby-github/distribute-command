@@ -1,6 +1,8 @@
 require 'stringio'
 require 'yaml'
 
+COMPARE_HTML_FILE = 'compare.html'
+
 module Zip
   autoload :File, 'zip'
 end
@@ -2206,6 +2208,26 @@ module ASN1
       end
     end
 
+    def compare_results
+      map = {}
+
+      each.each do |name, list|
+        map[name] = true
+
+        list.each do |status, asn1, other_asn1|
+          if not status
+            if asn1.nil? or other_asn1.nil?
+              map[name] = nil
+            else
+              map[name] = false
+            end
+          end
+        end
+      end
+
+      map
+    end
+
     def save filename = nil, home = nil, template = false
       filename ||= 'qxnew.log'
       home = File.expand_path home || '.'
@@ -2603,7 +2625,7 @@ module ASN1
           compare_list asn1_list, other_asn1_list, true
         end
 
-        to_html File.join(path, 'compare.html')
+        to_html File.join(path, COMPARE_HTML_FILE)
       end
 
       true

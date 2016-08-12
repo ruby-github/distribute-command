@@ -18,7 +18,7 @@ QUICKTEST_FILENAME_QTP_NEW  = 'qtp_new.log'
 
 QUICKTEST_FILENAME_TESTLOG  = 'd:/AutoTest/Reports/log.txt'
 
-QUICKTEST_FILENAME_RESULT   = 'result.json'
+QUICKTEST_FILENAME_RESULTS  = 'results.yml'
 
 class QuickTest
   def initialize opt = nil
@@ -235,25 +235,28 @@ class QuickTest
       rescue
       end
 
-      json = {
+      info = {
+        'index'   => nil,
         'begin'   => @last_run_results[:begin],
         'end'     => @last_run_results[:end],
         'passed'  => @last_run_results[:passed],
         'failed'  => @last_run_results[:failed],
         'warnings'=> @last_run_results[:warnings],
-        'status'  => true
+        'location'=> results_path,
+        'execute' => true,
+        'compare' => nil
       }
 
       if status != 'Passed'
         if @expired
-          json['status'] = nil
+          info['execute'] = nil
         else
-          json['status'] = false
+          info['execute'] = false
         end
       end
 
-      File.open File.join(results_path, '..', QUICKTEST_FILENAME_RESULT), 'w:utf-8' do |f|
-        f.puts json.to_json
+      File.open File.join(results_path, '..', QUICKTEST_FILENAME_RESULTS), 'w:utf-8' do |f|
+        f.puts info.to_yaml
       end
 
       if status == 'Passed'

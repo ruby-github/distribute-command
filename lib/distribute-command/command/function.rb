@@ -2,6 +2,9 @@ module DistributeCommand
   module Function
     module_function
 
+    COMPARE_INDEX_FILE = 'index.yml'
+    INDEX_HTML_FILE = 'index.html'
+
     def netnumen_sptn_settings args = nil
       args ||= {}
 
@@ -275,43 +278,38 @@ module DistributeCommand
 
       home = File.expand_path File.join(args['log_home'] || File.join(Dir.pwd, Time.now.strftime('%Y%m%d')), args['client_ip'].to_s)
 
-      if args.has_key? 'client_ip' and args.has_key? 'autotest_home'
-        drb = DRb::Object.new
+      File.lock File.join(home, COMPARE_INDEX_FILE) do |file|
+        info = {}
 
-        if drb.connect args['client_ip']
-          if not drb.copy_remote File.join(home, args['path']), File.join(args['autotest_home'], args['path']), '*.{log,json}' do |name|
-              File.basename(name)
-            end
+        begin
+          info = YAML.load_file file
 
-            status = false
-          else
-            File.mkdir File.join(home, args['path'])
+          if not info.kind_of? Hash
+            info = {}
           end
-        else
-          status = false
+        rescue
+          info = {}
         end
 
-        drb.close
-        drb = nil
-      end
+        path = args['path']
 
-      if status and not $distributecommand_asn1
-        if args.has_key? 'server_ip' and args.has_key? 'ems_home'
+        info[path] = {
+          'index'   => info.size + 1,
+          'execute' => nil,
+          'compare' => nil
+        }
+
+        if args.has_key? 'client_ip' and args.has_key? 'autotest_home'
           drb = DRb::Object.new
 
-          if drb.connect args['server_ip']
-            if not drb.copy_remote File.join(home, 'asn1'), args['ems_home'], 'ums-server/procs/ppus/bnplatform.ppu/platform-api.pmu/bn_finterface_api.par/*.jar' do |name|
+          if drb.connect args['client_ip']
+            if not drb.copy_remote File.join(home, path), File.join(args['autotest_home'], path), '*.{log,yml}' do |name|
                 File.basename(name)
               end
 
               status = false
-            end
-
-            if not drb.copy_remote File.join(home, 'asn1'), args['ems_home'], 'ums-server/procs/ppus/bn.ppu/bn-commonservice.pmu/bn-qxinterface-api.par/**/*.jar' do |name|
-                File.basename(name)
-              end
-
-              status = false
+            else
+              File.mkdir File.join(home, path)
             end
           else
             status = false
@@ -321,22 +319,103 @@ module DistributeCommand
           drb = nil
         end
 
-        if status
-          $distributecommand_asn1 = true
+        if status and not $distributecommand_asn1
+          if args.has_key? 'server_ip' and args.has_key? 'ems_home'
+            drb = DRb::Object.new
+
+            if drb.connect args['server_ip']
+              if not drb.copy_remote File.join(home, 'asn1'), args['ems_home'], 'ums-server/procs/ppus/bnplatform.ppu/platform-api.pmu/bn_finterface_api.par/*.jar' do |name|
+                  File.basename(name)
+                end
+
+                status = false
+              end
+
+              if not drb.copy_remote File.join(home, 'asn1'), args['ems_home'], 'ums-server/procs/ppus/bn.ppu/bn-commonservice.pmu/bn-qxinterface-api.par/**/*.jar' do |name|
+                  File.basename(name)
+                end
+
+                status = false
+              end
+            else
+              status = false
+            end
+
+            drb.close
+            drb = nil
+          end
+
+          if status
+            $distributecommand_asn1 = true
+          end
         end
-      end
 
-      if File.directory? File.join(home, 'asn1')
-        ASN1::Asn1::import File.glob(File.join(home, 'asn1/**/*.jar')), true
-      end
+        if File.directory? File.join(home, 'asn1')
+          ASN1::Asn1::import File.glob(File.join(home, 'asn1/**/*.jar')), true
+        end
 
-      if File.directory? home
-        compare = ASN1::Compare.new
-        compare.name = args['path']
-        compare.compare_html File.join(home, args['path'])
+        if File.directory? home
+          compare = ASN1::Compare.new
+          compare.name = path
+          compare.compare_html File.join(home, path)
+
+          info[path]['compare'] = compare.compare_results[path]
+
+          results_file = File.join home, path, QUICKTEST_FILENAME_RESULTS
+
+          if File.file? results_file
+            begin
+              results = YAML.load_file results_file
+
+              if results.kind_of? Hash
+                info[path]['execute'] = results['execute']
+
+                results['index'] = info[path]['index']
+                results['compare'] = info[path]['compare']
+
+                File.open results_file, 'w:utf-8' do |f|
+                  f.puts results.to_yaml
+                end
+              end
+            rescue
+            end
+          end
+        end
+
+        file.puts info.to_yaml
       end
 
       status
+    end
+
+    def compare_index_client args = nil
+      args ||= {}
+
+      home = File.expand_path File.join(args['home'] || File.join(Dir.pwd, Time.now.strftime('%Y%m%d')), args['client_ip'].to_s)
+
+      if File.directory? home
+        Dir.chdir home do
+          File.open INDEX_HTML_FILE, 'w' do |f|
+          end
+        end
+      end
+
+      true
+    end
+
+    def compare_index args = nil
+      args ||= {}
+
+      home = File.expand_path args['home'] || File.join(Dir.pwd, Time.now.strftime('%Y%m%d'))
+
+      if File.directory? home
+        Dir.chdir home do
+          File.open INDEX_HTML_FILE, 'w' do |f|
+          end
+        end
+      end
+
+      true
     end
   end
 end

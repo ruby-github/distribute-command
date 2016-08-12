@@ -795,7 +795,35 @@ module DistributeCommand
         element << delete_e
       end
 
+      # 汇总测试报告
+
+      function_e = REXML::Element.new 'function'
+
+      function_e.attributes['name'] = '${name}:汇总测试报告'
+      function_e.attributes['home'] = args['log_home']
+      function_e.attributes['client_ip'] = '${ip}'
+      function_e.attributes['function'] = 'compare_index_client'
+
+      element << function_e
+
       element
+    end
+
+
+    # args
+    #   name, home
+    def compare_index args = nil
+      args ||= {}
+
+      # 汇总测试报告
+
+      function_e = REXML::Element.new 'function'
+
+      function_e.attributes['name'] = args['name']
+      function_e.attributes['home'] = args['home']
+      function_e.attributes['function'] = 'compare_index'
+
+      function_e
     end
   end
 end
