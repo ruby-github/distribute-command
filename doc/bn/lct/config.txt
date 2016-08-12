@@ -1,0 +1,14 @@
+﻿;!@Install@!UTF-8!
+InstallPath="C:\\netnumen"
+OverwriteMode="0"
+SelfDelete="0"
+Title="LCT Package"
+BeginPrompt="Netnumen LCT"
+ExtractPathTitle="LCT Package"
+ExtractPathText="Please select path"
+ExtractTitle="Extracting Files"
+ExtractDialogText="Extracting files, please wait..."
+Progress="yes"
+RunProgram="\"%%T\\config.bat\" "
+GUIFlags="128"
+;!@InstallEnd@!

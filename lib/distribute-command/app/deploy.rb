@@ -399,4 +399,19 @@ module Deploy
       false
     end
   end
+
+  def unpack file
+    unpacker = File.join gem_dir('distribute-command'), 'doc/stn/unpacker.jar'
+
+    cmdline = 'java -jar %s %s' % [File.cmdline(unpacker), File.cmdline(File.join(File.dirname(file), File.basename(file, '.*')))]
+
+    if CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+        Util::Logger::puts line
+      end
+
+      true
+    else
+      false
+    end
+  end
 end

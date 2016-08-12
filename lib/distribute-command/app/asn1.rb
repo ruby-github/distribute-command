@@ -2219,7 +2219,9 @@ module ASN1
             if asn1.nil? or other_asn1.nil?
               map[name] = nil
             else
-              map[name] = false
+              if map[name]
+                map[name] = false
+              end
             end
           end
         end
