@@ -242,7 +242,7 @@ class QuickTest
         'passed'  => @last_run_results[:passed],
         'failed'  => @last_run_results[:failed],
         'warnings'=> @last_run_results[:warnings],
-        'location'=> results_path,
+        'location'=> File.basename(results_path),
         'execute' => true,
         'compare' => nil
       }
