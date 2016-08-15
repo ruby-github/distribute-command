@@ -391,11 +391,11 @@ module DistributeCommand
         compare.name = path
         compare.compare_html File.join(home, path)
 
-        info[path] = {
-          'index'   => info.size + 1,
-          'execute' => nil,
-          'compare' => compare.compare_results[path]
-        }
+        info[path] ||= {}
+
+        info[path]['index'] ||= info.size
+        info[path]['execute'] = nil
+        info[path]['compare'] = compare.compare_results[path]
 
         if not quicktest_results.nil?
           info[path]['execute'] = quicktest_results['execute']
@@ -407,9 +407,6 @@ module DistributeCommand
             f.puts quicktest_results.to_yaml
           end
         end
-
-        puts quicktest_results.to_string
-        puts info.to_string
 
         file.puts info.to_yaml
       end

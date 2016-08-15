@@ -3,6 +3,19 @@ require 'yaml'
 module YAML
   module_function
 
+  class << self
+    alias __load__ load
+    alias __load_file__ load
+  end
+
+  def load string
+    __load__(string).utf8
+  end
+
+  def load_file file
+    __load_file__(file).utf8
+  end
+
   def dump_tmpfile obj, tmpname = nil
     if tmpname.nil?
       tmpname = "#{File.tmpname}.yaml"
@@ -17,7 +30,7 @@ module YAML
 
   def load_tmpfile tmpname
     begin
-      YAML::load_file(File.join(Dir.tmpdir, tmpname)).utf8
+      YAML::load_file File.join(Dir.tmpdir, tmpname)
     rescue
       nil
     end
