@@ -8,12 +8,12 @@ module YAML
     alias __load_file__ load_file
   end
 
-  def load string
-    __load__(string).utf8
+  def load yaml, filename = nil
+    __load__(yaml, filename).utf8
   end
 
-  def load_file file
-    __load_file__(file).utf8
+  def load_file filename
+    __load_file__(filename).utf8
   end
 
   def dump_tmpfile obj, tmpname = nil
