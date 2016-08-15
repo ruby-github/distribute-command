@@ -348,7 +348,12 @@ module Jenkins
                       :authors=> []
                     }
 
-                    changes[lang][group][:paths] << pom_path # File.join(dir, 'pom', group)
+                    if lang == :java
+                      changes[lang][group][:paths] << File.join(dir, 'pom', group)
+                    else
+                      changes[lang][group][:paths] << pom_path
+                    end
+
                     changes[lang][group][:authors] += authors
                   end
                 end
