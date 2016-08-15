@@ -454,8 +454,9 @@ namespace :bn do
       status.exit
     end
 
-    task :debuginfo, [:name] do |t, args|
+    task :debuginfo, [:name, :home] do |t, args|
       name = args[:name].to_s.nil
+      home = args[:home].to_s.nil || ($home || 'code')
 
       defaults = BN_CPP_PATHS
 
@@ -473,8 +474,8 @@ namespace :bn do
           next
         end
 
-        if File.directory? File.join(debuginfo, module_name)
-          File.delete File.join(debuginfo, module_name)  do |file|
+        if File.directory? File.join('debuginfo', module_name)
+          File.delete File.join('debuginfo', module_name)  do |file|
             Util::Logger::info file
 
             file
@@ -488,7 +489,7 @@ namespace :bn do
         end
 
         File.glob(xpath).each do |file|
-          if not File.copy file, File.join(debuginfo, module_name, File.basename(file)) do |src, dest|
+          if not File.copy file, File.join('debuginfo', module_name, File.basename(file)) do |src, dest|
               Util::Logger::info src
 
               [src, dest]
