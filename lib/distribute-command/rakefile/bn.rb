@@ -605,7 +605,14 @@ namespace :bn do
         end
 
         errors_list.each do |errors|
-          Compile::errors_mail errors, subject: '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [Compile::BN_MAX_SIZE_CLIENT, Compile::BN_MAX_SIZE_SERVER]
+          subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [Compile::BN_MAX_SIZE_CLIENT, Compile::BN_MAX_SIZE_SERVER]
+
+          opt = {
+            :subject  => 'Subject: %s' % subject,
+            :html     => errors.join("\n")
+          }
+
+          Net::send_smtp nil, nil, addrs, opt
         end
       end
 
@@ -625,6 +632,7 @@ namespace :bn do
       status = true
 
       ignores = []
+      errors_list = []
 
       IO.readlines(File.join(gem_dir('distribute-command'), 'doc/bn/ignore_check_list.txt')).each do |line|
         line.strip!
@@ -659,11 +667,36 @@ namespace :bn do
 
         path = File.join home, defaults[module_name], 'code_c/build/output'
 
-        if not Compile::check_size path, true, addrs do |file|
-            not ignores.include? File.join(path, file)
+        if not Compile::check_size path, true, addrs do |file, errors|
+            if not file.nil?
+              not ignores.include? File.join(path, file)
+            else
+              errors_list << errors
+
+              false
+            end
           end
 
           status = false
+        end
+      end
+
+      if not status
+        errors_list.each do |errors|
+          errors.each do |file|
+            Util::Logger::error file
+          end
+        end
+
+        errors_list.each do |errors|
+          subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [Compile::BN_MAX_SIZE_CLIENT, Compile::BN_MAX_SIZE_SERVER]
+
+          opt = {
+            :subject  => 'Subject: %s' % subject,
+            :html     => errors.join("\n")
+          }
+
+          Net::send_smtp nil, nil, addrs, opt
         end
       end
 
