@@ -5,7 +5,7 @@ module YAML
 
   class << self
     alias __load__ load
-    alias __load_file__ load
+    alias __load_file__ load_file
   end
 
   def load string
