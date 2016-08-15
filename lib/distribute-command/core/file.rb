@@ -143,7 +143,7 @@ class File
     end
   end
 
-  def self.lock filename, mode = 'r+:utf-8'
+  def self.lock filename, mode = 'r:utf-8'
     filename = expand_path filename
 
     if not file? filename

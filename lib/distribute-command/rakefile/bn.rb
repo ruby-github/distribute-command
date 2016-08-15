@@ -453,6 +453,54 @@ namespace :bn do
 
       status.exit
     end
+
+    task :debuginfo, [:name] do |t, args|
+      name = args[:name].to_s.nil
+
+      defaults = BN_CPP_PATHS
+
+      if name.nil?
+        name = defaults.keys
+      end
+
+      status = true
+
+      name.to_array.each do |module_name|
+        if not defaults.keys.include? module_name
+          Util::Logger::error 'no such module @bn:compile:mvn_cpp - %s' % module_name
+          status = false
+
+          next
+        end
+
+        if File.directory? File.join(debuginfo, module_name)
+          File.delete File.join(debuginfo, module_name)  do |file|
+            Util::Logger::info file
+
+            file
+          end
+        end
+
+        if OS::windows?
+          xpath = File.join home, defaults[module_name], 'code_c/build/output/**/*.pdb'
+        else
+          xpath = File.join home, defaults[module_name], 'code_c/build/output/**/*.so.debuginfo'
+        end
+
+        File.glob(xpath).each do |file|
+          if not File.copy file, File.join(debuginfo, module_name, File.basename(file)) do |src, dest|
+              Util::Logger::info src
+
+              [src, dest]
+            end
+
+            status = false
+          end
+        end
+      end
+
+      status.exit
+    end
   end
 
   namespace :install do

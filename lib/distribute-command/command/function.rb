@@ -278,7 +278,22 @@ module DistributeCommand
 
       home = File.expand_path File.join(args['log_home'] || File.join(Dir.pwd, Time.now.strftime('%Y%m%d')), args['client_ip'].to_s)
 
-      File.lock File.join(home, COMPARE_INDEX_FILE) do |file|
+      info = {}
+      index_file = File.join home, COMPARE_INDEX_FILE
+
+      if File.file? index_file
+        begin
+          info = YAML.load_file index_file
+
+          if not info.kind_of? Hash
+            info = {}
+          end
+        rescue
+          info = {}
+        end
+      end
+
+      File.lock index_file, 'w:utf-8' do |file|
         path = args['path']
 
         quicktest_results_file = File.join home, path, QUICKTEST_FILENAME_RESULTS
@@ -376,18 +391,6 @@ module DistributeCommand
         compare.name = path
         compare.compare_html File.join(home, path)
 
-        info = {}
-
-        begin
-          info = YAML.load_file file
-
-          if not info.kind_of? Hash
-            info = {}
-          end
-        rescue
-          info = {}
-        end
-
         info[path] = {
           'index'   => info.size + 1,
           'execute' => nil,
@@ -404,6 +407,9 @@ module DistributeCommand
             f.puts quicktest_results.to_yaml
           end
         end
+
+        puts quicktest_results.to_string
+        puts info.to_string
 
         file.puts info.to_yaml
       end
