@@ -983,7 +983,7 @@ module Jenkins
       end
 
       args = {
-        :authorization=> ['bnbuild'],
+        :authorization=> ['stnbuild'],
         :script_path  => 'stn/command.groovy',
         :parameters   => [
           ['home',      '工作目录', 'stn/daily/windows'],
@@ -1101,7 +1101,7 @@ module Jenkins
           :script_path  => 'stn/build_main.groovy',
           :triggers     => {
             :timer  => {
-              :spec => '30 16 * * *'
+              :spec => '30 0,16 * * *'
             }
           },
           :parameters   => [
