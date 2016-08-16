@@ -636,7 +636,7 @@ namespace :bn do
             if not file.nil?
               not ignores.include? File.join(path, file)
             else
-              errors_list << errors
+              errors_list << [errors, addrs]
 
               false
             end
@@ -647,13 +647,13 @@ namespace :bn do
       end
 
       if not status
-        errors_list.each do |errors|
+        errors_list.each do |errors, addrs|
           errors.each do |file|
             Util::Logger::error file
           end
         end
 
-        errors_list.each do |errors|
+        errors_list.each do |errors, addrs|
           subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [Compile::BN_MAX_SIZE_CLIENT, Compile::BN_MAX_SIZE_SERVER]
 
           opt = {
@@ -720,7 +720,7 @@ namespace :bn do
             if not file.nil?
               not ignores.include? File.join(path, file)
             else
-              errors_list << errors
+              errors_list << [errors, addrs]
 
               false
             end
@@ -731,13 +731,13 @@ namespace :bn do
       end
 
       if not status
-        errors_list.each do |errors|
+        errors_list.each do |errors, addrs|
           errors.each do |file|
             Util::Logger::error file
           end
         end
 
-        errors_list.each do |errors|
+        errors_list.each do |errors, addrs|
           subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [Compile::BN_MAX_SIZE_CLIENT, Compile::BN_MAX_SIZE_SERVER]
 
           opt = {

@@ -803,6 +803,7 @@ module DistributeCommand
       function_e.attributes['home'] = args['log_home']
       function_e.attributes['client_ip'] = '${ip}'
       function_e.attributes['function'] = 'compare_index_client'
+      function_e.attributes['ensure'] = 'true'
 
       element << function_e
 
@@ -822,6 +823,7 @@ module DistributeCommand
       function_e.attributes['name'] = args['name']
       function_e.attributes['home'] = args['home']
       function_e.attributes['function'] = 'compare_index'
+      function_e.attributes['ensure'] = 'true'
 
       function_e
     end
