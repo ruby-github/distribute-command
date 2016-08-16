@@ -411,7 +411,7 @@ module Jenkins
   end
 
   def autopatch_monitor
-    home = '/home/autopatch'
+    home = '/home/auto/autopatch'
     os_home = '/home/jenkins/os'
 
     if File.directory? home
