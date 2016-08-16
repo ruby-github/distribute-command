@@ -2,7 +2,7 @@ module DistributeCommand
   module Function
     module_function
 
-    COMPARE_INDEX_FILE = 'index.yml'
+    INDEX_YAML_FILE = 'index.yml'
     INDEX_HTML_FILE = 'index.html'
 
     def netnumen_sptn_settings args = nil
@@ -279,7 +279,7 @@ module DistributeCommand
       home = File.expand_path File.join(args['log_home'] || File.join(Dir.pwd, Time.now.strftime('%Y%m%d')), args['client_ip'].to_s)
 
       info = {}
-      index_file = File.join home, COMPARE_INDEX_FILE
+      index_file = File.join home, INDEX_YAML_FILE
 
       if File.file? index_file
         begin
@@ -421,8 +421,52 @@ module DistributeCommand
 
       if File.directory? home
         Dir.chdir home do
-          File.open INDEX_HTML_FILE, 'w' do |f|
+          index_info = {}
+
+          if File.file? INDEX_YAML_FILE
+            begin
+              info = YAML::load_file INDEX_YAML_FILE
+
+              if info.kind_of? Hash
+                info.each do |path, path_info|
+                  if not path_info['execute']
+                    index_info['execute'] ||= {}
+                    index_info['execute'][nil] ||= {
+                      'home'  => nil,
+                      'paths' => {}
+                    }
+
+                    index_info['execute'][nil]['paths'][path] = path_info
+
+                    next
+                  end
+
+                  if not path_info['compare']
+                    index_info['compare'] ||= {}
+                    index_info['compare'][nil] ||= {
+                      'home'  => nil,
+                      'paths' => {}
+                    }
+
+                    index_info['compare'][nil]['paths'][path] = path_info
+
+                    next
+                  end
+
+                  index_info['success'] ||= {}
+                  index_info['success'][nil] ||= {
+                    'home'  => nil,
+                    'paths' => {}
+                  }
+
+                  index_info['success'][nil]['paths'][path] = path_info
+                end
+              end
+            rescue
+            end
           end
+
+          ASN1::Compare::compare_index_html index_info, INDEX_HTML_FILE
         end
       end
 
@@ -436,8 +480,55 @@ module DistributeCommand
 
       if File.directory? home
         Dir.chdir home do
-          File.open INDEX_HTML_FILE, 'w' do |f|
+          index_info = {}
+
+          File.glob(File.join('*', INDEX_YAML_FILE)).each do |file|
+            begin
+              info = YAML::load_file file
+
+              if info.kind_of? Hash
+                ip = File.basename File.dirname(file)
+                home = ip
+
+                info.each do |path, path_info|
+                  if not path_info['execute']
+                    index_info['execute'] ||= {}
+                    index_info['execute'][ip] ||= {
+                      'home'  => home,
+                      'paths' => {}
+                    }
+
+                    index_info['execute'][ip]['paths'][path] = path_info
+
+                    next
+                  end
+
+                  if not path_info['compare']
+                    index_info['compare'] ||= {}
+                    index_info['compare'][ip] ||= {
+                      'home'  => home,
+                      'paths' => {}
+                    }
+
+                    index_info['compare'][ip]['paths'][path] = path_info
+
+                    next
+                  end
+
+                  index_info['success'] ||= {}
+                  index_info['success'][ip] ||= {
+                    'home'  => home,
+                    'paths' => {}
+                  }
+
+                  index_info['success'][ip]['paths'][path] = path_info
+                end
+              end
+            rescue
+            end
           end
+
+          ASN1::Compare::compare_index_html index_info, INDEX_HTML_FILE
         end
       end
 
