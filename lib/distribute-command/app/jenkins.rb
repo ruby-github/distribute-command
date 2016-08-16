@@ -436,11 +436,19 @@ module Jenkins
               osnames = ['windows', 'windows32', 'linux', 'solaris']
             end
 
+            list = []
+
+            Dir.chdir dirname do
+              File.glob('**/*.{xml,zip}').each do |file|
+                list << file
+              end
+            end
+
             current = true
 
-            File.glob(File.join(dirname, '**/*.{xml,zip}')).each do |file|
+            list.each do |file|
               osnames.each do |os|
-                if not File.copy file, File.join('template', version, os, File.basename(file).downcase) do |src, dest|
+                if not File.copy File.join(dirname, file), File.join('template', version, os, file) do |src, dest|
                     Util::Logger::info dest
 
                     [src, dest]
