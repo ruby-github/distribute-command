@@ -418,8 +418,14 @@ module Jenkins
       Dir.chdir home do
         status = true
 
-        File.glob('source/*/*').each do |file|
-          name = File.basename File.dirname(file)
+        File.glob('source/*').each do |dirname|
+          if not File.directory? dirname
+            File.delete dirname
+
+            next
+          end
+
+          name = File.basename dirname
 
           if name =~ /\((\d+[_\w]*)\)$/
             version = $1
@@ -430,18 +436,27 @@ module Jenkins
               osnames = ['windows', 'windows32', 'linux', 'solaris']
             end
 
-            osnames.each do |os|
-              if not File.copy file, File.join('template', version, os, File.basename(file).downcase) do |src, dest|
-                  Util::Logger::info src
+            current = true
 
-                  [src, dest]
+            File.glob(File.join(dirname, '**/*.{xml,zip}')).each do |file|
+              osnames.each do |os|
+                if not File.copy file, File.join('template', version, os, File.basename(file).downcase) do |src, dest|
+                    Util::Logger::info dest
+
+                    [src, dest]
+                  end
+
+                  status = false
+                  current = false
                 end
-
-                status = false
-              else
-                File.delete file
               end
             end
+
+            if current
+              File.delete dirname
+            end
+          else
+            File.delete dirname
           end
         end
 
