@@ -486,6 +486,7 @@ module DistributeCommand
       if File.directory? home
         Dir.chdir home do
           index_info = {}
+          summary_info = {}
 
           File.glob(File.join('*', INDEX_YAML_FILE)).each do |file|
             begin
@@ -528,12 +529,72 @@ module DistributeCommand
 
                   index_info['success'][ip]['paths'][path] = path_info
                 end
+
+                summary_info[ip] = info
               end
             rescue
             end
           end
 
           ASN1::Compare::compare_index_html index_info, INDEX_HTML_FILE
+
+          if OS::windows?
+            begin
+              application = Excel::Application.new
+              wk = application.add File.join(gem_dir('distribute-command'), 'doc/bn/test_template.xltx')
+              sht = wk.worksheet 1
+
+              line = 1
+
+              summary_info.each do |ip, info|
+                info.each do |path, path_info|
+                  line += 1
+
+                  # 模块名称
+                  if path =~ /UserScript\//
+                    sht.set line, 1, File.dirname($')
+                  else
+                    sht.set line, 1, File.dirname(path)
+                  end
+
+                  # 用例名称
+                  sht.set line, 2, File.basename(path)
+
+                  # 执行结果
+                  if path_info['execute'] and path_info['compare']
+                    sht.set line, 3, '成功'
+                  else
+                    sht.set line, 3, '失败'
+                  end
+
+                  # 错误分析情况
+                  if path_info['execute'] and path_info['compare']
+                    sht.set line, 4, ''
+                  else
+                    if not path_info['execute']
+                      if path_info['compare']
+                        sht.set line, 4, '用例执行失败, 但报文比较成功'
+                      else
+                        if path_info['compare'].nil?
+                          sht.set line, 4, '用例执行失败, 报文有缺失'
+                        else
+                          sht.set line, 4, '用例执行失败, 报文比较失败'
+                        end
+                      end
+                    end
+                  end
+
+                  # 执行机器
+                  sht.set line, 5, ip
+                end
+              end
+
+              wk.save '测试报告'
+              wk.close
+            rescue
+              Util::Logger::exception $!
+            end
+          end
         end
       end
 
