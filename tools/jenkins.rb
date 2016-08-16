@@ -1430,6 +1430,30 @@ module Jenkins
   end
 end
 
+module Jenkins
+  class Tools
+    def initialize
+    end
+
+    def build
+      args = {
+        :concurrent  => false,
+        :triggers    => {
+          :file => {
+            :spec     => 'H/5 * * * *',
+            :directory=> '/home/autopatch',
+            :files    => 'source/*/*/*.xml'
+          }
+        },
+        :script_path  => 'autopatch.groovy'
+      }
+
+      pipeline = Jenkins::Pipeline.new 'autopatch'
+      pipeline.build args
+    end
+  end
+end
+
 if $0 == __FILE__
   File.mkdir 'jobs'
 
@@ -1441,6 +1465,9 @@ if $0 == __FILE__
     build.build
 
     build = Jenkins::Dashboard.new
+    build.build
+
+    build = Jenkins::Tools.new
     build.build
 
     build = Jenkins::Patch.new

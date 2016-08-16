@@ -409,4 +409,72 @@ module Jenkins
       true
     end
   end
+
+  def autopatch_monitor
+    home = '/home/autopatch'
+    os_home = '/home/jenkins/os'
+
+    if File.directory? home
+      Dir.chdir home do
+        status = true
+
+        File.glob('source/*/*').each do |file|
+          name = File.basename File.dirname(file)
+
+          if name =~ /\((\d+[_\w]*)\)$/
+            version = $1
+
+            if version.include? 'stn'
+              osnames = ['windows']
+            else
+              osnames = ['windows', 'windows32', 'linux', 'solaris']
+            end
+
+            osnames.each do |os|
+              if not File.copy file, File.join('template', version, os, File.basename(file).downcase) do |src, dest|
+                  Util::Logger::info src
+
+                  [src, dest]
+                end
+
+                status = false
+              else
+                File.delete file
+              end
+            end
+          end
+        end
+
+        if File.directory? 'template'
+          Dir.chdir 'template' do
+            File.glob('*/*').each do |dir|
+              version = File.dirname dir
+              osname = File.basename dir
+
+              xpath = File.join os_home, osname, '{release,dev}', version, 'build/xml'
+
+              File.glob(xpath).each do |path|
+                if not File.copy dir, path do |src, dest|
+                    Util::Logger::info src
+
+                    [src, dest]
+                  end
+
+                  status = false
+                else
+                  File.delete dir
+                end
+              end
+            end
+          end
+        end
+
+        status
+      end
+    else
+      Util::Logger::error 'no such directory - %s' % home
+
+      false
+    end
+  end
 end
