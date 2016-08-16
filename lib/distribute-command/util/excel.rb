@@ -108,7 +108,11 @@ module Excel
     end
 
     def set row, col, val
-      @worksheet.Cells(row, col).Value = val.to_s.locale
+      if val.to_s.nil.nil?
+        @worksheet.Cells(row, col).Clear
+      else
+        @worksheet.Cells(row, col).Value = val.to_s.locale
+      end
     end
   end
 end

@@ -565,6 +565,7 @@ module DistributeCommand
                     sht.set line, 3, '成功'
                   else
                     sht.set line, 3, '失败'
+                    sht.worksheet.Cells(line, 3).Interior.Color = 0x0000ff
                   end
 
                   # 错误分析情况
@@ -574,12 +575,23 @@ module DistributeCommand
                     if not path_info['execute']
                       if path_info['compare']
                         sht.set line, 4, '用例执行失败, 但报文比较成功'
+                        sht.worksheet.Cells(line, 4).Interior.Color = 0x33ff99
                       else
                         if path_info['compare'].nil?
                           sht.set line, 4, '用例执行失败, 报文有缺失'
+                          sht.worksheet.Cells(line, 4).Interior.Color = 0xff0000
                         else
                           sht.set line, 4, '用例执行失败, 报文比较失败'
+                          sht.worksheet.Cells(line, 4).Interior.Color = 0x0000ff
                         end
+                      end
+                    else
+                      if path_info['compare'].nil?
+                        sht.set line, 4, '报文有缺失'
+                        sht.worksheet.Cells(line, 4).Interior.Color = 0xff0000
+                      else
+                        sht.set line, 4, '报文比较失败'
+                        sht.worksheet.Cells(line, 4).Interior.Color = 0x0000ff
                       end
                     end
                   end
@@ -588,6 +600,8 @@ module DistributeCommand
                   sht.set line, 5, ip
                 end
               end
+
+              sht.worksheet.UsedRange.Borders.LineStyle = 1
 
               wk.save '测试报告'
               wk.close
