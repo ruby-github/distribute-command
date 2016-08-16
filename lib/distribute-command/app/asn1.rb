@@ -2,6 +2,8 @@ require 'stringio'
 require 'yaml'
 
 COMPARE_HTML_FILE = 'compare.html'
+ASN1_IGNORE_YAML_FILE = 'asn1_ignore.yml'
+ASN1_SORT_YAML_FILE = 'asn1_sort.yml'
 
 module Zip
   autoload :File, 'zip'
@@ -2577,8 +2579,6 @@ module ASN1
       path = File.expand_path path
 
       if File.directory? path
-        load
-
         if File.file? File.join(path, QUICKTEST_FILENAME_CHECK)
           asn1_list = get_asn1_list_from_file File.join(path, QUICKTEST_FILENAME_CHECK), file: QUICKTEST_FILENAME_CHECK
 
@@ -2822,20 +2822,6 @@ module ASN1
     end
 
     private
-
-    def load
-      if not @@asn1compare
-        if $asn1_ignore_file
-          load_ignore $asn1_ignore_file
-        end
-
-        if $asn1_sort_file
-          load_sort_keys $asn1_sort_file
-        end
-
-        @@asn1compare = true
-      end
-    end
 
     def get_asn1_list_from_file file, opt = nil
       opt ||= {}

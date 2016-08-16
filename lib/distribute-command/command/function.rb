@@ -389,6 +389,15 @@ module DistributeCommand
 
         compare = ASN1::Compare.new
         compare.name = path
+
+        if File.file? ($asn1_ignore_file || ASN1_IGNORE_YAML_FILE)
+          compare.load_ignore ($asn1_ignore_file || ASN1_IGNORE_YAML_FILE)
+        end
+
+        if File.file? ($asn1_sort_file || ASN1_SORT_YAML_FILE)
+          compare.load_sort_keys ($asn1_sort_file || ASN1_SORT_YAML_FILE)
+        end
+
         compare.compare_html File.join(home, path)
 
         info[path] ||= {}
