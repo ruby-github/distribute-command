@@ -2541,6 +2541,7 @@ module ASN1
           end
         end
 
+        f.puts '%s<br/><br/>' % (INDENT * 2)
         f.puts '%s</body>' % INDENT
 
         # tail
@@ -2694,116 +2695,123 @@ module ASN1
         # body
         f.puts '%s<body>' % INDENT
 
-        if not info['execute'].empty?
-          f.puts '%s<br/><br/><h1>QUICKTEST执行失败用例</h1>' % (INDENT * 2)
-          f.puts '%s<hr color = "gray"/><br/>' % (INDENT * 2)
-          f.puts
+        if not info['execute'].nil?
+          if not info['execute'].empty?
+            f.puts '%s<br/><br/><h1>执行失败用例</h1>' % (INDENT * 2)
+            f.puts '%s<hr color = "gray"/><br/>' % (INDENT * 2)
+            f.puts
 
-          info['execute'].each do |ip, ip_info|
-            if not ip.nil?
-              f.puts '%s<h3>%s</h3><br/>' % [INDENT * 2, ip]
-            end
-
-            home = ip_info['home']
-
-            f.puts '%s<table>' % (INDENT * 2)
-
-            ip_info['paths'].each do |path, path_info|
-              f.puts '%s<tr><td>' % (INDENT * 3)
-
-              if home.nil?
-                href = File.join path, 'compare.html'
-              else
-                href = File.join home, path, 'compare.html'
+            info['execute'].each do |ip, ip_info|
+              if not ip.nil?
+                f.puts '%s<h3>%s</h3><br/>' % [INDENT * 2, ip]
               end
 
-              if path_info['compare']
-                f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :blue, path]
-              else
-                f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :red, path]
+              home = ip_info['home']
+
+              f.puts '%s<table>' % (INDENT * 2)
+
+              ip_info['paths'].each do |path, path_info|
+                f.puts '%s<tr><td>' % (INDENT * 3)
+
+                if home.nil?
+                  href = File.join path, 'compare.html'
+                else
+                  href = File.join home, path, 'compare.html'
+                end
+
+                if path_info['compare']
+                  f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :black, path]
+                else
+                  f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :red, path]
+                end
+
+                f.puts '%s</td></tr>' % (INDENT * 3)
               end
 
-              f.puts '%s</td></tr>' % (INDENT * 3)
+              f.puts '%s</table>' % (INDENT * 2)
             end
 
-            f.puts '%s</table>' % (INDENT * 2)
+            f.puts
           end
-
-          f.puts
         end
 
-        if not info['compare'].empty?
-          f.puts '%s<br/><br/><h1>报文比较失败用例</h1>' % (INDENT * 2)
-          f.puts '%s<hr color = "gray"/><br/>' % (INDENT * 2)
-          f.puts
+        if not info['compare'].nil?
+          if not info['compare'].empty?
+            f.puts '%s<br/><br/><h1>比较失败用例</h1>' % (INDENT * 2)
+            f.puts '%s<hr color = "gray"/><br/>' % (INDENT * 2)
+            f.puts
 
-          info['compare'].each do |ip, ip_info|
-            if not ip.nil?
-              f.puts '%s<h3>%s</h3><br/>' % [INDENT * 2, ip]
-            end
-
-            home = ip_info['home']
-
-            f.puts '%s<table>' % (INDENT * 2)
-
-            ip_info['paths'].each do |path, path_info|
-              f.puts '%s<tr><td>' % (INDENT * 3)
-
-              if home.nil?
-                href = File.join path, 'compare.html'
-              else
-                href = File.join home, path, 'compare.html'
+            info['compare'].each do |ip, ip_info|
+              if not ip.nil?
+                f.puts '%s<h3>%s</h3><br/>' % [INDENT * 2, ip]
               end
 
-              if path_info['compare'].nil?
-                f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :blue, path]
-              else
-                f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :red, path]
+              home = ip_info['home']
+
+              f.puts '%s<table>' % (INDENT * 2)
+
+              ip_info['paths'].each do |path, path_info|
+                f.puts '%s<tr><td>' % (INDENT * 3)
+
+                if home.nil?
+                  href = File.join path, 'compare.html'
+                else
+                  href = File.join home, path, 'compare.html'
+                end
+
+                if path_info['compare'].nil?
+                  f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :blue, path]
+                else
+                  f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :red, path]
+                end
+
+                f.puts '%s</td></tr>' % (INDENT * 3)
               end
 
-              f.puts '%s</td></tr>' % (INDENT * 3)
+              f.puts '%s</table>' % (INDENT * 2)
             end
 
-            f.puts '%s</table>' % (INDENT * 2)
+            f.puts
           end
-
-          f.puts
         end
 
-        if not info['success'].empty?
-          f.puts '%s<br/><br/><h1>成功用例</h1>' % (INDENT * 2)
-          f.puts '%s<hr color = "gray"/><br/>' % (INDENT * 2)
-          f.puts
+        if not info['success'].nil?
+          if not info['success'].empty?
+            f.puts '%s<br/><br/><h1>测试成功用例</h1>' % (INDENT * 2)
+            f.puts '%s<hr color = "gray"/><br/>' % (INDENT * 2)
+            f.puts
 
-          info['success'].each do |ip, ip_info|
-            if not ip.nil?
-              f.puts '%s<h3>%s</h3><br/>' % [INDENT * 2, ip]
-            end
-
-            home = ip_info['home']
-
-            f.puts '%s<table>' % (INDENT * 2)
-
-            ip_info['paths'].each do |path, path_info|
-              f.puts '%s<tr><td>' % (INDENT * 3)
-
-              if home.nil?
-                href = File.join path, 'compare.html'
-              else
-                href = File.join home, path, 'compare.html'
+            info['success'].each do |ip, ip_info|
+              if not ip.nil?
+                f.puts '%s<h3>%s</h3><br/>' % [INDENT * 2, ip]
               end
 
-              f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :black, path]
+              home = ip_info['home']
 
-              f.puts '%s</td></tr>' % (INDENT * 3)
+              f.puts '%s<table>' % (INDENT * 2)
+
+              ip_info['paths'].each do |path, path_info|
+                f.puts '%s<tr><td>' % (INDENT * 3)
+
+                if home.nil?
+                  href = File.join path, 'compare.html'
+                else
+                  href = File.join home, path, 'compare.html'
+                end
+
+                f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :black, path]
+
+                f.puts '%s</td></tr>' % (INDENT * 3)
+              end
+
+              f.puts '%s</table>' % (INDENT * 2)
             end
 
-            f.puts '%s</table>' % (INDENT * 2)
+            f.puts
           end
-
-          f.puts
         end
 
+        f.puts '%s<br/><br/>' % (INDENT * 2)
         f.puts '%s</body>' % INDENT
 
         # tail

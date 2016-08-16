@@ -395,7 +395,12 @@ module DistributeCommand
 
         info[path]['index'] ||= info.size
         info[path]['execute'] = nil
-        info[path]['compare'] = compare.compare_results[path]
+
+        if compare.compare_results.has_key? path
+          info[path]['compare'] = compare.compare_results[path]
+        else
+          info[path]['compare'] = true
+        end
 
         if not quicktest_results.nil?
           info[path]['execute'] = quicktest_results['execute']
