@@ -2265,7 +2265,7 @@ module ASN1
 
     def load_ignore file
       begin
-        map = YAML.load_file file
+        map = YAML::load_file file
 
         if map.kind_of? Hash
           @ignore = map
@@ -2281,7 +2281,7 @@ module ASN1
 
     def load_sort_keys file
       begin
-        map = YAML.load_file file
+        map = YAML::load_file file
 
         if map.kind_of? Hash
           @sort_keys = map

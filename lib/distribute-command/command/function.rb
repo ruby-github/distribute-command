@@ -283,7 +283,7 @@ module DistributeCommand
 
       if File.file? index_file
         begin
-          info = YAML.load_file index_file
+          info = YAML::load_file index_file
 
           if not info.kind_of? Hash
             info = {}
@@ -311,7 +311,7 @@ module DistributeCommand
 
             if File.file? quicktest_results_file
               begin
-                quicktest_results = YAML.load_file quicktest_results_file
+                quicktest_results = YAML::load_file quicktest_results_file
 
                 if not quicktest_results.kind_of? Hash
                   quicktest_results = nil
@@ -376,7 +376,7 @@ module DistributeCommand
         if quicktest_results.nil?
           if File.file? quicktest_results_file
             begin
-              quicktest_results = YAML.load_file quicktest_results_file
+              quicktest_results = YAML::load_file quicktest_results_file
 
               if not quicktest_results.kind_of? Hash
                 quicktest_results = nil
