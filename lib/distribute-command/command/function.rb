@@ -326,6 +326,8 @@ module DistributeCommand
                 if not drb.copy_remote File.join(home, path), File.join(args['autotest_home'], path), quicktest_results['location']
                   status = false
                 end
+
+                drb.copy_remote File.join(home, path, 'capture'), File.join(File.dirname(QUICKTEST_FILENAME_TESTLOG), '截屏', File.basename(path)), '*.*'
               end
             end
           else
@@ -618,6 +620,17 @@ module DistributeCommand
               Util::Logger::exception $!
             end
           end
+        end
+      end
+
+      true
+    end
+
+    def file_reset args = nil
+      args ||= {}
+
+      if not args['filename'].nil?
+        File.open args['filename'], 'w' do |file|
         end
       end
 

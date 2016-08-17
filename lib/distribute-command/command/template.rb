@@ -793,6 +793,18 @@ module DistributeCommand
         delete_e.attributes['skipfail'] = 'true'
 
         element << delete_e
+
+        # 重置测试日志文件
+
+        function_e = REXML::Element.new 'function'
+
+        function_e.attributes['name'] = '${name}:重置测试日志文件'
+        function_e.attributes['filename'] = QUICKTEST_FILENAME_TESTLOG
+        function_e.attributes['function'] = 'file_reset'
+        function_e.attributes['ensure'] = 'true'
+        function_e.attributes['skipfail'] = 'true'
+
+        element << function_e
       end
 
       # 汇总测试报告
