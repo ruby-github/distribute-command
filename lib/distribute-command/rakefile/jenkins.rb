@@ -13,13 +13,13 @@ namespace :jenkins do
 
   task :bn_patch_init, [:name, :version, :uep_version, :branch] do |t, args|
     name = args[:name].to_s.nil
-    version = args[:version].to_s.nil || $version || ENV['POM_VERSION']
-    uep_version = args[:uep_version].to_s.nil || File.basename($installation_uep.to_s).nil || ENV['POM_UEP_VERSION']
+    version = args[:version].to_s.nil
+    uep_version = args[:uep_version].to_s.nil || ENV['POM_UEP_VERSION']
     branch = args[:branch].to_s.nil || $branch
 
     status = true
 
-    if not name.nil?
+    if not name.nil? and not version.nil?
       home = File.expand_path File.join('../build', name)
 
       if File.mkdir home
@@ -101,6 +101,8 @@ namespace :jenkins do
         status = false
       end
     else
+      Util::Logger::error 'name or version is nil'
+
       status = false
     end
 
@@ -109,14 +111,14 @@ namespace :jenkins do
 
   task :stn_patch_init, [:name, :version, :uep_version, :oscp_version, :branch] do |t, args|
     name = args[:name].to_s.nil
-    version = args[:version].to_s.nil || $version || ENV['POM_VERSION']
+    version = args[:version].to_s.nil
     uep_version = args[:uep_version].to_s.nil || ENV['POM_ICT_VERSION']
-    oscp_version = args[:oscp_version].to_s.nil || File.basename($installation_uep.to_s).nil || ENV['POM_NFM_VERSION']
+    oscp_version = args[:oscp_version].to_s.nil || ENV['POM_NFM_VERSION']
     branch = args[:branch].to_s.nil || $branch
 
     status = true
 
-    if not name.nil?
+    if not name.nil? and not version.nil?
       home = File.expand_path File.join('../build', name)
 
       if File.mkdir home
@@ -172,7 +174,7 @@ namespace :jenkins do
             f.puts
             f.puts "ENV['POM_VERSION'] = '%s'" % version.to_s.upcase.gsub(/\s+/, '')
             f.puts "ENV['POM_ICT_VERSION'] = '%s'" % uep_version.to_s.upcase.gsub(/\s+/, '')
-            f.puts "ENV['POM_UEP_VERSION'] = '%s'" % oscp_version.to_s.upcase.gsub(/\s+/, '')
+            f.puts "ENV['POM_NFM_VERSION'] = '%s'" % oscp_version.to_s.upcase.gsub(/\s+/, '')
             f.puts
           end
         end
@@ -180,6 +182,8 @@ namespace :jenkins do
         status = false
       end
     else
+      Util::Logger::error 'name or version is nil'
+
       status = false
     end
 

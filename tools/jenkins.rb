@@ -1314,8 +1314,8 @@ module Jenkins
         args = {
           :script_path  => 'bn/patch_module.groovy',
           :parameters   => [
-            ['os',          'OS名称(windows, windows32, linux, solaris)',   'windows'],
-            ['name',        '补丁名称(例如dev/20160801, release/20160606)', ''],
+            ['os',          'OS名称',   'windows'],
+            ['name',        '补丁名称', ''],
             ['module_name', '模块名称', '']
           ]
         }
@@ -1372,7 +1372,7 @@ module Jenkins
           :authorization=> ['stnbuild'],
           :script_path  => 'stn/patch_install.groovy',
           :parameters   => [
-            ['name',            '补丁名称(例如dev/20160727_sdn, release/20160601_sdn)',     ''],
+            ['name',            '补丁名称(例如dev/20160727_stn, release/20160601_stn)', ''],
             ['version',         '版本号',       ''],
             ['display_version', '显示版本号',   ''],
             ['sp_next',         '下一个SP补丁', false]
@@ -1395,7 +1395,7 @@ module Jenkins
         args = {
           :script_path  => 'stn/patch.groovy',
           :parameters   => [
-            ['name', '补丁名称', '']
+            ['name', '补丁名称(dev/20160727_stn, release/20160601_stn)', '']
           ]
         }
 
@@ -1445,10 +1445,41 @@ module Jenkins
             :files    => 'source/*/*/*.xml'
           }
         },
-        :script_path  => 'autopatch.groovy'
+        :script_path  => 'tools/autopatch.groovy'
       }
 
       pipeline = Jenkins::Pipeline.new 'autopatch'
+      pipeline.build args
+
+      args = {
+        :script_path  => 'tools/bn_patch_init.groovy',
+        :parameters   => [
+            ['name',        '补丁名称(例如dev/20160801, release/20160606)', ''],
+            ['version',     '版本号',       ''],
+            ['uep_version', 'UEP版本号',    ''],
+            ['branch',      '分支名称',     ''],
+            ['windows',     'windows系统',  false],
+            ['windows32',   'windows32系统',false],
+            ['linux',       'linux系统',    false],
+            ['solaris',     'solaris系统',  false]
+          ]
+      }
+
+      pipeline = Jenkins::Pipeline.new 'bn_patch_init'
+      pipeline.build args
+
+      args = {
+        :script_path  => 'tools/stn_patch_init.groovy',
+        :parameters   => [
+            ['name',        '补丁名称例如(dev/20160727_stn, release/20160601_stn)', ''],
+            ['version',     '版本号',     ''],
+            ['uep_version', 'UEP版本号',  ''],
+            ['oscp_version','OSCP版本号', ''],
+            ['branch',      '分支名称',   '']
+          ]
+      }
+
+      pipeline = Jenkins::Pipeline.new 'stn_patch_init'
       pipeline.build args
     end
   end
