@@ -272,8 +272,8 @@ namespace :stn do
 
       if not Install::install_uep home, installation_uep, installation_home, version, 'sdn' do |home, installation, type|
           [
-            [File.join(home, 'sdn_installation/trunk/installdisk/documents'), File.join(installation, '../../documents'), true],
             [File.join(installation, '../../../license'), File.join(installation, '../../license'), true],
+            [File.join(home, 'sdn_installation/trunk/installdisk/documents'), File.join(installation, '../../documents'), true],
             [File.join(home, 'sdn_installation/trunk/installdisk/configure'), installation, false]
           ].each do |path, to_path, delete|
             if delete
@@ -286,7 +286,7 @@ namespace :stn do
 
             if File.directory? path
               if not File.copy path, to_path do |src, dest|
-                  Util::Logger::info src
+                  Util::Logger::info dest
 
                   [src, dest]
                 end

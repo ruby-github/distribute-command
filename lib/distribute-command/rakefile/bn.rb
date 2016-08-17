@@ -516,7 +516,7 @@ namespace :bn do
 
       if not Install::install_uep home, installation_uep, installation_home, version, type do |home, installation, type|
           [
-            [File.join(installation_uep, '../documents'), File.join(installation, '../../documents'), true],
+            [File.join(installation_uep, 'documents'), File.join(installation, '../../documents'), true],
             [File.join(installation, '../../../license'), File.join(installation, '../../license'), true],
             [File.join(home, 'BN_Platform/trunk/installdisk/installation/documents', type), '../../documents', true],
             [File.join(home, 'BN_Platform/trunk/installdisk/installation/installation', type), installation, false]
@@ -531,7 +531,7 @@ namespace :bn do
 
             if File.directory? path
               if not File.copy path, to_path do |src, dest|
-                  Util::Logger::info src
+                  Util::Logger::info dest
 
                   [src, dest]
                 end
