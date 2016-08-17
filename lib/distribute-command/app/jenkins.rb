@@ -500,4 +500,261 @@ module Jenkins
       false
     end
   end
+
+  def scm_change home
+    if not File.directory? home
+      Util::Logger::error 'no such directory - %s' % home
+
+      return false
+    end
+
+    if not OS::windows?
+      return true
+    end
+
+    Dir.chdir home do
+      map = {}
+
+      file = 'BN_NECOMMON/trunk/doc/跨项目代码修改走查/跨项目代码清单.xlsx'
+
+      if not File.file? file
+        Util::Logger::error 'no such file - %s' % file
+
+        return false
+      end
+
+      begin
+        application = Excel::Application.new
+
+        wk = application.open file
+        sht = wk.worksheet 1
+
+        data = sht.data
+        data.shift
+        head = data.shift || []
+
+        data.each do |x|
+          x[1].to_s.gsub(';', "\n").lines.each do |line|
+            line.strip!
+
+            if line.empty?
+              next
+            end
+
+            modulename, name = File.normalize(line).split '/', 2
+
+            if name.nil? or not name.start_with? 'trunk'
+              Util::Logger::warn 'invalid filename - %s' % line
+
+              next
+            end
+
+            map[modulename] ||= {}
+            map[modulename][name] = {
+              :info   => {
+                head[2] => [x[2], x[3], x[4]],
+                head[5] => [x[5], x[6], x[7]]
+              },
+              :change => nil
+            }
+          end
+        end
+      rescue
+        Util::Logger::exception $!
+
+        return false
+      end
+
+      if $start_date
+        start_date = '{%s}' % $start_date
+      else
+        t = Time.now
+
+        if t.day > 15
+          start_date = '{%s-%s-%s}' % [t.year, t.month, 1]
+        else
+          t = t - 31 * 24 * 3600
+          start_date = '{%s-%s-%s}' % [t.year, t.month, 16]
+        end
+      end
+
+      if $finish_date
+        finish_date = '{%s}' % $finish_date
+      else
+        finish_date = 'HEAD'
+      end
+
+      map.each do |k, v|
+        path = File.join k, 'trunk'
+
+        if SCM::scm(path) == :svn
+          args = '--verbose --revision %s:%s' % [start_date, finish_date]
+        else
+          args = '@%s..@%s' % [start_date, finish_date]
+        end
+
+        info = SCM::info path, args
+
+        if info.nil?
+          return false
+        end
+
+        info.each do |x|
+          x[:change_files].each do |action, names|
+            names.each do |name|
+              v.keys.each do |key|
+                if File.include? key, name or File.include? name, key
+                  map[k][key][:change] ||= []
+                  map[k][key][:change] << x
+                end
+              end
+            end
+          end
+        end
+      end
+
+      map.each do |k, v|
+        v.keys.each do |key|
+          if v[key][:change].nil?
+            v.delete key
+          end
+        end
+      end
+
+      map.keys.each do |k|
+        if map[k].empty?
+          map.delete k
+        end
+      end
+
+      if not map.empty?
+        Dir.chdir File.dirname(file) do
+          begin
+            application = Excel::Application.new
+
+            wk = application.add File.join(gem_dir('distribute-command'), 'doc/bn/change_template.xltx')
+            sht = wk.worksheets 1
+          rescue
+            Util::Logger::exception $!
+
+            return false
+          end
+
+          index = 3
+
+          account = []
+
+          map.each do |k, v|
+            v.each do |name, info|
+              sht.set index, 1, File.join(k, name)
+
+              sht.set index, 2, info[:info]['IPTN项目'][0]
+              sht.set index, 3, info[:info]['IPTN项目'][1]
+              sht.set index, 4, info[:info]['IPTN项目'][2]
+
+              sht.set index, 6, info[:info]['OTN项目'][0]
+              sht.set index, 7, info[:info]['OTN项目'][1]
+              sht.set index, 8, info[:info]['OTN项目'][2]
+
+              [
+                info[:info]['IPTN项目'][1], info[:info]['IPTN项目'][2],
+                info[:info]['OTN项目'][1], info[:info]['OTN项目'][2]
+              ].each do |x|
+                if x =~ /\d+$/
+                  account << '%s@zte.com.cn' % $&
+                end
+              end
+
+              index += 1
+            end
+          end
+
+          account.uniq!
+          account.sort!
+
+          sht.worksheet.UsedRange.WrapText = false
+
+          filename = '跨项目代码修改代码走查跟踪表(%s)' % Time.now.strftime('%Y%m%d')
+
+          wk.save filename
+          wk.close
+
+          change_info = {}
+
+          map.each do |k, v|
+            v.each do |name, info|
+              info[:change].each do |x|
+                change_info[k] ||= {}
+                change_info[k][x[:rev].to_i] = x
+              end
+            end
+          end
+
+          File.open '%s_变更详细记录.txt' % filename, 'w:utf-8' do |f|
+            change_info.each do |k, v|
+              f.puts k
+              f.puts '=' * 60
+
+              v.keys.sort.each do |rev|
+                info = v[rev]
+
+                f.puts INDENT + '版本号: %s' % info[:rev]
+                f.puts INDENT + '提交人: %s' % info[:author]
+                f.puts INDENT + '提交日期: %s' % info[:date]
+
+                f.puts INDENT + '变更文件:'
+
+                info[:change_files].each do |action, names|
+                  case action
+                  when :add
+                    f.puts INDENT * 2 + '新增:'
+                  when :delete
+                    f.puts INDENT * 2 + '删除:'
+                  else
+                    f.puts INDENT * 2 + '修改:'
+                  end
+
+                  names.each do |x|
+                    f.puts INDENT * 3 + File.join(k, x)
+                  end
+                end
+
+                f.puts INDENT + '变更说明:'
+
+                info[:comment].each do |line|
+                  f.puts INDENT * 2 + line.rstrip
+                end
+
+                f.puts
+              end
+
+              f.puts
+            end
+          end
+
+          name = filename
+
+          File.glob('%s*' % filename).each do |x|
+            system 'svn add --force .'
+
+            if ['.xls', '.xlsx'].include? File.extname(x)
+              name = x
+            end
+          end
+
+          system 'svn commit . -m "%s"' % ('自动提交%s' % name)
+
+          cc_account = ['10011354@zte.com.cn', '10017591@zte.com.cn', '10008896@zte.com.cn']
+          http = 'https://10.5.72.55:8443/svn/BN_NECOMMON/trunk/doc/跨项目代码修改走查/%s' % name
+
+          Net::send_smtp nil, nil, account, logger, cc: cc_account do |mail|
+            mail.subject = '%s, 请及时走查' % filename
+            mail.html = '<a href="%s">%s</a>' % [http, http]
+          end
+        end
+      end
+    end
+
+    true
+  end
 end

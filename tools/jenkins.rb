@@ -1481,6 +1481,20 @@ module Jenkins
 
       pipeline = Jenkins::Pipeline.new 'stn_patch_init'
       pipeline.build args
+
+      args = {
+        :script_path  => 'tools/scm_change.groovy'
+      }
+
+      pipeline = Jenkins::Pipeline.new 'scm_change'
+      pipeline.build args
+
+      args = {
+        :script_path  => 'tools/log_search.groovy'
+      }
+
+      pipeline = Jenkins::Pipeline.new 'log_search'
+      pipeline.build args
     end
   end
 end
@@ -1523,6 +1537,6 @@ if $0 == __FILE__
     # STN工程版本
 
     # STN开发版本
-    build.stn_build ['dev/20160727_sdn']
+    build.stn_build ['dev/20160727_stn']
   end
 end

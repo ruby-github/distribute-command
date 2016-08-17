@@ -189,4 +189,54 @@ namespace :jenkins do
 
     status.exit
   end
+
+  task :scm_change, [:home] do |t, args|
+    home = args[:home].to_s.nil || ($home || 'code')
+
+    status = true
+
+    if not Jenkins::scm_change home
+      status = false
+    end
+
+    status.exit
+  end
+
+  task :log_search, [:home] do |t, args|
+    home = args[:home].to_s.nil || ($home || 'code')
+
+    status = true
+
+    if File.directory? home
+      Dir.chdir home do
+        Dir.chdir 'BN_NECOMMON/trunk/doc/日志搜索' do
+          if not system 'ruby u3_log_search.rb'
+            status = false
+          end
+
+          name = File.glob('日志搜索结果*').last
+
+          if not name.nil?
+            system 'svn add --force .'
+            system 'svn commit . -m "%s"' % ('自动提交日志搜索结果:%s' % name)
+
+            http = 'https://10.5.72.55:8443/svn/BN_NECOMMON/trunk/doc/日志搜索/%s' % name
+
+            Net::send_smtp nil, nil, '10017591@zte.com.cn' do |mail|
+              mail.subject = '自动提交日志搜索结果:%s, 请及时查看' % name
+              mail.html = '<a href="%s">%s</a>' % [http, http]
+            end
+          else
+            status = false
+          end
+        end
+      end
+    else
+      Util::Logger::error 'no such directory - %s' % home
+
+      status = false
+    end
+
+    status.exit
+  end
 end
