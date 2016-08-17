@@ -2703,7 +2703,7 @@ module ASN1
 
             info['execute'].each do |ip, ip_info|
               if not ip.nil?
-                f.puts '%s<h3>%s</h3><br/>' % [INDENT * 2, ip]
+                f.puts '%s<br/><h3>%s</h3><br/>' % [INDENT * 2, ip]
               end
 
               home = ip_info['home']
@@ -2743,7 +2743,7 @@ module ASN1
 
             info['compare'].each do |ip, ip_info|
               if not ip.nil?
-                f.puts '%s<h3>%s</h3><br/>' % [INDENT * 2, ip]
+                f.puts '%s<br/><h3>%s</h3><br/>' % [INDENT * 2, ip]
               end
 
               home = ip_info['home']
@@ -2783,7 +2783,7 @@ module ASN1
 
             info['success'].each do |ip, ip_info|
               if not ip.nil?
-                f.puts '%s<h3>%s</h3><br/>' % [INDENT * 2, ip]
+                f.puts '%s<br/><h3>%s</h3><br/>' % [INDENT * 2, ip]
               end
 
               home = ip_info['home']
