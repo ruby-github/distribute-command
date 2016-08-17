@@ -1372,7 +1372,7 @@ module Jenkins
           :authorization=> ['stnbuild'],
           :script_path  => 'stn/patch_install.groovy',
           :parameters   => [
-            ['name',            '补丁名称',     ''],
+            ['name',            '补丁名称(例如dev/20160727_sdn, release/20160601_sdn)',     ''],
             ['version',         '版本号',       ''],
             ['display_version', '显示版本号',   ''],
             ['sp_next',         '下一个SP补丁', false]
