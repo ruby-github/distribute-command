@@ -799,8 +799,9 @@ module DistributeCommand
 
       function_e = REXML::Element.new 'function'
 
-      function_e.attributes['name'] = '${name}:汇总测试报告'
+      function_e.attributes['name'] = '${name}:汇总测试报告 - ${ip}'
       function_e.attributes['home'] = args['log_home']
+      function_e.attributes['ip'] = ''
       function_e.attributes['client_ip'] = '${ip}'
       function_e.attributes['function'] = 'compare_index_client'
       function_e.attributes['ensure'] = 'true'
@@ -810,11 +811,12 @@ module DistributeCommand
       element
     end
 
-
     # args
     #   name, home
     def compare_index args = nil
       args ||= {}
+
+      element = REXML::Element.new 'sequence'
 
       # 汇总测试报告
 
@@ -825,7 +827,9 @@ module DistributeCommand
       function_e.attributes['function'] = 'compare_index'
       function_e.attributes['ensure'] = 'true'
 
-      function_e
+      element << function_e
+
+      element
     end
   end
 end

@@ -21,6 +21,10 @@ module DistributeCommand
         @args[k] = v.to_s.strip.vars hash.merge(args)
       end
 
+      if element.attributes.has_key? 'ip'
+        @args['ip'] = element.attributes['ip'].to_s.nil
+      end
+
       @args.each do |k, v|
         @args[k] = v.to_s.vars hash.merge(@args)
       end
