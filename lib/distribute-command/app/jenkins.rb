@@ -448,7 +448,7 @@ module Jenkins
 
             list.each do |file|
               osnames.each do |os|
-                if not File.copy File.join(dirname, file), File.join('template', version, os, file) do |src, dest|
+                if not File.copy File.join(dirname, file), File.join('template', version, os, file.downcase) do |src, dest|
                     Util::Logger::info dest
 
                     [src, dest]
