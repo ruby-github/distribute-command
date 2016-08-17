@@ -175,7 +175,7 @@ module Deploy
               zip.unzip File.join('sha1', sha1)
 
               Dir.chdir File.join('sha1', sha1) do
-                info[sha1] = File.expands('**/*.class').sort
+                info[sha1] = File.glob('**/*.class').sort
               end
             end
 

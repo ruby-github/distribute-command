@@ -95,7 +95,7 @@ module ASN1
         '<font style = "background:gray">%s</font>' % str
       else
         if @match.nil?
-          '<font style = "background:blue">%s</font>' % str
+          '<font style = "background:#00ffff">%s</font>' % str
         else
           if @match
             str
@@ -2076,7 +2076,7 @@ module ASN1
         '<font style = "background:gray">%s</font>' % str
       else
         if @match.nil?
-          '<font style = "background:blue">%s</font>' % str
+          '<font style = "background:#00ffff">%s</font>' % str
         else
           if @match
             str
@@ -2408,7 +2408,7 @@ module ASN1
                 if asn1.nil?
                   f.puts '%s<b>%s</b> <a name = "s_asn1_%s" href = "#asn1_%s"><font color = "%s">%s</font></a>' % [INDENT * 4, index, index, index, :teal, str]
                 else
-                  f.puts '%s<b>%s</b> <a name = "s_asn1_%s" href = "#asn1_%s"><font color = "%s">%s</font></a>' % [INDENT * 4, index, index, index, :blue, str]
+                  f.puts '%s<b>%s</b> <a name = "s_asn1_%s" href = "#asn1_%s"><font color = "%s">%s</font></a>' % [INDENT * 4, index, index, index, '#00ffff', str]
                 end
               else
                 f.puts '%s<b>%s</b> <a name = "s_asn1_%s" href = "#asn1_%s"><font color = "%s">%s</font></a>' % [INDENT * 4, index, index, index, :red, str]
@@ -2760,7 +2760,7 @@ module ASN1
                 end
 
                 if path_info['compare'].nil?
-                  f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :blue, path]
+                  f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, '#00ffff', path]
                 else
                   f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :red, path]
                 end

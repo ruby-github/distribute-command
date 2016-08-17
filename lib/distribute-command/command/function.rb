@@ -588,7 +588,7 @@ module DistributeCommand
                       else
                         if path_info['compare'].nil?
                           sht.set line, 4, '用例执行失败, 报文有缺失'
-                          sht.worksheet.Cells(line, 4).Interior.Color = 0xff0000
+                          sht.worksheet.Cells(line, 4).Interior.Color = 0x00ffff
                         else
                           sht.set line, 4, '用例执行失败, 报文比较失败'
                           sht.worksheet.Cells(line, 4).Interior.Color = 0x0000ff
@@ -597,7 +597,7 @@ module DistributeCommand
                     else
                       if path_info['compare'].nil?
                         sht.set line, 4, '报文有缺失'
-                        sht.worksheet.Cells(line, 4).Interior.Color = 0xff0000
+                        sht.worksheet.Cells(line, 4).Interior.Color = 0x00ffff
                       else
                         sht.set line, 4, '报文比较失败'
                         sht.worksheet.Cells(line, 4).Interior.Color = 0x0000ff
