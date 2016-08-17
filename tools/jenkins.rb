@@ -1483,14 +1483,24 @@ module Jenkins
       pipeline.build args
 
       args = {
-        :script_path  => 'tools/scm_change.groovy'
+        :script_path  => 'tools/scm_change.groovy',
+        :triggers     => {
+          :timer  => {
+            :spec => '0 3 1,16 * *'
+          }
+        }
       }
 
       pipeline = Jenkins::Pipeline.new 'scm_change'
       pipeline.build args
 
       args = {
-        :script_path  => 'tools/log_search.groovy'
+        :script_path  => 'tools/log_search.groovy',
+        :triggers     => {
+          :timer  => {
+            :spec => '0 3 1 * *'
+          }
+        }
       }
 
       pipeline = Jenkins::Pipeline.new 'log_search'
