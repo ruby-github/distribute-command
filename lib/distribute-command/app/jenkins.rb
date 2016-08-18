@@ -418,6 +418,8 @@ module Jenkins
       Dir.chdir home do
         status = true
 
+        Util::Logger::puts '===== 拷贝补丁申请单 ====='
+
         File.glob('source/*').each do |dirname|
           if not File.directory? dirname
             File.delete dirname
@@ -467,6 +469,8 @@ module Jenkins
             File.delete dirname
           end
         end
+
+        Util::Logger::puts '===== 分发补丁申请单 ====='
 
         if File.directory? 'template'
           Dir.chdir 'template' do
