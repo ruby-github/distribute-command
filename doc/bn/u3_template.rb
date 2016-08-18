@@ -4,6 +4,14 @@ LOG_FILE = 'log.log'
 PATCH_HOME = 'c:/temp/u3_patch'
 SOURCE_HOME = '//10.8.9.80/source'
 
+def locale str
+  begin
+    str.dup.encode 'locale', invalid: :replace, undef: :replace, replace: ''
+  rescue
+    str
+  end
+end
+
 if $0 == __FILE__
   if File.directory? PATCH_HOME
     Dir.chdir PATCH_HOME do
@@ -32,19 +40,17 @@ if $0 == __FILE__
 
           dest_file = File.join SOURCE_HOME, paths.join('/')
 
-          file_locale = file.dup.encode 'locale', invalid: :replace, undef: :replace, replace: ''
-          dest_file_locale = dest_file.dup.encode 'locale', invalid: :replace, undef: :replace, replace: ''
-
           begin
-            FileUtils.mkdir_p File.dirname(dest_file_locale)
+            FileUtils.mkdir_p File.dirname(dest_file)
+            FileUtils.copy_file file, dest_file, false
+            FileUtils.rm_rf file
 
-            FileUtils.copy_file file_locale, dest_file_locale, false
-
-            f.puts '[SUCCESS] %s copy file: %s ->' % [Time.now, file_locale]
-            f.puts ' ' * 10 + dest_file_locale
+            f.puts '[SUCCESS] %s copy file: %s' % [Time.now, locale(file)]
+            f.puts '%s -> %s' % [' ' * 9, locale(dest_file)]
           rescue
-            f.puts '[FAILED ] %s copy file: %s ->' % [Time.now, file_locale]
-            f.puts ' ' * 10 + dest_file_locale
+            f.puts '[ERROR  ] %s' % locale($!.to_s)
+            f.puts '[FAILED ] %s copy file: %s' % [Time.now, locale(file)]
+            f.puts '%s -> %s' % [' ' * 9, locale(dest_file)]
 
             status = false
           end
