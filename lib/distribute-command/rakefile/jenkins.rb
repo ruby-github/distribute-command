@@ -93,8 +93,6 @@ namespace :jenkins do
             if OS::name == :linux
               f.puts "ENV['USE_CCACHE'] = '1'"
             end
-
-            f.puts
           end
         end
       else
@@ -175,7 +173,6 @@ namespace :jenkins do
             f.puts "ENV['POM_VERSION'] = '%s'" % version.to_s.upcase.gsub(/\s+/, '')
             f.puts "ENV['POM_ICT_VERSION'] = '%s'" % uep_version.to_s.upcase.gsub(/\s+/, '')
             f.puts "ENV['POM_NFM_VERSION'] = '%s'" % oscp_version.to_s.upcase.gsub(/\s+/, '')
-            f.puts
           end
         end
       else

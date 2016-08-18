@@ -478,7 +478,7 @@ module Jenkins
 
               File.glob(xpath).each do |path|
                 if not File.copy dir, path do |src, dest|
-                    Util::Logger::info src
+                    Util::Logger::info dest
 
                     [src, dest]
                   end
