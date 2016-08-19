@@ -49,11 +49,11 @@ BN_MAIL_ADDRS_NAF     = ['10033121@zte.com.cn', '10041713@zte.com.cn'] # 吉才�
 BN_MAIL_ADDRS_E2E     = ['10035566@zte.com.cn'] # 李发献135566
 BN_MAIL_ADDRS_WDM     = ['10008896@zte.com.cn'] # 张新立108896
 
-BN_METRIC_ID_IPTN     = '310001114849'
-BN_METRIC_ID_IPTN_NJ  = '310001114719'
-BN_METRIC_ID_NAF      = '310001115511'
-BN_METRIC_ID_E2E      = '310001115567'
-BN_METRIC_ID_WDM      = '310001115017'
+BN_METRIC_ID_IPTN     = $bn_metric_id_iptn || '310001114849'
+BN_METRIC_ID_IPTN_NJ  = $bn_metric_id_iptn_nj || '310001114719'
+BN_METRIC_ID_NAF      = $bn_metric_id_naf || '310001115511'
+BN_METRIC_ID_E2E      = $bn_metric_id_e2e || '310001115567'
+BN_METRIC_ID_WDM      = $bn_metric_id_wdm || '310001115017'
 
 namespace :bn do
   namespace :update do
