@@ -604,16 +604,31 @@ module DistributeCommand
                     sht.set line, 4, ''
                   else
                     if not path_info['execute']
-                      if path_info['compare']
-                        sht.set line, 4, '用例执行失败, 但报文比较成功'
-                        sht.worksheet.Cells(line, 4).Interior.Color = 0x33ff99
-                      else
-                        if path_info['compare'].nil?
-                          sht.set line, 4, '用例执行失败, 报文有缺失'
-                          sht.worksheet.Cells(line, 4).Interior.Color = 0x00ffff
+                      if path_info['execute'].nil?
+                        if path_info['compare']
+                          sht.set line, 4, '用例执行失败(超时), 但报文比较成功'
+                          sht.worksheet.Cells(line, 4).Interior.Color = 0x33ff99
                         else
-                          sht.set line, 4, '用例执行失败, 报文比较失败'
-                          sht.worksheet.Cells(line, 4).Interior.Color = 0x0000ff
+                          if path_info['compare'].nil?
+                            sht.set line, 4, '用例执行失败(超时), 报文有缺失'
+                            sht.worksheet.Cells(line, 4).Interior.Color = 0x00ffff
+                          else
+                            sht.set line, 4, '用例执行失败(超时), 报文比较失败'
+                            sht.worksheet.Cells(line, 4).Interior.Color = 0x0000ff
+                          end
+                        end
+                      else
+                        if path_info['compare']
+                          sht.set line, 4, '用例执行失败, 但报文比较成功'
+                          sht.worksheet.Cells(line, 4).Interior.Color = 0x33ff99
+                        else
+                          if path_info['compare'].nil?
+                            sht.set line, 4, '用例执行失败, 报文有缺失'
+                            sht.worksheet.Cells(line, 4).Interior.Color = 0x00ffff
+                          else
+                            sht.set line, 4, '用例执行失败, 报文比较失败'
+                            sht.worksheet.Cells(line, 4).Interior.Color = 0x0000ff
+                          end
                         end
                       end
                     else
