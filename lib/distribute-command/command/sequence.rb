@@ -171,11 +171,13 @@ module DistributeCommand
 
             template_element = Template::__send__ e.name, e_args
 
-            template_element.to_array.each do |element|
-              sequence = Sequence.new args.clone
-              sequence.load element, hash
+            if not template_element.nil?
+              template_element.to_array.each do |element|
+                sequence = Sequence.new args.clone
+                sequence.load element, hash
 
-              @sequence_list << sequence
+                @sequence_list << sequence
+              end
             end
           else
             command = CommandAction.new e.name, args.clone

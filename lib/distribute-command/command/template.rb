@@ -3,6 +3,33 @@ module DistributeCommand
     module_function
 
     # args
+    #   file
+    def import_xml args = nil
+      args ||= {}
+
+      file = args['file'].to_s.nil
+
+      if not file.nil?
+        if File.file? file
+          begin
+            doc = REXML::Document.file file
+            doc.root
+          rescue
+            Util::Logger::exception $!
+
+            nil
+          end
+        else
+          Util::Logger::error 'no such file - %s' % file
+
+          nil
+        end
+      else
+        nil
+      end
+    end
+
+    # args
     #   name, ip, home, installation_home, silencefile, license
     #   cmdline, uninstall_cmdline, tmpdir, skip, installation_home_patch, ems_locale
     #   client, server

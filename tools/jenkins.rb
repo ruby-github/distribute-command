@@ -1505,6 +1505,19 @@ module Jenkins
 
       pipeline = Jenkins::Pipeline.new 'log_search'
       pipeline.build args
+
+      args = {
+        :authorization=> ['bnbuild'],
+        :script_path  => 'tools/autotest_update.groovy',
+        :triggers     => {
+          :timer  => {
+            :spec => '0 22 * * *'
+          }
+        }
+      }
+
+      pipeline = Jenkins::Pipeline.new 'autotest_update'
+      pipeline.build args
     end
   end
 end
