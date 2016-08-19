@@ -22,6 +22,11 @@ module Util
         line = string.to_s.utf8
 
         if not io.nil?
+          if $logging
+            $logger ||= []
+            $logger << line
+          end
+
           io.puts line
         else
           line
@@ -35,6 +40,11 @@ module Util
           line = '[DEBUG] ' + string.to_s.utf8
 
           if not io.nil?
+            if $logging
+              $logger ||= []
+              $logger << line
+            end
+
             io.puts line
           else
             line
@@ -53,6 +63,11 @@ module Util
           line = '[INFO] ' + string.to_s.utf8
 
           if not io.nil?
+            if $logging
+              $logger ||= []
+              $logger << line
+            end
+
             io.puts line
           else
             line
@@ -75,6 +90,11 @@ module Util
 
           if not io.nil?
             lines.each do |line|
+              if $logging
+                $logger ||= []
+                $logger << line
+              end
+
               io.puts line
             end
           else
@@ -94,6 +114,11 @@ module Util
           line = '[WARN] ' + string.to_s.utf8
 
           if not io.nil?
+            if $logging
+              $logger ||= []
+              $logger << line
+            end
+
             io.puts line
           else
             line
@@ -112,6 +137,14 @@ module Util
           line = '[ERROR] ' + string.to_s.utf8
 
           if not io.nil?
+            if $logging
+              $logger ||= []
+              $logger << line
+            end
+
+            $errors ||= []
+            $errors << line
+
             io.puts line
           else
             line
@@ -143,6 +176,14 @@ module Util
 
           if not io.nil?
             lines.each do |line|
+              if $logging
+                $logger ||= []
+                $logger << line
+              end
+
+              $errors ||= []
+              $errors << line
+
               io.puts line
             end
           else
@@ -162,6 +203,14 @@ module Util
           line = '[FATAL] ' + string.to_s.utf8
 
           if not io.nil?
+            if $logging
+              $logger ||= []
+              $logger << line
+            end
+
+            $errors ||= []
+            $errors << line
+
             io.puts line
           else
             line
@@ -186,6 +235,11 @@ module Util
 
         if not io.nil?
           lines.each do |line|
+            if $logging
+              $logger ||= []
+              $logger << line
+            end
+
             io.puts line
           end
         else
@@ -203,6 +257,11 @@ module Util
 
         if not io.nil?
           lines.each do |line|
+            if $logging
+              $logger ||= []
+              $logger << line
+            end
+
             io.puts line
           end
         else
@@ -286,6 +345,11 @@ module Util
 
         if not io.nil?
           lines.each do |line|
+            if $logging
+              $logger ||= []
+              $logger << line
+            end
+
             io.puts line
           end
         else
@@ -316,6 +380,11 @@ module Util
 
         if not io.nil?
           lines.each do |line|
+            if $logging
+              $logger ||= []
+              $logger << line
+            end
+
             io.puts line
           end
         else
@@ -356,6 +425,11 @@ module Util
 
         if not io.nil?
           lines.each do |line|
+            if $logging
+              $logger ||= []
+              $logger << line
+            end
+
             io.puts line
           end
         else

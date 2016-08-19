@@ -289,8 +289,7 @@ class File
       begin
         FileUtils.mkdir_p path
       rescue
-        $errors ||= []
-        $errors << $!.to_s
+        Util::Logger::exception $!
 
         status = false
       end
@@ -339,14 +338,109 @@ class File
           raise Errno::ENOENT, src_file
         end
       rescue
-        $errors ||= []
-        $errors << $!.to_s
+        Util::Logger::exception $!
 
         status = false
       end
     end
 
     status
+  end
+
+  def self.move src, dest, force = false
+    src = normalize src
+    dest = normalize dest
+
+    if same_path? src, dest, true
+      return true
+    end
+
+    if same_path? root(src), root(dest)
+      map = {}
+
+      dir, pattern = pattern_split src
+
+      if dir
+        if directory? dir
+          Dir.chdir dir do
+            glob(pattern).each do |file|
+              src_file = join dir, file
+              dest_file = join dest, file
+
+              map[src_file] = dest_file
+            end
+          end
+        end
+      else
+        map[src] = dest
+      end
+
+      status = true
+
+      map.each do |src_file, dest_file|
+        if file? src_file or not exist? dest_file
+          if block_given?
+            srcfile = yield srcfile
+          end
+
+          if src_file.nil?
+            delete src_file
+
+            next
+          end
+
+          begin
+            if not directory? dirname(dest_file)
+              FileUtils.mkdir_p dirname(dest_file)
+            end
+
+            FileUtils.move src_file, dest_file
+          rescue
+            exception = $!
+
+            if not copy src_file, dest_file or not delete src_file
+              Util::Logger::exception exception
+
+              status = false
+            end
+          end
+        else
+          if copy src, dest do |srcfile, destfile|
+              if block_given?
+                srcfile = yield srcfile
+              end
+
+              [srcfile, destfile]
+            end
+
+            if not delete srcfile
+              status = false
+            end
+          else
+            status = false
+          end
+        end
+      end
+
+      status
+    else
+      if not copy src, dest do |src_file, dest_file|
+          if block_given?
+            src_file = yield src_file
+          end
+
+          [src_file, dest_file]
+        end
+
+        return false
+      end
+
+      if not delete src
+        return false
+      end
+
+      true
+    end
   end
 
   def self.delete paths
@@ -376,8 +470,7 @@ class File
           FileUtils.rm_rf filename
 
           if exist? filename
-            $errors ||= []
-            $errors << 'No delete file or directory - %s' % filename
+            Util::Logger::error 'No delete file or directory - %s' % filename
 
             status = false
           end

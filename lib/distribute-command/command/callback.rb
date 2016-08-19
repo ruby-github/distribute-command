@@ -35,14 +35,15 @@ module DistributeCommand
         end
 
         if not lines.empty?
-          $errors ||= []
-          $errors += lines
+          head = Util::Logger::head 'INSTALLATION ERROR', nil
 
-          if block_given?
-            head = Util::Logger::head 'INSTALLATION ERROR', nil
+          (head.lines + lines).each do |line|
+            line.rstrip!
 
-            (head.lines + lines).each do |line|
-              yield line.rstrip
+            if block_given?
+              yield Util::Logger::error(line, nil)
+            else
+              Util::Logger::error line
             end
           end
         end
@@ -61,8 +62,7 @@ module DistributeCommand
               break
             end
           rescue
-            $errors ||= []
-            $errors << $!
+            Util::logger::exception $!
           end
 
           if not install_home.nil?
@@ -78,8 +78,7 @@ module DistributeCommand
 
                 doc.to_file db_config
               rescue
-                $errors ||= []
-                $errors << $!
+                Util::logger::exception $!
               end
             end
           end
@@ -105,8 +104,7 @@ module DistributeCommand
 
             doc.to_file file
           rescue
-            $errors ||= []
-            $errors << $!
+            Util::logger::exception $!
           end
         end
 
@@ -195,8 +193,7 @@ module DistributeCommand
                   end
                 end
 
-                $errors ||= []
-                $errors << "start server expired: #{expired}"
+                Util::logger::error "start server expired: #{expired}"
 
                 return false
               end
@@ -290,8 +287,7 @@ module DistributeCommand
                   end
                 end
 
-                $errors ||= []
-                $errors << "start client expired: #{expired}"
+                Util::logger::error "start client expired: #{expired}"
 
                 return false
               end
@@ -415,8 +411,7 @@ module DistributeCommand
           'restore failed'
         ].each do |x|
           if args['line'].downcase.include? x
-            $errors ||= []
-            $errors << args['line']
+            Util::logger::error args['line']
 
             status = false
           end
@@ -493,8 +488,7 @@ module DistributeCommand
 
           true
         rescue
-          $errors ||= []
-          $errors << $!
+          Util::logger::exception $!
 
           if block_given?
             string = Util::Logger::exception $!, false, nil

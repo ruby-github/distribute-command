@@ -859,16 +859,14 @@ module ASN1
 
     def validate?
       if @classname.nil?
-        $errors ||= []
-        $errors << 'not found classname'
+        Util::logger::error 'not found classname'
 
         @asn1 = line_sequence @data
       else
         @java_asn1 = decode
 
         if @java_asn1.nil?
-          $errors ||= []
-          $errors << 'not parse asn1 data - %s' % @classname
+          Util::logger::error 'not parse asn1 data - %s' % @classname
 
           @asn1 = line_sequence @data
         end

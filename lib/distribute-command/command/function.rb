@@ -44,8 +44,7 @@ module DistributeCommand
 
         true
       else
-        $errors ||= []
-        $errors << 'no such directory - %s' % home
+        Util::logger::error 'no such directory - %s' % home
 
         false
       end
@@ -255,8 +254,7 @@ module DistributeCommand
 
             true
           else
-            $errors ||= []
-            $errors << 'no such directory - %s' % path
+            Util::logger::error 'no such directory - %s' % path
 
             false
           end
@@ -264,8 +262,7 @@ module DistributeCommand
           false
         end
       else
-        $errors ||= []
-        $errors << 'no such directory - %s' % home
+        Util::logger::error 'no such directory - %s' % home
 
         false
       end

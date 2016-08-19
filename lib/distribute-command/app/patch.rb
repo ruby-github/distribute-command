@@ -1,9 +1,150 @@
 module Patch
   class Bn
     def initialize build_home, code_home
+      @build_home = File.expand_path build_home
+      @code_home = File.expand_path code_home
     end
 
-    def patch name
+    def patch home
+      if not File.directory? home
+        Util::Logger::error 'no such directory - %s' % home
+
+        return false
+      end
+
+      Dir.chdir home do
+        File.lock 'create.id' do
+          $errors = nil
+
+          File.tmpdir do |tmpdir|
+            if not File.move '*.{xml,zip}', tmpdir, true do |file|
+                Util::Logger::puts file
+
+                file
+              end
+
+              send_smtp nil, nil, subject: '<PATCH 通知>移动XML文件到临时文件夹失败'
+
+              return false
+            end
+
+            status = true
+
+            File.glob(File.join(tmpdir, '*.xml')).sort {|x, y| File.mtime(x) <=> File.mtime(y)}.each_with_index do |file, index|
+              Util::Logger::cmdline File.basename(file)
+
+              list = load file
+
+              if list.nil?
+                account, cc_account = read_account x
+                send_smtp account, cc_account, file: file, subject: '<PATCH 通知>解析XML文件失败, 请尽快处理'
+
+                status = false
+
+                next
+              end
+
+              if list.empty?
+                next
+              end
+
+              map = {}
+
+              list.each_with_index do |info, i|
+                if not info[:attr][:os].nil?
+                  if not info[:attr][:os].include? OS::name.to_s
+                    next
+                  end
+                end
+
+                if build info, File.join(tmpdir, index.to_s, i.to_s)
+                  map[i] = true
+
+                  if File.directory? File.join(tmpdir, index.to_s, i.to_s)
+                    Dir.chdir File.join(tmpdir, index.to_s, i.to_s) do
+                      File.glob('patch/**/*.xml').each do |xml_file|
+                        Util::Logger::puts '[CHECK] %s' % xml_file
+
+                        begin
+                          REXML::Document.file xml_file
+                        rescue
+                          Util::Logger::exception $!
+
+                          map[i] = false
+
+                          status = false
+                        end
+                      end
+                    end
+                  end
+                else
+                  map[i] = false
+
+                  status = false
+                end
+              end
+
+              if not map.values.include? false
+                File.lock File.join(@build_home, 'patch/patch', 'create.id') do
+                  list.each_index do |i|
+                    if not map.has_key? i
+                      next
+                    end
+
+                    id = get_id
+
+                    if File.move File.join(tmpdir, index.to_s, i.to_s), File.join(@build_home, 'patch/patch', id), true
+                      map[i] = id
+                    else
+                      map[i] = false
+
+                      status = false
+                    end
+                  end
+                end
+              end
+
+              account = nil
+              cc_account = []
+              manager_account = nil
+
+              if list.first[:info]['提交人员'].to_s =~ /\d+$/
+                account = '%s@zte.com.cn' % $&
+              end
+
+              list.first[:info]['抄送人员'].each do |str|
+                if str.strip =~ /\d+$/
+                  cc_account << '%s@zte.com.cn' % $&
+                end
+              end
+
+              if list.first[:info]['开发经理'].to_s =~ /\d+$/
+                manager_account = '%s@zte.com.cn' % $&
+              end
+
+              map.each do |index, value|
+                case value
+                when true
+                  send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 但关联补丁制作失败, 请尽快处理', code: true
+                when false
+                  send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作失败, 请尽快处理', code: true
+                else
+                  if not manager_account.nil?
+                    cc_account << manager_account
+                  end
+
+                  if File.expands(File.join(@output_home, value, 'patch/*/*/*')).empty?
+                    send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 但没有输出文件(补丁号: %s)' % value, id: value
+                  else
+                    send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 请验证(补丁号: %s)' % value, id: value
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+
       true
     end
 
@@ -360,6 +501,10 @@ module Patch
       end
     end
 
+    def build info, tmpdir
+      true
+    end
+
     def module_names
       [
         'Interface',
@@ -376,11 +521,125 @@ module Patch
         'BN_IP'
       ]
     end
+
+    # opt
+    #   subject
+    #   text, html
+    #   message
+    #   info
+    #   file
+    #
+    #   code
+    #   id
+    def send_smtp account, cc_account, opt = {}
+      account ||= cc_account
+
+      if account.nil?
+        return true
+      end
+
+      opt[:cc] = cc_account
+
+      share_name = '.'
+      ip = System::ip '192.168.'
+
+      if Dir.pwd =~ /\/(release|dev)\//
+        name = $'.split('/').first
+
+        if name.include? '_stn'
+          share_name = 'stn_%s_%s' % [$1, name.gsub('_stn', '')]
+        else
+          share_name = '%s_%s' % [$1, name]
+
+          if OS::windows?
+            if $x64
+              share_name = 'x64_%s' % share_name
+            end
+          end
+        end
+      end
+
+      lines = []
+
+      lines << '操作系统: <font color = "blue">%s</font><br>' % OS::name
+      lines << '当前目录: <font color = "blue">%s</font><br>' % Dir.pwd.gsub('/', '\\')
+
+      if opt[:id]
+        dirname = File.join '//%s' % ip, share_name, 'patch', opt[:id]
+        lines << '补丁位置: <a href = "file:%s"><font color = "red">%s</font></a><br>' % [dirname, dirname.gsub('/', '\\')]
+      end
+
+      lines << '<br>'
+
+      if opt[:text]
+        opt[:text].to_s.lines do |line|
+          lines << '%s<br>' % line.rstrip
+        end
+      end
+
+      if opt[:html]
+        lines << opt[:html]
+      end
+
+      lines << '<br>'
+
+      Net::send_smtp nil, nil, account, opt do |mail|
+        subject = opt[:subject] || '<PATCH 通知>补丁制作失败, 请尽快处理'
+
+        mail.html = lines.join "\n"
+
+        if opt[:message]
+          File.tmpdir do |dir|
+            filename = File.join dir, 'build.log'
+
+            File.open filename, 'w' do |file|
+              file.puts opt[:message]
+            end
+
+            mail.attach filename.locale
+          end
+        end
+
+        if opt[:info]
+          File.tmpdir do |dir|
+            filename = File.join dir, '%s_%s.xml' % [Time.now.strftime('%Y%m%d'), author(opt[:info][:info])]
+            to_xml opt[:info], filename
+            mail.attach filename.locale
+          end
+
+          if opt[:info][:info]
+            subject += '(%s)' % opt[:info][:info]['提交人员'].to_s.gsub('/', '_')
+          end
+        end
+
+        if $x64
+          mail.subject = '%s(%s-X64)' % [subject, OS::name]
+        else
+          mail.subject = '%s(%s)' % [subject, OS::name]
+        end
+      end
+    end
   end
 
   class Stn < Bn
     def patch
       true
+    end
+
+    private
+
+    def module_names
+      [
+        'u3_interface',
+        'sdn_interface',
+        'sdn_framework',
+        'sdn_application',
+        'sdn_nesc',
+        'sdn_tunnel',
+        'SPTN-E2E',
+        'CTR-ICT',
+        'sdn_installation'
+      ]
     end
   end
 end

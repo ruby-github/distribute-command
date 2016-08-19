@@ -396,6 +396,8 @@ module DistributeCommand
         end
       end
 
+      $errors = nil
+
       status
     end
 
