@@ -468,7 +468,7 @@ module Jenkins
   class Pipeline < Project
     def initialize path
       @path = path
-      @jenkins_file_url = '/home/git/JenkinsFile'
+      @jenkins_file_url = '/home/workspace/git/JenkinsFile'
     end
 
     def build args = nil
