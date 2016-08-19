@@ -1441,7 +1441,7 @@ module Jenkins
         :triggers    => {
           :file => {
             :spec     => 'H/5 * * * *',
-            :directory=> '/home/auto/autopatch',
+            :directory=> '/home/workspace/auto',
             :files    => 'source/*/*/*.xml'
           }
         },
