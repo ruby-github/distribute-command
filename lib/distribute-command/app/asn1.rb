@@ -2735,6 +2735,46 @@ module ASN1
           end
         end
 
+        if not info['expired'].nil?
+          if not info['expired'].empty?
+            f.puts '%s<br/><br/><h1>执行失败用例(超时)</h1>' % (INDENT * 2)
+            f.puts '%s<hr color = "gray"/><br/>' % (INDENT * 2)
+            f.puts
+
+            info['expired'].each do |ip, ip_info|
+              if not ip.nil?
+                f.puts '%s<br/><h3>%s</h3><br/>' % [INDENT * 2, ip]
+              end
+
+              home = ip_info['home']
+
+              f.puts '%s<table>' % (INDENT * 2)
+
+              ip_info['paths'].each do |path, path_info|
+                f.puts '%s<tr><td>' % (INDENT * 3)
+
+                if home.nil?
+                  href = File.join path, 'compare.html'
+                else
+                  href = File.join home, path, 'compare.html'
+                end
+
+                if path_info['compare']
+                  f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :black, path]
+                else
+                  f.puts '%s<b>%s</b> <a href = "%s"><font color = "%s">%s</font></a>' % [INDENT * 4, path_info['index'], href, :red, path]
+                end
+
+                f.puts '%s</td></tr>' % (INDENT * 3)
+              end
+
+              f.puts '%s</table>' % (INDENT * 2)
+            end
+
+            f.puts
+          end
+        end
+
         if not info['compare'].nil?
           if not info['compare'].empty?
             f.puts '%s<br/><br/><h1>比较失败用例</h1>' % (INDENT * 2)

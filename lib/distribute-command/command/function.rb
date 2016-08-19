@@ -446,13 +446,23 @@ module DistributeCommand
               if info.kind_of? Hash
                 info.each do |path, path_info|
                   if not path_info['execute']
-                    index_info['execute'] ||= {}
-                    index_info['execute'][nil] ||= {
-                      'home'  => nil,
-                      'paths' => {}
-                    }
+                    if path_info['execute'].nil?
+                      index_info['expired'] ||= {}
+                      index_info['expired'][nil] ||= {
+                        'home'  => nil,
+                        'paths' => {}
+                      }
 
-                    index_info['execute'][nil]['paths'][path] = path_info
+                      index_info['expired'][nil]['paths'][path] = path_info
+                    else
+                      index_info['execute'] ||= {}
+                      index_info['execute'][nil] ||= {
+                        'home'  => nil,
+                        'paths' => {}
+                      }
+
+                      index_info['execute'][nil]['paths'][path] = path_info
+                    end
 
                     next
                   end
@@ -509,13 +519,23 @@ module DistributeCommand
 
                 info.each do |path, path_info|
                   if not path_info['execute']
-                    index_info['execute'] ||= {}
-                    index_info['execute'][ip] ||= {
-                      'home'  => home,
-                      'paths' => {}
-                    }
+                    if path_info['execute'].nil?
+                      index_info['expired'] ||= {}
+                      index_info['expired'][ip] ||= {
+                        'home'  => home,
+                        'paths' => {}
+                      }
 
-                    index_info['execute'][ip]['paths'][path] = path_info
+                      index_info['expired'][ip]['paths'][path] = path_info
+                    else
+                      index_info['execute'] ||= {}
+                      index_info['execute'][ip] ||= {
+                        'home'  => home,
+                        'paths' => {}
+                      }
+
+                      index_info['execute'][ip]['paths'][path] = path_info
+                    end
 
                     next
                   end
