@@ -1351,7 +1351,7 @@ module Jenkins
            :triggers    => {
               :file => {
                 :spec     => 'H/5 * * * *',
-                :directory=> File.join('/home/jenkins/os', osname.to_s, name, 'build/xml'),
+                :directory=> File.join('/home/workspace/os', osname.to_s, name, 'build/xml'),
                 :files    => '*/*.xml'
               }
             },
@@ -1416,7 +1416,7 @@ module Jenkins
          :triggers    => {
             :file => {
               :spec     => 'H/5 * * * *',
-              :directory=> File.join('/home/jenkins/os/windows_stn', name, 'build/xml'),
+              :directory=> File.join('/home/workspace/os/windows_stn', name, 'build/xml'),
               :files    => '*/*.xml'
             }
           },
