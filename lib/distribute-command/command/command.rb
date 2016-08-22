@@ -63,6 +63,35 @@ module DistributeCommand
       status
     end
 
+    def ips
+      if not @doc.nil?
+        ips = []
+
+        REXML::XPath.each @doc, '//@ip' do |attribute|
+          ip = attribute.value.nil
+
+          if not ip.nil?
+            if not ['127.0.0.1'].include? ip
+              ips << ip
+            end
+          end
+        end
+
+        ips.sort!
+        ips.uniq!
+
+        if block_given?
+          ips.each do |ip|
+            yield ip
+          end
+        end
+
+        ips
+      else
+        nil
+      end
+    end
+
     private
 
     def expand_template element
