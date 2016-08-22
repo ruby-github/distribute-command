@@ -6,23 +6,24 @@ module DistributeCommand
       @sequence = nil
     end
 
-    def load file, opt = nil
-      if opt.nil?
-        opt = {
+    def load file, args = nil
+      if args.nil?
+        args = {
           'date'              => Time.now.strftime('%Y-%m-%d'),
           'date_string'       => Time.now.strftime('%Y%m%d'),
           'yesterday'         => (Time.now - 3600 * 24).strftime('%Y-%m-%d'),
-          'yesterday_string'  => (Time.now - 3600 * 24).strftime('%Y%m%d')
+          'yesterday_string'  => (Time.now - 3600 * 24).strftime('%Y%m%d'),
+          'version'           => nil
         }
 
-        opt['version'] = ENV['VERSION'] || ('daily_main_%s' % opt['date_string'])
+        args['version'] = ENV['VERSION'].utf8 || ('daily_main_%s' % args['date_string'])
       end
 
       begin
         doc = REXML::Document.file file
 
         @sequence = Sequence.new
-        @sequence.load doc.root, opt
+        @sequence.load doc.root, args
 
         true
       rescue
