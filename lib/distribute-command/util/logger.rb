@@ -23,11 +23,13 @@ module Util
 
         if not io.nil?
           if $logging
-            $logger ||= []
-            $logger << line
+            $loggers ||= []
+            $loggers << line
           end
 
-          io.puts line
+          if $drb.nil?
+            io.puts line
+          end
         else
           line
         end
@@ -41,11 +43,13 @@ module Util
 
           if not io.nil?
             if $logging
-              $logger ||= []
-              $logger << line
+              $loggers ||= []
+              $loggers << line
             end
 
-            io.puts line
+            if $drb.nil?
+              io.puts line
+            end
           else
             line
           end
@@ -64,11 +68,13 @@ module Util
 
           if not io.nil?
             if $logging
-              $logger ||= []
-              $logger << line
+              $loggers ||= []
+              $loggers << line
             end
 
-            io.puts line
+            if $drb.nil?
+              io.puts line
+            end
           else
             line
           end
@@ -91,11 +97,13 @@ module Util
           if not io.nil?
             lines.each do |line|
               if $logging
-                $logger ||= []
-                $logger << line
+                $loggers ||= []
+                $loggers << line
               end
 
-              io.puts line
+              if $drb.nil?
+                io.puts line
+              end
             end
           else
             lines.join "\n"
@@ -115,11 +123,13 @@ module Util
 
           if not io.nil?
             if $logging
-              $logger ||= []
-              $logger << line
+              $loggers ||= []
+              $loggers << line
             end
 
-            io.puts line
+            if $drb.nil?
+              io.puts line
+            end
           else
             line
           end
@@ -138,14 +148,16 @@ module Util
 
           if not io.nil?
             if $logging
-              $logger ||= []
-              $logger << line
+              $loggers ||= []
+              $loggers << line
             end
 
             $errors ||= []
             $errors << line
 
-            io.puts line
+            if $drb.nil?
+              io.puts line
+            end
           else
             line
           end
@@ -177,14 +189,16 @@ module Util
           if not io.nil?
             lines.each do |line|
               if $logging
-                $logger ||= []
-                $logger << line
+                $loggers ||= []
+                $loggers << line
               end
 
               $errors ||= []
               $errors << line
 
-              io.puts line
+              if $drb.nil?
+                io.puts line
+              end
             end
           else
             lines.join "\n"
@@ -204,14 +218,16 @@ module Util
 
           if not io.nil?
             if $logging
-              $logger ||= []
-              $logger << line
+              $loggers ||= []
+              $loggers << line
             end
 
             $errors ||= []
             $errors << line
 
-            io.puts line
+            if $drb.nil?
+              io.puts line
+            end
           else
             line
           end
@@ -236,11 +252,13 @@ module Util
         if not io.nil?
           lines.each do |line|
             if $logging
-              $logger ||= []
-              $logger << line
+              $loggers ||= []
+              $loggers << line
             end
 
-            io.puts line
+            if $drb.nil?
+              io.puts line
+            end
           end
         else
           lines.join "\n"
@@ -258,11 +276,13 @@ module Util
         if not io.nil?
           lines.each do |line|
             if $logging
-              $logger ||= []
-              $logger << line
+              $loggers ||= []
+              $loggers << line
             end
 
-            io.puts line
+            if $drb.nil?
+              io.puts line
+            end
           end
         else
           lines.join "\n"
@@ -346,11 +366,13 @@ module Util
         if not io.nil?
           lines.each do |line|
             if $logging
-              $logger ||= []
-              $logger << line
+              $loggers ||= []
+              $loggers << line
             end
 
-            io.puts line
+            if $drb.nil?
+              io.puts line
+            end
           end
         else
           lines.join "\n"
@@ -381,11 +403,13 @@ module Util
         if not io.nil?
           lines.each do |line|
             if $logging
-              $logger ||= []
-              $logger << line
+              $loggers ||= []
+              $loggers << line
             end
 
-            io.puts line
+            if $drb.nil?
+              io.puts line
+            end
           end
         else
           lines.join "\n"
@@ -426,11 +450,13 @@ module Util
         if not io.nil?
           lines.each do |line|
             if $logging
-              $logger ||= []
-              $logger << line
+              $loggers ||= []
+              $loggers << line
             end
 
-            io.puts line
+            if $drb.nil?
+              io.puts line
+            end
           end
         else
           lines.join "\n"

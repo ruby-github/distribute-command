@@ -135,8 +135,10 @@ module DRb
     end
 
     def self.start ip = nil, port = nil, config = nil
+      $drb = Server.new
+
       url = DRb::druby ip || '0.0.0.0', port
-      DRb::start_service url, Server.new, config
+      DRb::start_service url, $drb, config
 
       if block_given?
         yield url
@@ -566,4 +568,6 @@ end
 
 at_exit do
   DRb::stop_service
+
+  $drb = nil
 end

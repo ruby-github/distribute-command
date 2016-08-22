@@ -16,6 +16,7 @@
 #
 # Boolean
 #
+# $logging
 # $sendmail
 # $xml_comment_indent, $xml_text_indent
 # $x64
@@ -27,6 +28,10 @@
 # Hash
 #
 # $asn1_cmdcode
+#
+# Object
+#
+# $drb
 #
 # ---------------------------------------------------------
 
