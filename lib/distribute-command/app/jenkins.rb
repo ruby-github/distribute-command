@@ -433,7 +433,7 @@ module Jenkins
             version = $1
 
             if version.include? 'stn'
-              osnames = ['windows']
+              osnames = ['windows_stn']
             else
               osnames = ['windows', 'windows32', 'linux', 'solaris']
             end
