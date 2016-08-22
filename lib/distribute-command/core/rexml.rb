@@ -129,6 +129,10 @@ module REXML
   end
 
   class Document
+    def expand args = nil
+      root.expand args
+    end
+
     def to_string encoding = nil
       if encoding.nil?
         xml_decl.encoding ||= 'UTF-8'
@@ -261,6 +265,32 @@ module REXML
   end
 
   class Element
+    def expand args = nil
+      args ||= {}
+
+      if not args.empty?
+        attributes.each do |name, value|
+          if args.has_key? name
+            attributes[name] = value.vars args
+            args[name] = attributes[name]
+          end
+        end
+      end
+
+      3.times do
+        attributes.each do |name, value|
+          attributes[name] = value.vars args
+          args[name] = attributes[name]
+        end
+      end
+
+      each.each do |element|
+        if element.kind_of? Element
+          element.expand args.dup
+        end
+      end
+    end
+
     def to_hash
       hash = {}
 
@@ -279,9 +309,11 @@ module REXML
       if has_elements?
         hash[:elements] = {}
 
-        each_element do |element|
-          hash[:elements][element.expanded_name] ||= []
-          hash[:elements][element.expanded_name] << element.to_hash
+        each do |element|
+          if element.kind_of? Element
+            hash[:elements][element.expanded_name] ||= []
+            hash[:elements][element.expanded_name] << element.to_hash
+          end
         end
       end
 
