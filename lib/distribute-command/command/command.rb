@@ -33,7 +33,7 @@ module DistributeCommand
 
       @doc = REXML::Document.new
       @doc.add_element expand_template(doc.root)
-      @doc.expand
+      @doc.expand args
 
       #@sequence = Sequence.new
       #@sequence.load @doc.root, args
