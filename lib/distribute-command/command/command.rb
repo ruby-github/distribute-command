@@ -1,8 +1,9 @@
 module DistributeCommand
   class Command
-    attr_reader :sequence
+    attr_reader :doc, :sequence
 
     def initialize
+      @doc = nil
       @sequence = nil
     end
 
@@ -19,20 +20,24 @@ module DistributeCommand
         args['version'] = ENV['VERSION'].utf8 || ('daily_main_%s' % args['date_string'])
       end
 
+      @doc = nil
+      @sequence = nil
+
       begin
         doc = REXML::Document.file file
-
-        @sequence = Sequence.new
-        @sequence.load doc.root, args
-
-        true
       rescue
         Util::Logger::exception $!
 
-        @sequence = nil
-
-        false
+        return false
       end
+
+      @doc = REXML::Document.new
+      @doc.add_element expand(doc.root).expand
+
+      #@sequence = Sequence.new
+      #@sequence.load @doc.root, args
+
+      true
     end
 
     def exec
@@ -57,21 +62,40 @@ module DistributeCommand
       status
     end
 
-    def ips reboot_drb = false
-      if not @sequence.nil?
-        ips = @sequence.ips
+    private
 
-        if not ips.nil?
-          if reboot_drb
-            OS::remote_reboot_drb ips
+    def expand element
+      if Template::respond_to? element.name
+        args = {}
 
-            sleep 30
-          end
+        element.attributes.each do |name, value|
+          args[name] = value
         end
 
-        ips
+        Template::__send__ element.name, args
       else
-        nil
+        if element.has_elements?
+          new_element = REXML::Element.new element.name
+          new_element.add_attributes element.attributes
+
+          element.each do |e|
+            if e.kind_of? REXML::Element
+              expand(e).to_array.each do |child_element|
+                new_element << child_element
+              end
+            else
+              if e.kind_of? REXML::Text
+                new_element << e.value
+              else
+                new_element << e
+              end
+            end
+          end
+
+          new_element
+        else
+          element
+        end
       end
     end
   end
