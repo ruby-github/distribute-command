@@ -32,7 +32,8 @@ module DistributeCommand
       end
 
       @doc = REXML::Document.new
-      @doc.add_element expand(doc.root).expand
+      @doc.add_element expand_template(doc.root)
+      @doc.expand
 
       #@sequence = Sequence.new
       #@sequence.load @doc.root, args
@@ -64,7 +65,7 @@ module DistributeCommand
 
     private
 
-    def expand element
+    def expand_template element
       if Template::respond_to? element.name
         args = {}
 
@@ -80,14 +81,18 @@ module DistributeCommand
 
           element.each do |e|
             if e.kind_of? REXML::Element
-              expand(e).to_array.each do |child_element|
+              expand_template(e).to_array.each_with_index do |child_element, index|
+                if index > 0
+                  new_element.add_text "\n\n"
+                end
+
                 new_element << child_element
               end
             else
               if e.kind_of? REXML::Text
-                new_element << e.value
+                new_element.add_text e.value
               else
-                new_element << e
+                new_element.add e
               end
             end
           end
