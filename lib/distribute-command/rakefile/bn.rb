@@ -606,7 +606,7 @@ namespace :bn do
           next
         end
 
-        ignores << line
+        ignores << line.utf8
       end
 
       name.to_array.each do |module_name|
@@ -690,7 +690,7 @@ namespace :bn do
           next
         end
 
-        ignores << line
+        ignores << line.utf8
       end
 
       name.to_array.each do |module_name|

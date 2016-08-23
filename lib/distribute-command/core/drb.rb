@@ -104,6 +104,8 @@ module DRb
     end
 
     def close reboot = false
+      clear
+
       if reboot
         begin
           DRb::stop_service
@@ -131,6 +133,18 @@ module DRb
     end
 
     def clear
+      if not @handle.empty?
+        @handle.each do |name, file|
+          begin
+            file.close
+          rescue
+          end
+        end
+      end
+
+      @handle = {}
+      @variables = {}
+
       $errors = nil
     end
 
@@ -567,7 +581,10 @@ module DRb
 end
 
 at_exit do
-  DRb::stop_service
+  if not $drb.nil?
+    $drb.close
+    $drb = nil
+  end
 
-  $drb = nil
+  DRb::stop_service
 end

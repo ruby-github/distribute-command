@@ -285,6 +285,8 @@ module Compile
     if File.directory? home
       Dir.chdir home do
         File.glob('**/*').each do |file|
+          file = File.normalize file
+
           if not File.file? file
             next
           end
