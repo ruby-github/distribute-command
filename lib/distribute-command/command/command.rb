@@ -2,50 +2,16 @@ module DistributeCommand
   class Command
     attr_reader :doc, :sequence
 
-    def initialize
+    def initialize file, args = nil
       @doc = nil
-      @sequence = nil
-    end
-
-    def load file, args = nil
-      if args.nil?
-        args = {
-          'date'              => Time.now.strftime('%Y-%m-%d'),
-          'date_string'       => Time.now.strftime('%Y%m%d'),
-          'yesterday'         => (Time.now - 3600 * 24).strftime('%Y-%m-%d'),
-          'yesterday_string'  => (Time.now - 3600 * 24).strftime('%Y%m%d'),
-          'version'           => nil
-        }
-
-        args['version'] = ENV['VERSION'].utf8 || ('daily_main_%s' % args['date_string'])
-      end
-
-      @doc = nil
-      @sequence = nil
-
-      begin
-        doc = REXML::Document.file file
-      rescue
-        Util::Logger::exception $!
-
-        return false
-      end
-
-      @doc = REXML::Document.new
-      @doc.add_element expand_template(doc.root)
-      @doc.expand args
-
-      #@sequence = Sequence.new
-      #@sequence.load @doc.root, args
-
-      true
+      @sequence = load file, args
     end
 
     def exec
+      status = nil
+
       $distributecommand = []
       $distributecommand_errors = []
-
-      status = true
 
       time = Time.now
 
@@ -63,38 +29,86 @@ module DistributeCommand
       status
     end
 
-    def ips
-      if not @doc.nil?
-        ips = []
+    def reboot
+      ip_list = ips
 
-        REXML::XPath.each @doc, '//@ip' do |attribute|
-          ip = attribute.value.nil
+      if not ip_list.nil?
+        if not ip_list.empty?
+          windows_ips = []
+          unix_ips    = []
 
-          if not ip.nil?
-            if not ['127.0.0.1'].include? ip
-              ips << ip
+          ip_list.each do |ip|
+            drb = DRb::Object.new
+
+            begin
+              if drb.connect ip
+                if drb.osname == 'windows'
+                  windows_ips << ip
+                else
+                  unix_ips << ip
+                end
+              end
+            rescue
+              begin
+                Net::SSH::start ip, 'user', :password => 'user' do |ssh|
+                end
+
+                unix_ips << ip
+              rescue
+                windows_ips << ip
+              end
             end
           end
+
+          OS::remote_reboot windows_ips
+          OS::remote_reboot unix_ips, 'admin-cgs', false
+
+          sleep 120
         end
+      end
+    end
 
-        ips.sort!
-        ips.uniq!
+    def reboot_drb
+      ip_list = ips
 
-        if block_given?
-          ips.each do |ip|
-            yield ip
-          end
+      if not ip_list.nil?
+        if not ip_list.empty?
+          OS::remote_reboot_drb ip_list
+
+          sleep 30
         end
-
-        ips
-      else
-        nil
       end
     end
 
     private
 
-    def expand_template element
+    def load file, args = nil
+      args ||= {
+        'date'              => Time.now.strftime('%Y-%m-%d'),
+        'date_string'       => Time.now.strftime('%Y%m%d'),
+        'yesterday'         => (Time.now - 3600 * 24).strftime('%Y-%m-%d'),
+        'yesterday_string'  => (Time.now - 3600 * 24).strftime('%Y%m%d'),
+        'version'           => ENV['VERSION'].utf8
+      }
+
+      args['version'] ||= 'daily_main_%s' % args['date_string']
+
+      begin
+        doc = REXML::Document.file file
+
+        @doc = REXML::Document.new
+        @doc.add_element expand(doc.root)
+        @doc.expand args
+
+        Sequence.new @doc.root
+      rescue
+        Util::Logger::exception $!
+
+        nil
+      end
+    end
+
+    def expand element
       if Template::respond_to? element.name
         args = {}
 
@@ -110,7 +124,7 @@ module DistributeCommand
 
           element.each do |e|
             if e.kind_of? REXML::Element
-              expand_template(e).to_array.each_with_index do |child_element, index|
+              expand(e).to_array.each_with_index do |child_element, index|
                 if index > 0
                   new_element.add_text "\n\n"
                 end
@@ -130,6 +144,29 @@ module DistributeCommand
         else
           element
         end
+      end
+    end
+
+    def ips
+      if not @doc.nil?
+        ips = []
+
+        REXML::XPath.each @doc, '//@ip' do |attribute|
+          ip = attribute.value.nil
+
+          if not ip.nil?
+            if not ['127.0.0.1'].include? ip
+              ips << ip
+            end
+          end
+        end
+
+        ips.sort!
+        ips.uniq!
+
+        ips
+      else
+        nil
       end
     end
   end

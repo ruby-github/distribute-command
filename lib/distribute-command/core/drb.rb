@@ -91,6 +91,14 @@ module DRb
     def uri
       '%s:%s' % [DRb::uri, object_id]
     end
+
+    def osname
+      if not @server.nil?
+        @server.osname
+      else
+        nil
+      end
+    end
   end
 
   class Server
@@ -148,6 +156,10 @@ module DRb
       $errors = nil
     end
 
+    def osname
+      OS::name.to_s
+    end
+
     def self.start ip = nil, port = nil, config = nil
       $drb = Server.new
 
@@ -183,9 +195,9 @@ module DRb
       end
     end
 
-    def callback callback_name, function = true, args = nil
+    def callback callback_name, args = nil
       begin
-        @server.callback callback_name, function, args do |line|
+        @server.callback callback_name, args do |line|
           if block_given?
             yield line
           end
@@ -197,9 +209,9 @@ module DRb
       end
     end
 
-    def function function_name, function = true, args = nil
+    def function function_name, args = nil
       begin
-        @server.function function_name, function, args do |line|
+        @server.function function_name, args do |line|
           if block_given?
             yield line
           end
@@ -370,80 +382,48 @@ module DRb
   class Server
     def cmdline cmdline, args = nil
       args ||= {}
-      home = args['home'] || '.'
 
-      if File.directory? home
-        thread = Thread.new do
-          string = "Dir.chdir '#{home}' do; system '#{cmdline}'; end"
-
-          CommandLine::function string do |line, stdin, wait_thr|
-            if block_given?
-              yield line, stdin, wait_thr
-            end
+      if args['home'].nil?
+        CommandLine::cmdline cmdline, args do |line, stdin, wait_thr|
+          if block_given?
+            yield line, stdin, wait_thr
           end
         end
-
-        thread.join
-        thread.value
       else
-        false
+        if File.directory? args['home']
+          Dir.chdir args['home'] do
+            CommandLine::cmdline cmdline, args do |line, stdin, wait_thr|
+              if block_given?
+                yield line, stdin, wait_thr
+              end
+            end
+          end
+        else
+          false
+        end
       end
     end
 
-    def callback callback_name, function = true, args = nil
+    def callback callback_name, args = nil
       if DistributeCommand::Callback::respond_to? callback_name
-        thread = Thread.new do
-          if function
-            string = "DistributeCommand::Callback::#{callback_name}"
-
-            CommandLine::function string, true, nil, args do |line, stdin, wait_thr|
-              if block_given?
-                yield line
-              end
-            end
-          else
-            DistributeCommand::Callback::__send__ callback_name, args do |line|
-              if block_given?
-                yield line
-              end
-            end
+        DistributeCommand::Callback::__send__ callback_name, args do |line|
+          if block_given?
+            yield line
           end
         end
-
-        thread.join
-        thread.value
       else
-        Util::Logger::exception 'No found function @ drb_callback - DistributeCommand::Callback::%s' % callback_name
-
         false
       end
     end
 
-    def function function_name, function = true, args = nil
+    def function function_name, args = nil
       if DistributeCommand::Function::respond_to? function_name
-        thread = Thread.new do
-          if function
-            string = "DistributeCommand::Function::#{function_name}"
-
-            CommandLine::function string, true, nil, args do |line, stdin, wait_thr|
-              if block_given?
-                yield line
-              end
-            end
-          else
-            DistributeCommand::Function::__send__ function_name, args do |line|
-              if block_given?
-                yield line
-              end
-            end
+        DistributeCommand::Function::__send__ function_name, args do |line|
+          if block_given?
+            yield line
           end
         end
-
-        thread.join
-        thread.value
       else
-        Util::Logger::exception 'No found function @ drb_callback - DistributeCommand::Function::%s' % function_name
-
         false
       end
     end

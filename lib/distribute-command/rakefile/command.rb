@@ -1,10 +1,11 @@
 require 'rake'
 
 namespace :command do
-  task :exec, [:home, :configure, :version] do |t, args|
+  task :exec, [:home, :configure, :version, :reboot] do |t, args|
     home = args[:home].to_s.nil || ($home || '.')
     configure = args[:configure].to_s.nil || 'configure.xml'
     version = args[:version].to_s.nil || $version
+    reboot = args[:reboot].to_s.boolean false
 
     if not version.nil?
       ENV['VERSION'] = version.to_s
@@ -13,15 +14,16 @@ namespace :command do
     status = true
 
     Dir.chdir home do
-      cmd = DistributeCommand::Command.new
+      if not distributecommand configure do |command|
+          if reboot
+            command.reboot
+          else
+            command.reboot_drb
+          end
 
-      if cmd.load configure
-        cmd.ips true
-
-        if not cmd.exec
-          status = false
+          true
         end
-      else
+
         status = false
       end
     end
@@ -41,11 +43,12 @@ namespace :command do
     status = true
 
     Dir.chdir home do
-      cmd = DistributeCommand::Command.new
+      if not distributecommand configure do |command|
+          command.sequence.to_string
 
-      if cmd.load configure
-        Util::Logger::puts cmd.sequence.to_string
-      else
+          false
+        end
+
         status = false
       end
     end

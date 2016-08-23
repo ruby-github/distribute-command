@@ -54,3 +54,34 @@ module Net
     autoload :SSH, ssh
   end
 end
+
+def distributecommand file, tmpdir = nil, args = nil
+  command = DistributeCommand::Command.new file, args
+
+  exec = true
+
+  if block_given?
+    exec = yield command
+  end
+
+  if exec
+    status = true
+
+    if not command.exec
+      status = false
+    end
+
+    if not tmpdir.nil?
+      info = {
+        'distributecommand'         => $distributecommand,
+        'distributecommand_errors'  => $distributecommand_errors
+      }
+
+      YAML::dump_tmpfile info, 'distributecommand', tmpdir
+    end
+
+    status
+  else
+    true
+  end
+end

@@ -1558,6 +1558,7 @@ if $0 == __FILE__
     build.bn_build ['dev/20160801']
 
     # STN工程版本
+    build.stn_build ['release/20160601_stn']
 
     # STN开发版本
     build.stn_build ['dev/20160727_stn']

@@ -798,13 +798,13 @@ namespace :stn do
     task :init do |t, args|
     end
 
-    task :clear, [:home] do |t, args|
-      home = args[:home].to_s.nil || ($home || 'code')
+    task :clear, [:build_home] do |t, args|
+      build_home = args[:build_home].to_s.nil || ($build_home || 'build')
 
       status = true
 
-      if File.directory? home
-        Dir.chdir home do
+      if File.directory? File.join(build_home, 'code')
+        Dir.chdir File.join(build_home, 'code') do
           File.glob('*/trunk/.{git,svn}').each do |dir|
             if not File.delete dir do |file|
                 Util::Logger::puts file

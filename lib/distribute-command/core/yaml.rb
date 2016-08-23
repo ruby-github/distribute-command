@@ -16,21 +16,37 @@ module YAML
     __load_file__(filename).utf8
   end
 
-  def dump_tmpfile obj, tmpname = nil
+  def dump_tmpfile obj, tmpname = nil, tmpdir = nil
     if tmpname.nil?
-      tmpname = "#{File.tmpname}.yaml"
+      tmpname = File.tmpname
     end
 
-    File.open File.join(Dir.tmpdir, tmpname), 'w:utf-8' do |f|
+    if tmpdir.nil?
+      tmpdir = Dir.tmpdir
+    end
+
+    if File.extname(tmpname).empty?
+      tmpname += '.yml'
+    end
+
+    File.open File.join(tmpdir, tmpname), 'w:utf-8' do |f|
       f.puts obj.utf8.to_yaml
     end
 
     tmpname
   end
 
-  def load_tmpfile tmpname
+  def load_tmpfile tmpname, tmpdir = nil
+    if tmpdir.nil?
+      tmpdir = Dir.tmpdir
+    end
+
+    if File.extname(tmpname).empty?
+      tmpname += '.yml'
+    end
+
     begin
-      YAML::load_file File.join(Dir.tmpdir, tmpname)
+      YAML::load_file File.join(tmpdir, tmpname)
     rescue
       nil
     end
