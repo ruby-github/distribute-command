@@ -524,6 +524,15 @@ module Patch
 
           info[:source].each do |name|
             file = File.join info[:attr][:home], name
+
+            if not File.copy file, File.join(@build_home, 'code', file) do |src, dest|
+                Util::Logger::puts src
+
+                [src, dest]
+              end
+
+              return false
+            end
           end
         end
       end
