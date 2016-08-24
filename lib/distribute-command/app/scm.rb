@@ -62,6 +62,19 @@ module SCM
     end
   end
 
+  def cleanup path
+    case scm(path)
+    when :svn
+      SVN::cleanup path
+    when :git
+      GIT::cleanup path
+    when :tfs
+      TFS::cleanup path
+    else
+      nil
+    end
+  end
+
   def scm path = nil
     scm_home = home path
 
@@ -610,6 +623,10 @@ module GIT
     end
   end
 
+  def cleanup path
+    true
+  end
+
   def authorization line, stdin, username = nil, password = nil
     case line
     when /^Username.*:$/
@@ -704,5 +721,9 @@ module TFS
     GIT::update path, repo, args, username, password do |cmdline|
       cmdline.gsub 'git', 'git-tf'
     end
+  end
+
+  def cleanup path
+    true
   end
 end

@@ -1915,9 +1915,6 @@ namespace :bn do
       status.exit
     end
 
-    task :init do |t, args|
-    end
-
     task :clear, [:build_home] do |t, args|
       build_home = args[:build_home].to_s.nil || ($build_home || 'build')
 

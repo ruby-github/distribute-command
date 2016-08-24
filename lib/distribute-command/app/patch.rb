@@ -12,11 +12,14 @@ module Patch
         return false
       end
 
+      $logging = true
+
       Dir.chdir home do
         File.lock 'create.id' do
-          $errors = nil
-
           File.tmpdir do |tmpdir|
+            $errors = nil
+            $loggers = nil
+
             if not File.move '*.{xml,zip}', tmpdir, true do |file|
                 Util::Logger::puts file
 
@@ -31,12 +34,15 @@ module Patch
             status = true
 
             File.glob(File.join(tmpdir, '*.xml')).sort {|x, y| File.mtime(x) <=> File.mtime(y)}.each_with_index do |file, index|
+              $errors = nil
+              $loggers = nil
+
               Util::Logger::cmdline File.basename(file)
 
               list = load file
 
               if list.nil?
-                account, cc_account = read_account x
+                account, cc_account = account_info nil, file
                 send_smtp account, cc_account, file: file, subject: '<PATCH 通知>解析XML文件失败, 请尽快处理'
 
                 status = false
@@ -104,36 +110,16 @@ module Patch
                 end
               end
 
-              account = nil
-              cc_account = []
-              manager_account = nil
-
-              if list.first[:info]['提交人员'].to_s =~ /\d+$/
-                account = '%s@zte.com.cn' % $&
-              end
-
-              list.first[:info]['抄送人员'].each do |str|
-                if str.strip =~ /\d+$/
-                  cc_account << '%s@zte.com.cn' % $&
-                end
-              end
-
-              if list.first[:info]['开发经理'].to_s =~ /\d+$/
-                manager_account = '%s@zte.com.cn' % $&
-              end
+              account, cc_account = account_info list.first[:info]
 
               map.each do |index, value|
                 case value
                 when true
-                  send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 但关联补丁制作失败, 请尽快处理', code: true
+                  send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 但关联补丁制作失败, 请尽快处理'
                 when false
-                  send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作失败, 请尽快处理', code: true
+                  send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作失败, 请尽快处理'
                 else
-                  if not manager_account.nil?
-                    cc_account << manager_account
-                  end
-
-                  if File.expands(File.join(@output_home, value, 'patch/*/*/*')).empty?
+                  if File.glob(File.join(@build_home, 'patch/patch', value, 'patch/*/*/*')).empty?
                     send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 但没有输出文件(补丁号: %s)' % value, id: value
                   else
                     send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 请验证(补丁号: %s)' % value, id: value
@@ -159,14 +145,12 @@ module Patch
     #       script:
     #         - type
     #       zip: name
-    #     source:
-    #       - name
     #     delete:
     #       - name
+    #     source:
+    #       - name
     #     compile:
-    #       name:
-    #         clean: false
-    #         cmdline: cmdline
+    #       name: clean
     #     deploy:
     #       deploy:
     #         name:
@@ -201,8 +185,8 @@ module Patch
               :script => nil,
               :zip    => File.join(File.dirname(file), '%s.zip' % File.basename(file, '.*'))
             },
-            :source   => [],
             :delete   => [],
+            :source   => [],
             :compile  => {},
             :deploy   => {
               :deploy => {},
@@ -225,13 +209,13 @@ module Patch
             }
           }
 
-          script = e.attributes['script'].to_s.strip.nil
+          script = e.attributes['script'].to_s.nil
 
           if not script.nil?
             map[:attr][:script] = script.split(',').map { |x| x.strip }
           end
 
-          os = e.attributes['os'].to_s.strip.nil
+          os = e.attributes['os'].to_s.nil
 
           if not os.nil?
             map[:attr][:os] = os.split(',').map { |x| x.strip }
@@ -242,7 +226,7 @@ module Patch
 
             status = false
           else
-            if not module_names.include?(File.dirname(map[:attr][:home]))
+            if not modules.keys.include?(File.dirname(map[:attr][:home]))
               Util::Logger::error '%s: patch节点的name属性不是合法的模块名称 - %s' % [e.xpath, map[:attr][:home]]
 
               status = false
@@ -265,25 +249,13 @@ module Patch
             end
           end
 
-          REXML::XPath.each(e, 'source/attr') do |element|
-            name = element.attributes['name'].to_s.strip.nil
-
-            if not name.nil?
-              map[:source] << File.normalize(name)
-            else
-              Util::Logger::error '%s: source节点下的attr子节点的name属性不能为空' % element.xpath
-
-              status = false
-            end
-          end
-
           REXML::XPath.each(e, 'delete/attr') do |element|
-            name = element.attributes['name'].to_s.strip.nil
+            name = element.attributes['name'].to_s.nil
 
             if not name.nil?
               map[:delete] << File.normalize(name)
             else
-              Util::Logger::error '%s: delete节点下的attr子节点的name属性不能为空' % element.xpath
+              Util::Logger::error '%s: delete下attr节点的name属性不能为空' % element.xpath
 
               status = false
             end
@@ -291,37 +263,34 @@ module Patch
 
           map[:delete].uniq!
 
-          REXML::XPath.each(e, 'compile') do |element|
-            map[:compile] ||= {}
+          REXML::XPath.each(e, 'source/attr') do |element|
+            name = element.attributes['name'].to_s.nil
 
-            REXML::XPath.each(element, 'attr') do |e_cmdline|
-              name = e_cmdline.attributes['name'].to_s.strip.nil
-              clean = e_cmdline.attributes['clean'].to_s.strip.nil
+            if not name.nil?
+              map[:source] << File.normalize(name)
+            else
+              Util::Logger::error '%s: source下attr节点的name属性不能为空' % element.xpath
 
-              if not name.nil?
-                name = File.normalize name
-
-                if name =~ /^code\//
-                  clean ||= 'true'
-                end
-
-                clean = clean.to_s.boolean false
-
-                map[:compile][name] ||= {
-                  :clean    => clean,
-                  :cmdline  => nil
-                }
-              else
-                Util::Logger::error '%s: compile节点下的attr子节点的name属性和attr子节点的值不能为空' % e_cmdline.xpath
-
-                status = false
-              end
+              status = false
             end
+          end
 
-            map[:compile].each do |name, cmdline_info|
-              if not cmdline_info[:compile].nil?
-                map[:compile][name][:compile].uniq!
+          map[:source].uniq!
+
+          REXML::XPath.each(e, 'compile/attr') do |element|
+            name = element.attributes['name'].to_s.nil
+            clean = e_cmdline.attributes['clean'].to_s.nil
+
+            if not name.nil?
+              if name =~ /^code\//
+                clean ||= true
               end
+
+              map[:compile][name] = clean.to_s.boolean false
+            else
+              Util::Logger::error '%s: compile下attr节点的name属性不能为空' % e_cmdline.xpath
+
+              status = false
             end
           end
 
@@ -502,43 +471,494 @@ module Patch
     end
 
     def build info, tmpdir
+      if not File.directory? File.join(@build_home, 'code')
+        Util::Logger::error 'no such directory - %s' % File.join(@build_home, 'code')
+
+        return false
+      end
+
+      if not File.directory? @code_home
+        Util::Logger::error 'no such directory - %s' % @code_home
+
+        return false
+      end
+
+      tmpdir = File.expand_path tmpdir
+
+      package = modules File.dirname(info[:attr][:home])
+
+      if package.nil?
+        Util::Logger::error 'package is nil'
+
+        return false
+      end
+
+      if not info[:delete].nil?
+        Dir.chdir File.join(@build_home, 'code') do
+          info[:delete].each do |name|
+            file = File.join info[:attr][:home], expandname(name)
+
+            if not File.delete file do |path|
+                Util::Logger::puts path
+
+                path
+              end
+
+              return false
+            end
+          end
+        end
+      end
+
+      if not info[:source].nil?
+        Dir.chdir @code_home do
+          File.lock File.join(File.dirname(info[:attr][:home]), 'create.id') do
+            if not SCM::cleanup info[:attr][:home]
+              return false
+            end
+
+            if not SCM::update info[:attr][:home]
+              return false
+            end
+          end
+
+          info[:source].each do |name|
+            file = File.join info[:attr][:home], name
+          end
+        end
+      end
+
+      if not info[:compile].nil?
+        Dir.chdir File.join(@build_home, 'code') do
+          info[:compile].each do |name, clean|
+            dirname = File.join info[:attr][:home], name
+
+            if clean
+              Compile::mvn dirname, 'mvn clean -fn -U'
+            end
+
+            if not Compile::mvn dirname, 'mvn deploy -fn -U', false, true
+              return false
+            end
+          end
+        end
+      end
+
+      if not info[:deploy].nil?
+        if not info[:deploy][:deploy].nil?
+          Dir.chdir File.join(@build_home, 'code') do
+            info[:deploy][:deploy].each do |name, types|
+              if name =~ /^(sdn|code|code_c)\/build\/output\// or name =~ /^installdisk\//
+                if name =~ /^(sdn|code|code_c)\/build\/output\//
+                  src_file = File.join info[:attr][:home], expandname(name)
+                  dest = expandname $'
+
+                  if dest =~ /^ums-(\w+)/
+                    if ['nms', 'lct'].include? $1
+                      dest.gsub! 'ums-%s' % $1, 'ums-client'
+                    end
+                  end
+                else
+                  src, dest = name.split ':', 2
+
+                  src_file = File.join info[:attr][:home], expandname(src)
+                  dest = expandname dest
+                end
+
+                types.each do |type|
+                  dest_file = File.join tmpdir, 'patch', package, type, dest
+
+                  if not File.copy src_file, dest_file do |src, dst|
+                      Util::Logger::puts src
+
+                      [src, dst]
+                    end
+
+                    return false
+                  end
+
+                  if File.file? src_file
+                    src_debuginfo = nil
+                    dest_debuginfo = nil
+
+                    if File.extname(src_file).downcase == '.dll'
+                      src_debuginfo = File.join File.dirname(src_file), '%s.pdb' % File.basename(src_file, '.*')
+                      dest_debuginfo = File.join File.dirname(dest_file), '%s.pdb' % File.basename(dest_file, '.*')
+                    end
+
+                    if File.extname(src_file).downcase == '.so'
+                      src_debuginfo = File.join File.dirname(src_file), '%s.debuginfo' % File.basename(src_file)
+                      dest_debuginfo = File.join File.dirname(dest_file), '%s.debuginfo' % File.basename(dest_file)
+                    end
+
+                    if not src_debuginfo.nil?
+                      if File.file? src_debuginfo
+                        if not File.copy src_debuginfo, dest_debuginfo do |src, dst|
+                            Util::Logger::puts src
+
+                            [src, dst]
+                          end
+
+                          return false
+                        end
+                      end
+                    end
+                  end
+                end
+              end
+            end
+
+            if not info[:deploy][:delete].nil?
+              paths = []
+
+              info[:deploy][:delete].each do |name, types|
+                types.each do |type|
+                  paths << File.join(tmpdir, 'patch', package, type)
+                end
+              end
+
+              paths.uniq!
+
+              if not File.mkdir paths do |path|
+                  Util::Logger::puts path
+                end
+
+                return false
+              end
+            end
+          end
+        end
+      end
+
+      if not info[:attr][:script].nil?
+        if not File.file? info[:attr][:zip]
+          Util::Logger::error '找不到增量补丁包对应的zip文件: %s' % info[:attr][:zip]
+
+          return false
+        end
+
+        begin
+          zip = ZipFile.new info[:attr][:zip]
+        rescue
+          Util::Logger::exception $!
+
+          return false
+        end
+
+        if not zip.unzip File.join(tmpdir, 'zip')
+          return false
+        end
+
+        install = nil
+
+        File.glob(File.join(tmpdir, 'zip', '**/install/dbscript-patch/ums-db-update-info.xml')).each do |file|
+          install = File.dirname File.dirname(file)
+
+          break
+        end
+
+        if install.nil?
+          Util::Logger::error '增量补丁包中找不到install/dbscript-patch/ums-db-update-info.xml'
+
+          return false
+        end
+
+        prefix = 'install'
+
+        if install =~ /\/(pmu|ppu)\//
+          prefix = File.join $1, $'
+        end
+
+        info[:attr][:script].each do |type|
+          if not File.copy File.join(install, 'dbscript-patch'),
+            File.join(tmpdir, 'patch', package, type, prefix, 'dbscript-patch') do |src_file, dest_file|
+              Util::Logger::puts src_file
+
+              [src_file, dest_file]
+            end
+
+            return false
+          end
+        end
+      end
+
+      to_xml info, File.join(tmpdir, '%s_%s.xml' % [Time.now.strftime('%Y%m%d'), author(info[:info])])
+
       true
     end
 
-    def module_names
-      [
-        'Interface',
-        'BN_Platform',
-        'U31_E2E',
-        'BN_NECOMMON',
-        'BN_UCA',
-        'NAF_XMLFILE',
-        'BN_NAF',
-        'BN_SDH',
-        'BN_WDM',
-        'BN_PTN',
-        'BN_PTN2',
-        'BN_IP'
-      ]
+    def account_info info, file = nil
+      account = nil
+      cc_account = []
+
+      if info.nil?
+        if not file.nil?
+          if File.file? file
+            IO.readlines(file).each do |line|
+              line = line.utf8
+
+              if line =~ /<\s*attr\s*.*提交人员.*>(.*)</
+                if $1.strip =~ /\d+$/
+                  account = '%s@zte.com.cn' % $&
+                end
+
+                next
+              end
+
+              if line =~ /<\s*attr\s*.*抄送人员.*>(.*)</
+                $1.split(',').each do |string|
+                  string.strip!
+
+                  if string =~ /\d+$/
+                    cc_account << '%s@zte.com.cn' % $&
+                  end
+                end
+
+                next
+              end
+
+              if line =~ /<\s*attr\s*.*开发经理.*>(.*)</
+                if $1.strip =~ /\d+$/
+                  cc_account << '%s@zte.com.cn' % $&
+                end
+
+                next
+              end
+            end
+          end
+        end
+      else
+        if info.has_key? '提交人员'
+          if info['提交人员'].to_s =~ /\d+$/
+            account = '%s@zte.com.cn' % $&
+          end
+        end
+
+        if info.has_key? '抄送人员'
+          info['抄送人员'].each do |string|
+            if string =~ /\d+$/
+              cc_account << '%s@zte.com.cn' % $&
+            end
+          end
+        end
+
+        if info.has_key? '开发经理'
+          if info['开发经理'].to_s =~ /\d+$/
+            cc_account << '%s@zte.com.cn' % $&
+          end
+        end
+      end
+
+      [account, cc_account.sort.uniq]
     end
 
-    # opt
+    def author_info info
+      author = info['提交人员'].to_s.strip
+      author.gsub('/', '').gsub('\\', '')
+    end
+
+    def get_id
+      id = '%s_0000' % Time.now.strftime('%Y%m%d')
+
+      File.glob(File.join(@build_home, 'patch/patch', '%s_*' % Time.now.strftime('%Y%m%d'))).sort.each do |name|
+        if File.basename(name) =~ /^\d{8}_\d{4}$/
+          id = File.basename name
+        end
+      end
+
+      id.next
+    end
+
+    def to_xml info, file
+      doc = REXML::Document.new "<patches version='2.0'/>"
+
+      element = REXML::Element.new 'patch'
+      element.attributes['name'] = info[:attr][:home]
+
+      if not info[:attr][:script].nil?
+        element.attributes['script'] = info[:attr][:script].join ', '
+      end
+
+      if not info[:attr][:os].nil?
+        element.attributes['os'] = info[:attr][:os].join ', '
+      end
+
+      if not info[:delete].nil?
+        delete_element = REXML::Element.new 'delete'
+
+        info[:delete].each do |name|
+          e = REXML::Element.new 'attr'
+          e.attributes['name'] = name
+
+          delete_element << e
+        end
+
+        element << delete_element
+      end
+
+      if not info[:source].nil?
+        source_element = REXML::Element.new 'source'
+
+        info[:source].each do |name|
+          e = REXML::Element.new 'attr'
+          e.attributes['name'] = name
+
+          source_element << e
+        end
+
+        element << source_element
+      end
+
+      if not info[:compile].nil?
+        compile_element = REXML::Element.new 'compile'
+
+        info[:compile].each do |name, clean|
+          e = REXML::Element.new 'attr'
+          e.attributes['name'] = name
+          e.attributes['clean'] = clean
+
+          compile_element << e
+        end
+      end
+
+      if not info[:deploy].nil?
+        deploy_element = REXML::Element.new 'deploy'
+
+        if not info[:deploy][:deploy].nil?
+          e_deploy = REXML::Element.new 'deploy'
+
+          info[:deploy][:deploy].each do |name, types|
+            e = REXML::Element.new 'attr'
+
+            if name.start_with? 'installdisk'
+              src, dest = name.split ':', 2
+
+              e.attributes['name'] = src
+              e.text = dest
+            else
+              e.attributes['name'] = name
+            end
+
+            e.attributes['type'] = types.join ', '
+
+            e_deploy << e
+          end
+
+          deploy_element << e_deploy
+        end
+
+        if not info[:deploy][:delete].nil?
+          e_delete = REXML::Element.new'delete'
+
+          info[:deploy][:delete].each do |name, types|
+            e = REXML::Element.new 'attr'
+            e.attributes['name'] = name
+            e.attributes['type'] = types.join ', '
+
+            e_delete << e
+          end
+
+          deploy_element << e_delete
+        end
+
+        element << deploy_element
+      end
+
+      info_element = REXML::Element.new 'info'
+
+      info[:info].each do |name, value|
+        e = REXML::Element.new 'attr'
+        e.attributes['name'] = name
+
+        if value.is_a? Array
+          e.text = value.join ', '
+        else
+          e.text = value
+        end
+
+        info_element << e
+      end
+
+      element << info_element
+
+      doc.root << element
+      doc.to_file file
+
+      true
+    end
+
+    def expandname filename
+      filename = File.normalize filename
+
+      dirname = File.dirname filename
+      basename = File.basename filename, '.*'
+
+      if OS::windows?
+        case File.extname(file).downcase
+        when '.sh'
+          filename = File.join dirname, '%s.bat' % basename
+        when '.so'
+          if basename =~ /^lib(.*)$/
+            filename = File.join dirname, '%s.dll' % $1
+          else
+            filename = File.join dirname, '%s.dll' % basename
+          end
+        else
+        end
+      else
+        case File.extname(file).downcase
+        when '.bat'
+          filename = File.join dirname, '%s.sh' % basename
+        when '.dll', '.lib'
+          filename = File.join dirname, 'lib%s.so' % basename
+        when '.exe'
+          filename = File.join dirname, basename
+        else
+        end
+      end
+
+      filename = File.normalize filename
+    end
+
+    def valid_type? type = nil
+      type.to_s.split(',').each do |name|
+        if not ['ems', 'nms', 'lct', 'update', 'upgrade', 'service'].include? name.strip
+          return false
+        end
+      end
+
+      true
+    end
+
+    def modules
+      {
+        'Interface'   => 'interface',
+        'BN_Platform' => 'platform',
+        'U31_E2E'     => 'e2e',
+        'BN_NECOMMON' => 'necommon',
+        'BN_UCA'      => 'uca',
+        'NAF_XMLFILE' => 'xmlfile',
+        'BN_NAF'      => 'naf',
+        'BN_SDH'      => 'sdh',
+        'BN_WDM'      => 'wdm',
+        'BN_PTN'      => 'ptn',
+        'BN_PTN2'     => 'ptn2',
+        'BN_IP'       => 'ip'
+      }
+    end
+
+    # args
+    #   id
+    #
     #   subject
-    #   text, html
-    #   message
     #   info
     #   file
-    #
-    #   code
-    #   id
-    def send_smtp account, cc_account, opt = {}
+    def send_smtp account, cc_account, args = {}
       account ||= cc_account
 
       if account.nil?
         return true
       end
-
-      opt[:cc] = cc_account
 
       share_name = '.'
       ip = System::ip '192.168.'
@@ -564,58 +984,59 @@ module Patch
       lines << '操作系统: <font color = "blue">%s</font><br>' % OS::name
       lines << '当前目录: <font color = "blue">%s</font><br>' % Dir.pwd.gsub('/', '\\')
 
-      if opt[:id]
-        dirname = File.join '//%s' % ip, share_name, 'patch', opt[:id]
+      if args[:id]
+        dirname = File.join '//%s' % ip, share_name, 'patch', args[:id]
         lines << '补丁位置: <a href = "file:%s"><font color = "red">%s</font></a><br>' % [dirname, dirname.gsub('/', '\\')]
       end
 
-      lines << '<br>'
+      Net::send_smtp nil, nil, account, cc: cc_account do |mail|
+        subject = args[:subject] || '<PATCH 通知>补丁制作失败, 请尽快处理'
 
-      if opt[:text]
-        opt[:text].to_s.lines do |line|
-          lines << '%s<br>' % line.rstrip
-        end
-      end
+        author = nil
 
-      if opt[:html]
-        lines << opt[:html]
-      end
+        if args[:info]
+          author = author_info args[:info]
+          subject += '(%s)' % author
 
-      lines << '<br>'
-
-      Net::send_smtp nil, nil, account, opt do |mail|
-        subject = opt[:subject] || '<PATCH 通知>补丁制作失败, 请尽快处理'
-
-        mail.html = lines.join "\n"
-
-        if opt[:message]
           File.tmpdir do |dir|
-            filename = File.join dir, 'build.log'
-
-            File.open filename, 'w' do |file|
-              file.puts opt[:message]
-            end
-
+            filename = File.join dir, '%s_%s.xml' % [Time.now.strftime('%Y%m%d'), author]
+            to_xml args[:info], filename
             mail.attach filename.locale
           end
         end
 
-        if opt[:info]
-          File.tmpdir do |dir|
-            filename = File.join dir, '%s_%s.xml' % [Time.now.strftime('%Y%m%d'), author(opt[:info][:info])]
-            to_xml opt[:info], filename
-            mail.attach filename.locale
-          end
-
-          if opt[:info][:info]
-            subject += '(%s)' % opt[:info][:info]['提交人员'].to_s.gsub('/', '_')
-          end
+        if args[:file]
+          mail.attach args[:file].locale
         end
 
         if $x64
           mail.subject = '%s(%s-X64)' % [subject, OS::name]
         else
           mail.subject = '%s(%s)' % [subject, OS::name]
+        end
+
+        if not $errors.nil?
+          lines << '<br>'
+
+          $errors.each do |line|
+            lines << '%s<br>' % line.rstrip
+          end
+
+          lines << '<br>'
+
+          mail.html = lines.join "\n"
+        end
+
+        if not $loggers.nil?
+          File.tmpdir do |dir|
+            filename = File.join dir, 'build.log'
+
+            File.open filename, 'w' do |file|
+              file.puts $loggers.locale
+            end
+
+            mail.attach filename.locale
+          end
         end
       end
     end
@@ -628,18 +1049,18 @@ module Patch
 
     private
 
-    def module_names
-      [
-        'u3_interface',
-        'sdn_interface',
-        'sdn_framework',
-        'sdn_application',
-        'sdn_nesc',
-        'sdn_tunnel',
-        'SPTN-E2E',
-        'CTR-ICT',
-        'sdn_installation'
-      ]
+    def modules
+      {
+        'u3_interface'    => 'u3_interface',
+        'sdn_interface'   => 'interface',
+        'sdn_framework'   => 'framework',
+        'sdn_application' => 'application',
+        'sdn_nesc'        => 'nesc',
+        'sdn_tunnel'      => 'tunnel',
+        'CTR-ICT'         => 'ict',
+        'SPTN-E2E'        => 'e2e',
+        'sdn_installation'=> 'installation'
+      }
     end
   end
 end
