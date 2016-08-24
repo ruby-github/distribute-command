@@ -30,6 +30,27 @@ module DistributeCommand
     end
 
     # args
+    #   name, ip_list
+    def reboot args = nil
+      args ||= {}
+
+      # 重启机器
+
+      function_e = REXML::Element.new 'function'
+
+      function_e.attributes['name'] = args['name']
+      function_e.attributes['function'] = 'reboot'
+
+      ip_list = args['ip_list'].to_s.split(',').map {|x| x.strip}
+
+      if not ip_list.empty?
+        function_e.attributes['ip_list'] = ip_list.sort.uniq.join ','
+      end
+
+      function_e
+    end
+
+    # args
     #   name, ip, home, installation_home, silencefile, license
     #   cmdline, uninstall_cmdline, tmpdir, skip, installation_home_patch, ems_locale
     #   client, server
@@ -41,64 +62,57 @@ module DistributeCommand
       element.attributes['name'] = args['name']
       element.attributes['ip'] = args['ip']
       element.attributes['home'] = args['home']
-      element.attributes['installation_home'] = args['installation_home']
-      element.attributes['silencefile'] = args['silencefile']
 
-      element.attributes['cmdline'] = args['cmdline'] || 'setup.bat d: silenceinstall-for-localhost.xml false'
-      element.attributes['uninstall_cmdline'] = args['uninstall_cmdline'] || 'shutdown-console.bat'
       element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
-
-      if args.has_key? 'license'
-        element.attributes['license'] = args['license']
-      end
 
       if args.has_key? 'skip'
         element.attributes['skip'] = args['skip']
       end
 
-      if args.has_key? 'installation_home_patch'
-        element.attributes['installation_home_patch'] = args['installation_home_patch']
-      end
-
-      # 卸载
+      # 卸载网管
 
       cmdline_e = REXML::Element.new 'cmdline'
 
-      cmdline_e.attributes['name'] = '${name}:卸载'
+      cmdline_e.attributes['name'] = '${name}:卸载网管'
       cmdline_e.attributes['home'] = '${home}/ums-server'
-      cmdline_e.attributes['cmdline'] = '${uninstall_cmdline}'
+      cmdline_e.attributes['cmdline'] = args['uninstall_cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_uninstall'
       cmdline_e.attributes['skipfail'] = 'true'
 
       element << cmdline_e
 
-      # 拷贝文件
+      # 拷贝安装文件
 
       copy_e = REXML::Element.new 'copy'
 
-      copy_e.attributes['name'] = '${name}:拷贝安装盘'
-      copy_e.attributes['path'] = '${installation_home}'
+      copy_e.attributes['name'] = '${name}:拷贝安装文件'
+      copy_e.attributes['path'] = args['installation_home']
       copy_e.attributes['to_path'] = '${tmpdir}'
 
       element << copy_e
 
+      # 拷贝补丁文件
+
       if args.has_key? 'installation_home_patch'
         copy_e = REXML::Element.new 'copy'
 
-        copy_e.attributes['name'] = '${name}:拷贝安装盘补丁'
-        copy_e.attributes['path'] = '${installation_home_patch}'
+        copy_e.attributes['name'] = '${name}:拷贝补丁文件'
+        copy_e.attributes['path'] = args['installation_home_patch']
         copy_e.attributes['to_path'] = '${tmpdir}'
 
         element << copy_e
       end
 
+      # 拷贝静默安装文件
+
       copy_e = REXML::Element.new 'copy'
 
       copy_e.attributes['name'] = '${name}:拷贝静默安装文件'
-      copy_e.attributes['path'] = '${silencefile}'
+      copy_e.attributes['path'] = args['silencefile']
       copy_e.attributes['to_path'] = '${tmpdir}/conf/silenceinstall-for-localhost.xml'
-      copy_e.attributes['install_home'] = '${home}'
       copy_e.attributes['callback'] = 'netnumen_update_silenceinstall'
+
+      copy_e.attributes['install_home'] = '${home}'
 
       if args.has_key? 'ems_locale'
         copy_e.attributes['ems_locale'] = args['ems_locale']
@@ -114,44 +128,45 @@ module DistributeCommand
 
       element << copy_e
 
-      if args['client'] != 'true'
-        # 重启数据库
+      # 重启数据库
 
+      if args['client'] != 'true'
         function_e = REXML::Element.new 'function'
 
         function_e.attributes['name'] = '${name}:重启数据库'
-        function_e.attributes['home'] = '${home}'
         function_e.attributes['function'] = 'netnumen_database_restart'
 
         element << function_e
       end
 
-      # 安装
+      # 安装网管
 
       cmdline_e = REXML::Element.new 'cmdline'
 
-      cmdline_e.attributes['name'] = '${name}:安装'
+      cmdline_e.attributes['name'] = '${name}:安装网管'
       cmdline_e.attributes['home'] = '${tmpdir}'
-      cmdline_e.attributes['cmdline'] = '${cmdline}'
+      cmdline_e.attributes['cmdline'] = args['cmdline'] || 'setup.bat d: silenceinstall-for-localhost.xml false'
       cmdline_e.attributes['callback_finish'] = 'netnumen_install'
 
       element << cmdline_e
+
+      # 拷贝license
 
       if args.has_key? 'license'
         copy_e = REXML::Element.new 'copy'
 
         copy_e.attributes['name'] = '${name}:拷贝license'
-        copy_e.attributes['path'] = '${license}'
+        copy_e.attributes['path'] = args['license']
         copy_e.attributes['to_path'] = '${home}/ums-server/works/main/deploy/ums-license.LCS'
 
         element << copy_e
       end
 
-      # 清除
+      # 清除临时文件
 
       delete_e = REXML::Element.new 'delete'
 
-      delete_e.attributes['name'] = '${name}:清除'
+      delete_e.attributes['name'] = '${name}:清除临时文件'
       delete_e.attributes['path'] = '${tmpdir}'
       delete_e.attributes['ensure'] = 'true'
       delete_e.attributes['skipfail'] = 'true'
@@ -172,68 +187,57 @@ module DistributeCommand
       element.attributes['name'] = args['name']
       element.attributes['ip'] = args['ip']
       element.attributes['home'] = args['home']
-      element.attributes['installation_home'] = args['installation_home']
-      element.attributes['silencefile'] = args['silencefile']
 
-      element.attributes['cmdline'] = args['cmdline'] || 'setup.bat d: silenceinstall-for-localhost.xml false'
-      element.attributes['uninstall_cmdline'] = args['uninstall_cmdline'] || 'shutdown-console.bat'
       element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
-
-      if args.has_key? 'license'
-        element.attributes['license'] = args['license']
-      end
 
       if args.has_key? 'skip'
         element.attributes['skip'] = args['skip']
       end
 
-      if args.has_key? 'installation_home_patch'
-        element.attributes['installation_home_patch'] = args['installation_home_patch']
-      end
-
-      if args.has_key? 'main_ip'
-        element.attributes['main_ip'] = args['main_ip']
-      end
-
-      # 卸载
+      # 卸载控制器
 
       cmdline_e = REXML::Element.new 'cmdline'
 
-      cmdline_e.attributes['name'] = '${name}:卸载'
+      cmdline_e.attributes['name'] = '${name}:卸载控制器'
       cmdline_e.attributes['home'] = '${home}/ums-server'
-      cmdline_e.attributes['cmdline'] = '${uninstall_cmdline}'
+      cmdline_e.attributes['cmdline'] = args['uninstall_cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_uninstall'
       cmdline_e.attributes['skipfail'] = 'true'
 
       element << cmdline_e
 
-      # 拷贝文件
+      # 拷贝安装文件
 
       copy_e = REXML::Element.new 'copy'
 
-      copy_e.attributes['name'] = '${name}:拷贝安装盘'
-      copy_e.attributes['path'] = '${installation_home}'
+      copy_e.attributes['name'] = '${name}:拷贝安装文件'
+      copy_e.attributes['path'] = args['installation_home']
       copy_e.attributes['to_path'] = '${tmpdir}'
 
       element << copy_e
 
+      # 拷贝补丁文件
+
       if args.has_key? 'installation_home_patch'
         copy_e = REXML::Element.new 'copy'
 
-        copy_e.attributes['name'] = '${name}:拷贝安装盘补丁'
-        copy_e.attributes['path'] = '${installation_home_patch}'
+        copy_e.attributes['name'] = '${name}:拷贝补丁文件'
+        copy_e.attributes['path'] = args['installation_home_patch']
         copy_e.attributes['to_path'] = '${tmpdir}'
 
         element << copy_e
       end
 
+      # 拷贝静默安装文件
+
       copy_e = REXML::Element.new 'copy'
 
       copy_e.attributes['name'] = '${name}:拷贝静默安装文件'
-      copy_e.attributes['path'] = '${silencefile}'
+      copy_e.attributes['path'] = args['silencefile']
       copy_e.attributes['to_path'] = '${tmpdir}/conf/silenceinstall-for-localhost.xml'
-      copy_e.attributes['install_home'] = '${home}'
       copy_e.attributes['callback'] = 'netnumen_update_silenceinstall'
+
+      copy_e.attributes['install_home'] = '${home}'
 
       if args.has_key? 'ems_locale'
         copy_e.attributes['ems_locale'] = args['ems_locale']
@@ -248,21 +252,22 @@ module DistributeCommand
       function_e = REXML::Element.new 'function'
 
       function_e.attributes['name'] = '${name}:重启数据库'
-      function_e.attributes['home'] = '${home}'
       function_e.attributes['function'] = 'netnumen_database_restart'
 
       element << function_e
 
-      # 安装
+      # 安装控制器
 
       cmdline_e = REXML::Element.new 'cmdline'
 
-      cmdline_e.attributes['name'] = '${name}:安装'
+      cmdline_e.attributes['name'] = '${name}:安装控制器'
       cmdline_e.attributes['home'] = '${tmpdir}'
-      cmdline_e.attributes['cmdline'] = '${cmdline}'
+      cmdline_e.attributes['cmdline'] = args['cmdline'] || 'setup.bat d: silenceinstall-for-localhost.xml false'
       cmdline_e.attributes['callback_finish'] = 'netnumen_install'
 
       element << cmdline_e
+
+      # 拷贝license
 
       if args.has_key? 'license'
         copy_e = REXML::Element.new 'copy'
@@ -274,25 +279,25 @@ module DistributeCommand
         element << copy_e
       end
 
-      # 配置
+      # 配置控制器
 
       function_e = REXML::Element.new 'function'
 
-      function_e.attributes['name'] = '${name}:配置'
+      function_e.attributes['name'] = '${name}:控制器'
       function_e.attributes['home'] = '${home}'
       function_e.attributes['function'] = 'netnumen_sptn_settings'
 
       if args.has_key? 'main_ip'
-        function_e.attributes['main_ip'] = '${main_ip}'
+        function_e.attributes['main_ip'] = args['main_ip']
       end
 
       element << function_e
 
-      # 清除
+      # 清除临时文件
 
       delete_e = REXML::Element.new 'delete'
 
-      delete_e.attributes['name'] = '${name}:清除'
+      delete_e.attributes['name'] = '${name}:清除临时文件'
       delete_e.attributes['path'] = '${tmpdir}'
       delete_e.attributes['ensure'] = 'true'
       delete_e.attributes['skipfail'] = 'true'
@@ -307,20 +312,22 @@ module DistributeCommand
     def installation_iptn_list args = nil
       args ||= {}
 
-      element_list = []
+      element = REXML::Element.new 'parallel'
+      element.attributes['name'] = '安装网管'
 
-      if args.has_key? 'ip_list'
-        ip_list = args.delete('ip_list').split(',').map {|x| x.strip}
+      ip_list = args['ip_list'].to_s.split(',').map {|x| x.strip}
 
-        ip_list.each do |ip|
-          args_dup = args.dup
-          args_dup['ip'] = ip
+      if not ip_list.empty?
+        args.delete 'ip_list'
 
-          element_list << installation_iptn(args_dup)
+        ip_list.sort.uniq.each do |ip|
+          args['ip'] = ip
+
+          element << installation_iptn(args)
         end
       end
 
-      element_list
+      element
     end
 
     # args
@@ -328,33 +335,113 @@ module DistributeCommand
     def installation_sptn_list args = nil
       args ||= {}
 
-      element_list = []
+      element = REXML::Element.new 'parallel'
+      element.attributes['name'] = '安装控制器'
 
-      if args.has_key? 'ip_list'
-        ip_list = args.delete('ip_list').split(',').map {|x| x.strip}
+      ip_list = args['ip_list'].to_s.split(',').map {|x| x.strip}
 
-        ip_list.each do |ip|
-          args_dup = args.dup
+      if not ip_list.empty?
+        args.delete 'ip_list'
+
+        ip_list.sort.uniq.each do |ip|
+          args.delete 'main_ip'
 
           if ip.include? ':'
             ip, main_ip = ip.split(':', 2).map {|x| x.strip}
 
-            args_dup['ip'] = ip
-            args_dup['main_ip'] = main_ip
+            args['ip'] = ip
+            args['main_ip'] = main_ip
           else
-            args_dup['ip'] = ip
+            args['ip'] = ip
           end
 
-          element_list << installation_sptn(args_dup)
+          element << installation_sptn(args)
         end
       end
 
-      element_list
+      element
     end
 
     # args
     #   name, ip, home
-    #   cmdline, shutdown_cmdline, tmpdir, database, restore_database_cmdline
+    #   shutdown_cmdline, tmpdir, database, database_name, restore_database_cmdline
+    def restore_iptn_database args = nil
+      args ||= {}
+
+      element = REXML::Element.new 'sequence'
+
+      element.attributes['name'] = args['name']
+      element.attributes['ip'] = args['ip']
+      element.attributes['home'] = args['home']
+
+      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
+
+      # 关闭网管
+
+      cmdline_e = REXML::Element.new 'cmdline'
+
+      cmdline_e.attributes['name'] = '${name}:关闭网管'
+      cmdline_e.attributes['home'] = '${home}/ums-server'
+      cmdline_e.attributes['cmdline'] = args['shutdown_cmdline'] || 'shutdown-console.bat'
+      cmdline_e.attributes['callback_finish'] = 'netnumen_close_server'
+      cmdline_e.attributes['skipfail'] = 'true'
+
+      element << cmdline_e
+
+      # 重启数据库
+
+      function_e = REXML::Element.new 'function'
+
+      function_e.attributes['name'] = '${name}:重启数据库'
+      function_e.attributes['function'] = 'netnumen_database_restart'
+
+      element << function_e
+
+      # 拷贝数据文件
+
+      copy_e = REXML::Element.new 'copy'
+
+      copy_e.attributes['name'] = '${name}:拷贝数据文件'
+      copy_e.attributes['path'] = args['database']
+      copy_e.attributes['to_path'] = File.join '${tmpdir}', args['database_name'] || 'database_backup.zip'
+
+      element << copy_e
+
+      # 恢复数据
+
+      cmdline_e = REXML::Element.new 'cmdline'
+
+      cmdline_e.attributes['name'] = '${name}:恢复数据'
+      cmdline_e.attributes['home'] = '${home}/ums-server/utils/dbtool'
+      cmdline_e.attributes['cmdline'] = args['restore_database_cmdline'] || ('dbtool.bat -dbms:mssql -ip:${ip} -port:1433 -user:sa -pwd:sa -restoreems:%s' % File.join('${tmpdir}', args['database_name'] || 'database_backup.zip'))
+      cmdline_e.attributes['callback'] = 'netnumen_restore_database'
+
+      element << cmdline_e
+
+      # 清除临时文件
+
+      delete_e = REXML::Element.new 'delete'
+
+      delete_e.attributes['name'] = '${name}:清除临时文件'
+      delete_e.attributes['path'] = '${tmpdir}'
+      delete_e.attributes['ensure'] = 'true'
+      delete_e.attributes['skipfail'] = 'true'
+
+      element << delete_e
+
+      element
+    end
+
+    # args
+    #   name, ip, home
+    #   shutdown_cmdline, tmpdir, database, database_name, restore_database_cmdline
+    def restore_sptn_database args = nil
+      restore_iptn_database args
+    end
+
+    # args
+    #   name, ip, home
+    #   cmdline, shutdown_cmdline
     def start_iptn args = nil
       args ||= {}
 
@@ -364,82 +451,27 @@ module DistributeCommand
       element.attributes['ip'] = args['ip']
       element.attributes['home'] = args['home']
 
-      element.attributes['cmdline'] = args['cmdline'] || 'start console.bat'
-      element.attributes['shutdown_cmdline'] = args['shutdown_cmdline'] || 'shutdown-console.bat'
-      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
-
-      if args.has_key? 'database'
-        element.attributes['install_database'] = args['database']
-        element.attributes['database_name'] = args['database_name'] || 'database_backup.zip'
-        element.attributes['database'] = '${tmpdir}/${database_name}'
-        element.attributes['restore_database_cmdline'] = args['restore_database_cmdline'] || 'dbtool.bat -dbms:mssql -ip:${ip} -port:1433 -user:sa -pwd:sa -restoreems:${database}'
-      end
-
-      # 关闭
+      # 关闭网管
 
       cmdline_e = REXML::Element.new 'cmdline'
 
-      cmdline_e.attributes['name'] = '${name}:关闭'
+      cmdline_e.attributes['name'] = '${name}:关闭网管'
       cmdline_e.attributes['home'] = '${home}/ums-server'
-      cmdline_e.attributes['cmdline'] = '${shutdown_cmdline}'
+      cmdline_e.attributes['cmdline'] = args['shutdown_cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_close_server'
       cmdline_e.attributes['skipfail'] = 'true'
 
       element << cmdline_e
 
-      if args.has_key? 'database'
-        # 重启数据库
-
-        function_e = REXML::Element.new 'function'
-
-        function_e.attributes['name'] = '${name}:重启数据库'
-        function_e.attributes['home'] = '${home}'
-        function_e.attributes['function'] = 'netnumen_database_restart'
-
-        element << function_e
-
-        # 拷贝数据文件
-
-        copy_e = REXML::Element.new 'copy'
-
-        copy_e.attributes['name'] = '${name}:拷贝数据文件'
-        copy_e.attributes['path'] = '${install_database}'
-        copy_e.attributes['to_path'] = '${database}'
-
-        element << copy_e
-
-        # 恢复数据
-
-        cmdline_e = REXML::Element.new 'cmdline'
-
-        cmdline_e.attributes['name'] = '${name}:恢复数据'
-        cmdline_e.attributes['home'] = '${home}/ums-server/utils/dbtool'
-        cmdline_e.attributes['cmdline'] = '${restore_database_cmdline}'
-        cmdline_e.attributes['callback'] = 'netnumen_restore_database'
-
-        element << cmdline_e
-
-        # 清除数据文件
-
-        delete_e = REXML::Element.new 'delete'
-
-        delete_e.attributes['name'] = '${name}:清除数据文件'
-        delete_e.attributes['path'] = '${tmpdir}'
-        delete_e.attributes['ensure'] = 'true'
-        delete_e.attributes['skipfail'] = 'true'
-
-        element << delete_e
-      end
-
-      # 启动
+      # 启动网管
 
       cmdline_e = REXML::Element.new 'cmdline'
 
-      cmdline_e.attributes['name'] = '${name}:启动'
+      cmdline_e.attributes['name'] = '${name}:启动网管'
       cmdline_e.attributes['home'] = '${home}/ums-server'
-      cmdline_e.attributes['cmdline'] = '${cmdline}'
-      cmdline_e.attributes['expired'] = '1800'
+      cmdline_e.attributes['cmdline'] = args['cmdline'] || 'start console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_start_server'
+      cmdline_e.attributes['expired'] = '1800'
 
       element << cmdline_e
 
@@ -448,14 +480,14 @@ module DistributeCommand
 
     # args
     #   name, ip, home
-    #   cmdline, shutdown_cmdline, tmpdir, database, restore_database_cmdline
+    #   cmdline, shutdown_cmdline
     def start_sptn args = nil
       start_iptn args
     end
 
     # args
-    #   name, ip, home, server_ip
-    #   cmdline
+    #   name, ip, home
+    #   server_ip, cmdline
     def start_iptn_client args = nil
       args ||= {}
 
@@ -464,9 +496,6 @@ module DistributeCommand
       element.attributes['name'] = args['name']
       element.attributes['ip'] = args['ip']
       element.attributes['home'] = args['home']
-      element.attributes['server_ip'] = args['server_ip'] || '127.0.0.1'
-
-      element.attributes['cmdline'] = args['cmdline'] || 'start run.bat -serverip ${server_ip} -username admin -password ""'
 
       # 关闭客户端
 
@@ -480,13 +509,13 @@ module DistributeCommand
 
       element << cmdline_e
 
-      # 启动
+      # 启动客户端
 
       cmdline_e = REXML::Element.new 'cmdline'
 
-      cmdline_e.attributes['name'] = '${name}:启动'
+      cmdline_e.attributes['name'] = '${name}:启动客户端'
       cmdline_e.attributes['home'] = '${home}/ums-client/procs/bsf/core/bin'
-      cmdline_e.attributes['cmdline'] = '${cmdline}'
+      cmdline_e.attributes['cmdline'] = args['cmdline'] || ('start run.bat -serverip %s -username admin -password ""' % (args['server_ip'] || '127.0.0.1'))
       cmdline_e.attributes['expired'] = '1800'
       cmdline_e.attributes['callback_finish'] = 'netnumen_start_client'
 
@@ -501,28 +530,20 @@ module DistributeCommand
     def close_iptn args = nil
       args ||= {}
 
-      element = REXML::Element.new 'sequence'
-
-      element.attributes['name'] = args['name']
-      element.attributes['ip'] = args['ip']
-      element.attributes['home'] = args['home']
-
-      element.attributes['cmdline'] = args['cmdline'] || 'shutdown-console.bat'
-
       # 关闭服务端
 
       cmdline_e = REXML::Element.new 'cmdline'
 
-      cmdline_e.attributes['name'] = '${name}:关闭服务端'
-      cmdline_e.attributes['home'] = '${home}/ums-server'
-      cmdline_e.attributes['cmdline'] = '${cmdline}'
+      cmdline_e.attributes['name'] = args['name']
+      cmdline_e.attributes['ip'] = args['ip']
+      cmdline_e.attributes['home'] = File.join args['home'], 'ums-server'
+
+      cmdline_e.attributes['cmdline'] = args['cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_close_server'
       cmdline_e.attributes['ensure'] = 'true'
       cmdline_e.attributes['skipfail'] = 'true'
 
-      element << cmdline_e
-
-      element
+      cmdline_e
     end
 
     # args
@@ -531,28 +552,20 @@ module DistributeCommand
     def close_sptn args = nil
       args ||= {}
 
-      element = REXML::Element.new 'sequence'
-
-      element.attributes['name'] = args['name']
-      element.attributes['ip'] = args['ip']
-      element.attributes['home'] = args['home']
-
-      element.attributes['cmdline'] = args['cmdline'] || 'shutdown-console.bat'
-
-      # 关闭
+      # 关闭控制器
 
       cmdline_e = REXML::Element.new 'cmdline'
 
-      cmdline_e.attributes['name'] = '${name}:关闭'
-      cmdline_e.attributes['home'] = '${home}/ums-server'
-      cmdline_e.attributes['cmdline'] = '${cmdline}'
+      cmdline_e.attributes['name'] = args['name']
+      cmdline_e.attributes['ip'] = args['ip']
+      cmdline_e.attributes['home'] = File.join args['home'], 'ums-server'
+
+      cmdline_e.attributes['cmdline'] = args['cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_close_server'
       cmdline_e.attributes['ensure'] = 'true'
       cmdline_e.attributes['skipfail'] = 'true'
 
-      element << cmdline_e
-
-      element
+      cmdline_e
     end
 
     # args
@@ -560,26 +573,20 @@ module DistributeCommand
     def close_iptn_client args = nil
       args ||= {}
 
-      element = REXML::Element.new 'sequence'
-
-      element.attributes['name'] = args['name']
-      element.attributes['ip'] = args['ip']
-      element.attributes['home'] = args['home']
-
       # 关闭客户端
 
       cmdline_e = REXML::Element.new 'cmdline'
 
-      cmdline_e.attributes['name'] = '${name}:关闭客户端'
-      cmdline_e.attributes['home'] = '${home}/ums-client'
+      cmdline_e.attributes['name'] = args['name']
+      cmdline_e.attributes['ip'] = args['ip']
+      cmdline_e.attributes['home'] = File.join args['home'], 'ums-client'
+
       cmdline_e.attributes['cmdline'] = nil
       cmdline_e.attributes['callback_finish'] = 'netnumen_close_client'
       cmdline_e.attributes['ensure'] = 'true'
       cmdline_e.attributes['skipfail'] = 'true'
 
-      element << cmdline_e
-
-      element
+      cmdline_e
     end
 
     # args
@@ -599,7 +606,7 @@ module DistributeCommand
       element.attributes['ip'] = args['ip']
       element.attributes['home'] = args['home']
 
-      element.attributes['tmpdir'] = args['tmpdir'] || File.join('d:/autotest_home', Time.now.strftime('%Y%m%d'))
+      element.attributes['tmpdir'] = File.join args['tmpdir'] || 'd:/autotest_home', Time.now.strftime('%Y%m%d')
 
       paths = {}
 
@@ -684,8 +691,8 @@ module DistributeCommand
         end
       end
 
-      list_element = REXML::Element.new 'list'
-      list_element.attributes['name'] = '${name}:测试用例'
+      list_sequence = REXML::Element.new 'list_sequence'
+      list_sequence.attributes['name'] = '${name}:测试用例'
 
       paths.each do |path, expired|
         # 创建测试用例
@@ -698,7 +705,7 @@ module DistributeCommand
 
         function_e.attributes['function'] = 'quicktest_create'
 
-        list_element << function_e
+        list_sequence << function_e
 
         # 拷贝测试用例
 
@@ -708,7 +715,7 @@ module DistributeCommand
         copy_e.attributes['path'] = File.join '${home}', path
         copy_e.attributes['to_path'] = File.join '${tmpdir}', path
 
-        list_element << copy_e
+        list_sequence << copy_e
 
         copy_e = REXML::Element.new 'copy'
 
@@ -770,7 +777,7 @@ module DistributeCommand
           function_e.attributes['ems_home'] = args['ems_home']
         end
 
-        list_element << function_e
+        list_sequence << function_e
 
         # 生成测试报告
 
@@ -793,10 +800,10 @@ module DistributeCommand
         function_e.attributes['function'] = 'quicktest_report'
         function_e.attributes['ensure'] = 'true'
 
-        list_element << function_e
+        list_sequence << function_e
       end
 
-      element << list_element
+      element << list_sequence
 
       if args['clean'].to_s.boolean(false)
         # 清除测试用例
@@ -855,8 +862,6 @@ module DistributeCommand
     def compare_index args = nil
       args ||= {}
 
-      element = REXML::Element.new 'sequence'
-
       # 汇总测试报告
 
       function_e = REXML::Element.new 'function'
@@ -866,9 +871,7 @@ module DistributeCommand
       function_e.attributes['function'] = 'compare_index'
       function_e.attributes['ensure'] = 'true'
 
-      element << function_e
-
-      element
+      function_e
     end
   end
 end

@@ -116,7 +116,7 @@ module DistributeCommand
           args[name] = value
         end
 
-        Template::__send__ element.name, args
+        Template::__send__(element.name, args) || []
       else
         if element.has_elements?
           new_element = REXML::Element.new element.name
