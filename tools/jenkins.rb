@@ -668,7 +668,8 @@ module Jenkins
           :authorization=> ['bnbuild'],
           :script_path  => 'bn/test.groovy',
           :parameters   => [
-            ['version', '版本号', '']
+            ['version', '版本号',     ''],
+            ['reboot',  '重启测试机', false]
           ]
         },
 
@@ -816,9 +817,10 @@ module Jenkins
         :authorization=> ['bnbuild'],
         :script_path  => 'bn/command.groovy',
         :parameters   => [
-          ['home',      '工作目录', 'bn/daily/windows'],
-          ['configure', '配置文件', 'installation.xml'],
-          ['version',   '版本号',   '']
+          ['home',      '工作目录',   'bn/daily/windows'],
+          ['configure', '配置文件',   'installation.xml'],
+          ['version',   '版本号',     ''],
+          ['reboot',    '重启测试机', false]
         ]
       }
 
@@ -884,7 +886,8 @@ module Jenkins
           :authorization=> ['stnbuild'],
           :script_path  => 'stn/test.groovy',
           :parameters   => [
-            ['version', '版本号', '']
+            ['version', '版本号',     ''],
+            ['reboot',  '重启测试机', false]
           ]
         },
 
@@ -986,9 +989,10 @@ module Jenkins
         :authorization=> ['stnbuild'],
         :script_path  => 'stn/command.groovy',
         :parameters   => [
-          ['home',      '工作目录', 'stn/daily/windows'],
-          ['configure', '配置文件', 'installation.xml'],
-          ['version',   '版本号',   '']
+          ['home',      '工作目录',   'stn/daily/windows'],
+          ['configure', '配置文件',   'installation.xml'],
+          ['version',   '版本号',     ''],
+          ['reboot',    '重启测试机', false]
         ]
       }
 
