@@ -22,7 +22,7 @@ class File
     if absolute? args.last
       args.last.utf8
     else
-      if args.first == '.'
+      if ['', '.'].include? args.first
         args.shift
       end
 

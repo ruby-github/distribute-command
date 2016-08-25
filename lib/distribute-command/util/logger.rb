@@ -344,11 +344,19 @@ module Util
 
           case status
           when false
-            lines << '%s FAILURE [ %10s]' % [line, format_time(time)]
+            if time.nil?
+              lines << '%s FAILURE' % line
+            else
+              lines << '%s FAILURE [ %10s]' % [line, format_time(time)]
+            end
           when nil
             lines << '%s SKIPPED' % line
           else
-            lines << '%s SUCCESS [ %10s]' % [line, format_time(time)]
+            if time.nil?
+              lines << '%s SUCCESS' % line
+            else
+              lines << '%s SUCCESS [ %10s]' % [line, format_time(time)]
+            end
           end
 
           if status == false
