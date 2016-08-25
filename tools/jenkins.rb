@@ -629,7 +629,9 @@ module Jenkins
         },
         'bn_deploy'  => {
           :script_path  => 'bn/deploy.groovy',
-          :parameters   => []
+          :parameters   => [
+            ['version', '版本号', '']
+          ]
         },
         'bn_compile'    => {
           :script_path  => 'bn/compile.groovy',
@@ -860,7 +862,9 @@ module Jenkins
         },
         'stn_deploy'  => {
           :script_path  => 'stn/deploy.groovy',
-          :parameters   => []
+          :parameters   => [
+            ['version', '版本号', '']
+          ]
         },
         'stn_compile' => {
           :script_path  => 'stn/compile.groovy',
