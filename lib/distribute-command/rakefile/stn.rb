@@ -103,23 +103,25 @@ namespace :stn do
       status = true
 
       if File.directory? home
-        versions = {}
+        Dir.chdir home do
+          versions = {}
 
-        defaults.each do |k, v|
-          info = SCM::info v
+          defaults.each do |k, v|
+            info = SCM::info v
 
-          if info.nil?
-            status = false
+            if info.nil?
+              status = false
 
-            next
+              next
+            end
+
+            versions[k] = info[:rev]
           end
 
-          versions[k] = info[:rev]
-        end
-
-        File.open 'version.txt', 'w' do |f|
-          versions.each do |name, version|
-            f.puts [name, version].join(': ')
+          File.open 'version.txt', 'w' do |f|
+            versions.each do |name, version|
+              f.puts [name, version].join(': ')
+            end
           end
         end
       else
