@@ -144,6 +144,7 @@ module Patch
               end
             end
 
+            Util::Logger::puts ''
             Util::Logger::summary command_list, ((Time.now - time) * 1000).to_i / 1000.0
 
             status
@@ -1024,6 +1025,16 @@ module Patch
         lines << '补丁位置: <a href = "file:%s"><font color = "red">%s</font></a><br>' % [dirname, dirname.gsub('/', '\\')]
       end
 
+      if not $errors.nil?
+        lines << '<br>'
+
+        $errors.each do |line|
+          lines << '%s<br>' % line.rstrip
+        end
+      end
+
+      lines << '<br>'
+
       Net::send_smtp nil, nil, account, cc: cc_account do |mail|
         subject = args[:subject] || '<PATCH 通知>补丁制作失败, 请尽快处理'
 
@@ -1031,8 +1042,18 @@ module Patch
 
         if args[:info]
           author = author_info args[:info][:info]
-          subject += '(%s)' % author
+          subject += '_' % author
+        end
 
+        if $x64
+          mail.subject = '%s(%s-x64)' % [subject, OS::name]
+        else
+          mail.subject = '%s(%s)' % [subject, OS::name]
+        end
+
+        mail.html = lines.join "\n"
+
+        if args[:info]
           File.tmpdir do |dir|
             filename = File.join dir, '%s_%s.xml' % [Time.now.strftime('%Y%m%d'), author]
             to_xml args[:info], filename
@@ -1042,24 +1063,6 @@ module Patch
 
         if args[:file]
           mail.attach args[:file].locale
-        end
-
-        if $x64
-          mail.subject = '%s(%s-x64)' % [subject, OS::name]
-        else
-          mail.subject = '%s(%s)' % [subject, OS::name]
-        end
-
-        if not $errors.nil?
-          lines << '<br>'
-
-          $errors.each do |line|
-            lines << '%s<br>' % line.rstrip
-          end
-
-          lines << '<br>'
-
-          mail.html = lines.join "\n"
         end
 
         if not $loggers.nil?
