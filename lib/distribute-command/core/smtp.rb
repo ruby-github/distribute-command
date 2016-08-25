@@ -27,7 +27,7 @@ module Net
     }.merge (opt || {})
 
     if not $sendmail
-      send_smtp_puts address, from_addr, to_addrs, opt
+      # send_smtp_puts address, from_addr, to_addrs, opt
 
       return true
     end

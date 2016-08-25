@@ -322,9 +322,22 @@ module Compile
           if sendmail
             subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [BN_MAX_SIZE_CLIENT, BN_MAX_SIZE_SERVER]
 
+            lines = []
+
+            if ENV.has_key? 'BUILD_URL'
+              http = File.join ENV['BUILD_URL'], 'console'
+
+              lines <<  'Jenkins日志: <font color = "blue"><a href="%s">%s</a></font><br>' % [http, http]
+              lines << '<br>'
+            end
+
+            errors.each do |file|
+              lines << '%s<br>' % file
+            end
+
             opt = {
               :subject  => 'Subject: %s' % subject,
-              :html     => errors.join("\n")
+              :html     => lines.join("\n")
             }
 
             Net::send_smtp nil, nil, addrs, opt
@@ -338,9 +351,24 @@ module Compile
         if sendmail
           subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [BN_MAX_SIZE_CLIENT, BN_MAX_SIZE_SERVER]
 
+          lines = []
+
+          if ENV.has_key? 'BUILD_URL'
+            http = File.join ENV['BUILD_URL'], 'console'
+
+            lines <<  'Jenkins日志: <font color = "blue"><a href="%s">%s</a></font><br>' % [http, http]
+            lines << '<br>'
+          end
+
+          errors.each do |file|
+            lines << '%s<br>' % file
+          end
+
+          lines << '<br>'
+
           opt = {
             :subject  => 'Subject: %s' % subject,
-            :html     => errors.join("\n")
+            :html     => lines.join("\n")
           }
 
           Net::send_smtp nil, nil, addrs, opt
@@ -1065,6 +1093,13 @@ module Compile
       end
 
       lines = []
+
+      if ENV.has_key? 'BUILD_URL'
+        http = File.join ENV['BUILD_URL'], 'console'
+
+        lines <<  'Jenkins日志: <font color = "blue"><a href="%s">%s</a></font><br>' % [http, http]
+        lines << '<br>'
+      end
 
       lines << '操作系统: <font color = "blue">%s</font><br>' % OS::name
       lines << '当前目录: <font color = "blue">%s</font><br>' % Dir.pwd.utf8

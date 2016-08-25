@@ -658,9 +658,24 @@ namespace :bn do
         errors_list.each do |errors, addrs|
           subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [Compile::BN_MAX_SIZE_CLIENT, Compile::BN_MAX_SIZE_SERVER]
 
+          lines = []
+
+          if ENV.has_key? 'BUILD_URL'
+            http = File.join ENV['BUILD_URL'], 'console'
+
+            lines <<  'Jenkins日志: <font color = "blue"><a href="%s">%s</a></font><br>' % [http, http]
+            lines << '<br>'
+          end
+
+          errors.each do |file|
+            lines << '%s<br>' % file
+          end
+
+          lines << '<br>'
+
           opt = {
             :subject  => 'Subject: %s' % subject,
-            :html     => errors.join("\n")
+            :html     => lines.join("\n")
           }
 
           Net::send_smtp nil, nil, addrs, opt
@@ -742,9 +757,24 @@ namespace :bn do
         errors_list.each do |errors, addrs|
           subject = '<CHECK 通知>文件名超长(客户端最大%s个字符, 服务端最大%s个字符), 请尽快处理' % [Compile::BN_MAX_SIZE_CLIENT, Compile::BN_MAX_SIZE_SERVER]
 
+          lines = []
+
+          if ENV.has_key? 'BUILD_URL'
+            http = File.join ENV['BUILD_URL'], 'console'
+
+            lines <<  'Jenkins日志: <font color = "blue"><a href="%s">%s</a></font><br>' % [http, http]
+            lines << '<br>'
+          end
+
+          errors.each do |file|
+            lines << '%s<br>' % file
+          end
+
+          lines << '<br>'
+
           opt = {
             :subject  => 'Subject: %s' % subject,
-            :html     => errors.join("\n")
+            :html     => lines.join("\n")
           }
 
           Net::send_smtp nil, nil, addrs, opt

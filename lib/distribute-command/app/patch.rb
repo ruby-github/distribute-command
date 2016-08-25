@@ -1017,6 +1017,13 @@ module Patch
 
       lines = []
 
+      if ENV.has_key? 'BUILD_URL'
+        http = File.join ENV['BUILD_URL'], 'console'
+
+        lines <<  'Jenkins日志: <font color = "blue"><a href="%s">%s</a></font><br>' % [http, http]
+        lines << '<br>'
+      end
+
       lines << '操作系统: <font color = "blue">%s</font><br>' % OS::name
       lines << '当前目录: <font color = "blue">%s</font><br>' % Dir.pwd.gsub('/', '\\')
 
