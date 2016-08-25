@@ -329,6 +329,9 @@ class File
   end
 
   def self.copy src, dest, preserve = true
+    src = normalize src
+    dest = normalize dest
+
     if same_path? src, dest, true
       return true
     end

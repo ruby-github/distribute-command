@@ -41,7 +41,7 @@ module Patch
               $errors = nil
               $loggers = nil
 
-              Util::Logger::cmdline File.basename(file)
+              Util::Logger::cmdline '[patch:exec]' % File.basename(file)
 
               list = load file
 

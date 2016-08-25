@@ -79,6 +79,8 @@ class QuickTest
   def exec path, expired = nil
     path = File.expand_path path
 
+    Util::Logger::cmdline '[quicktest:exec]' % path
+
     @path = path
     @status = false
 
@@ -272,6 +274,8 @@ class QuickTest
   end
 
   def close
+    Util::Logger::cmdline '[quicktest:close]'
+
     if not @application.nil?
       begin
         if @application.Launched
