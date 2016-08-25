@@ -1390,17 +1390,8 @@ module Install
           return false
         end
 
-        if not File.copy File.join(dirname, 'lct_setup.exe'), name do |src, dest|
-            Util::Logger::info src
-
-            [src, dest]
-          end
-
-          return false
-        end
-
-        if not File.delete File.join(dirname, 'lct_setup.exe') do |file|
-            Util::Logger::info file
+        if not File.move File.join(dirname, 'lct_setup.exe'), name, true do |file|
+            Util::Logger::puts file
 
             file
           end

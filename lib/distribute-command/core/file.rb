@@ -521,18 +521,20 @@ class File
       if directory? dir
         list = []
 
-        glob(File.join(dir, pattern)).each do |file|
-          list << file
+        Dir.chdir dir do
+          glob(pattern).each do |file|
+            list << file
 
-          if directory? file
-            list += glob join(file, '**/*')
+            if directory? file
+              list += glob join(file, '**/*')
+            end
           end
         end
 
         list.each do |file|
-          dest_file = join dest, file[(dir.size + 1)..-1]
+          dest_file = join dest, file
 
-          info[dest_file] = file
+          info[dest_file] = File.join dir, file
         end
       end
     else
