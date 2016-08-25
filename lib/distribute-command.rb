@@ -6,6 +6,7 @@
 #
 # String
 #
+# $klocwork_http
 # $username, $password
 # $smtp_username, $smtp_password
 # $branch, $home
@@ -16,6 +17,7 @@
 #
 # Boolean
 #
+# $klocwork_build
 # $logging
 # $sendmail
 # $xml_comment_indent, $xml_text_indent

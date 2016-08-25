@@ -828,6 +828,41 @@ module Jenkins
 
       pipeline = Jenkins::Pipeline.new 'bn_command'
       pipeline.build args
+
+      parameters = [
+        ['home', '工作目录', '/home/user/build/main'],
+        ['agent', 'Agent名称', 'kloc']
+      ]
+
+      {
+        'bn_kloc'             => {
+          :concurrent   => false,
+          :script_path  => 'bn/kloc.groovy',
+          :parameters   => []
+        },
+        'bn_kloc_cpp'         => {
+          :concurrent   => false,
+          :script_path  => 'bn/kloc_cpp.groovy',
+          :parameters   => []
+        },
+        'bn_kloc_module'      => {
+          :script_path  => 'bn/kloc_module.groovy',
+          :parameters   => [
+            ['name', '模块名称', '']
+          ]
+        },
+        'bn_kloc_cpp_module'  => {
+          :script_path  => 'bn/kloc_cpp_module.groovy',
+          :parameters   => [
+            ['name', '模块名称', '']
+          ]
+        }
+      }.each do |k, v|
+        v[:parameters] = parameters + v[:parameters]
+
+        pipeline = Jenkins::Pipeline.new k
+        pipeline.build v
+      end
     end
 
     def stn_build

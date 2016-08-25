@@ -26,6 +26,15 @@ BN_CPP_PATHS = {
   'wdm'       => 'BN_WDM/trunk'
 }
 
+BN_CPP_KW = {
+  'wdm' => {
+    'wdm_1' => 'BN_WDM/trunk',
+    'wdm_2' => 'BN_WDM/trunk',
+    'wdm_3' => 'BN_WDM/trunk',
+    'wdm_4' => 'BN_WDM/trunk'
+  }
+}
+
 BN_REPOS = {
   'interface' => 'https://10.5.72.55:8443/svn/Interface',
   'platform'  => 'https://10.5.72.55:8443/svn/BN_Platform',
@@ -310,6 +319,11 @@ namespace :bn do
         ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'
       end
 
+      if $klocwork_build
+        _retry = false
+        dir = 'build'
+      end
+
       status = true
 
       errors_list = []
@@ -323,6 +337,20 @@ namespace :bn do
         end
 
         path = File.join home, defaults[module_name], 'code', dir
+
+        if $klocwork_build
+          if module_name != 'interface'
+            outfile = File.join File.dirname(File.expand_path(home)), 'kloc/java', module_name, 'kwinject/kwinject.out'
+
+            if File.file? outfile
+              File.delete outfile
+            else
+              File.mkdir File.dirname(outfile)
+            end
+
+            cmdline = 'kwmaven --output %s install -fn -U' % File.cmdline(outfile)
+          end
+        end
 
         if force
           Compile::mvn path, 'mvn clean -fn'
@@ -380,6 +408,16 @@ namespace :bn do
 
       defaults = BN_CPP_PATHS
 
+      if $klocwork_build
+        BN_CPP_KW.each do |k, v|
+          defaults.delete k
+
+          v.each do |k1, v1|
+            defaults[k1] = v1
+          end
+        end
+      end
+
       if name.nil?
         name = defaults.keys
       end
@@ -396,6 +434,21 @@ namespace :bn do
         ENV['PLATFORM_OUTPUT_HOME'] = File.join File.expand_path(home), BN_CPP_PATHS['platform'], 'code_c/build/output'
       end
 
+      if $klocwork_build
+        _retry = false
+        dir = 'build'
+
+        name = name.to_array
+
+        name.dup.each do |_name|
+          if BN_CPP_KW.keys.include? _name
+            name += BN_CPP_KW[_name].keys
+          end
+        end
+
+        name.uniq!
+      end
+
       status = true
 
       errors_list = []
@@ -409,6 +462,24 @@ namespace :bn do
         end
 
         path = File.join home, defaults[module_name], 'code_c', dir
+
+        if $klocwork_build
+          if module_name != 'interface'
+            if not BN_CPP_PATHS.keys.include? module_name
+              path = File.join home, defaults[module_name], 'code_c', dir, 'kw', module_name
+            end
+
+            outfile = File.join File.dirname(File.expand_path(home)), 'kloc/cpp', module_name, 'kwinject/kwinject.out'
+
+            if File.file? outfile
+              File.delete outfile
+            else
+              File.mkdir File.dirname(outfile)
+            end
+
+            cmdline = 'kwinject --output %s mvn install -fn -U' % File.cmdline(outfile)
+          end
+        end
 
         if force
           Compile::mvn path, 'mvn clean -fn'
@@ -880,6 +951,232 @@ namespace :bn do
       end
 
       status.exit
+    end
+
+    task :kloc, [:name] do |t, args|
+      name = args[:name].to_s.nil
+
+      defaults = BN_PATHS
+
+      if name.nil?
+        name = defaults.keys
+      end
+
+      http = '--url %s' % ($klocwork_http || 'http://127.0.0.1:8080')
+
+      status = true
+
+      name.to_array.each do |module_name|
+        if not defaults.keys.include? module_name
+          Util::Logger::error 'no such module @bn:check:kloc - %s' % module_name
+          status = false
+
+          next
+        end
+
+        outfile = File.join File.dirname(File.expand_path(home)), 'kloc/java', module_name, 'kwinject/kwinject.out'
+
+        if File.file? outfile
+          Dir.chdir File.dirname(outfile) do
+            kwname = 'bnxtn-%s-java' % module_name.downcase
+
+            found = false
+
+            if not CommandLine::cmdline 'kwadmin %s list-projects' % http do |line, stdin, wait_thr|
+                Util::Logger::puts line
+
+                if kwname = line.strip
+                  found = true
+                end
+              end
+
+              status = false
+
+              next
+            end
+
+            if not found
+              cmdline = 'kwadmin %s create-project %s' % [http, kwname]
+
+              if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                  Util::Logger::puts line
+                end
+
+                status = false
+
+                next
+              end
+
+              [
+                ['auto_delete_threshold', 5],
+                ['copy_tables', false],
+                ['language', 'java']
+              ].each do |k, v|
+                cmdline = 'kwadmin %s set-project-property %s %s %s' % [http, kwname, k, v]
+
+                if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                    Util::Logger::puts line
+                  end
+
+                  status = false
+
+                  next
+                end
+              end
+            end
+
+            cmdline = 'kwbuildproject %s/%s --tables-directory kwbuild --jobs-num auto %s' % [http, kwname, File.cmdline(outfile)]
+
+            if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                Util::Logger::puts line
+              end
+
+              status = false
+
+              next
+            end
+
+            if File.glob('kwbuild/*.dat').empty?
+              next
+            end
+
+            cmdline = 'kwadmin %s load %s kwbuild' % [http, kwname]
+
+            if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                Util::Logger::puts line
+              end
+
+              status = false
+
+              next
+            end
+          end
+        end
+      end
+
+      status
+    end
+
+    task :kloc_cpp, [:name] do |t, args|
+      name = args[:name].to_s.nil
+
+      defaults = BN_CPP_PATHS
+
+      BN_CPP_KW.each do |k, v|
+        defaults.delete k
+
+        v.each do |k1, v1|
+          defaults[k1] = v1
+        end
+      end
+
+      if name.nil?
+        name = defaults.keys
+      end
+
+      name = name.to_array
+
+      name.dup.each do |_name|
+        if BN_CPP_KW.keys.include? _name
+          name += BN_CPP_KW[_name].keys
+        end
+      end
+
+      name.uniq!
+
+      http = '--url %s' % ($klocwork_http || 'http://127.0.0.1:8080')
+
+      status = true
+
+      name.to_array.each do |module_name|
+        if not defaults.keys.include? module_name
+          Util::Logger::error 'no such module @bn:check:kloc_cpp - %s' % module_name
+          status = false
+
+          next
+        end
+
+        outfile = File.join File.dirname(File.expand_path(home)), 'kloc/cpp', module_name, 'kwinject/kwinject.out'
+
+        if File.file? outfile
+          Dir.chdir File.dirname(outfile) do
+            kwname = 'bnxtn-%s-cpp' % module_name.downcase
+
+            found = false
+
+            if not CommandLine::cmdline 'kwadmin %s list-projects' % http do |line, stdin, wait_thr|
+                Util::Logger::puts line
+
+                if kwname = line.strip
+                  found = true
+                end
+              end
+
+              status = false
+
+              next
+            end
+
+            if not found
+              cmdline = 'kwadmin %s create-project %s' % [http, kwname]
+
+              if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                  Util::Logger::puts line
+                end
+
+                status = false
+
+                next
+              end
+
+              [
+                ['auto_delete_threshold', 5],
+                ['copy_tables', false],
+                ['language', 'c,cxx']
+              ].each do |k, v|
+                cmdline = 'kwadmin %s set-project-property %s %s %s' % [http, kwname, k, v]
+
+                if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                    Util::Logger::puts line
+                  end
+
+                  status = false
+
+                  next
+                end
+              end
+            end
+
+            cmdline = 'kwbuildprojectcpp %s/%s --tables-directory kwbuild --jobs-num auto %s' % [http, kwname, File.cmdline(outfile)]
+
+            if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                Util::Logger::puts line
+              end
+
+              status = false
+
+              next
+            end
+
+            if File.glob('kwbuild/*.dat').empty?
+              next
+            end
+
+            cmdline = 'kwadmin %s load %s kwbuild' % [http, kwname]
+
+            if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+                Util::Logger::puts line
+              end
+
+              status = false
+
+              next
+            end
+          end
+        end
+      end
+
+      status
     end
   end
 
