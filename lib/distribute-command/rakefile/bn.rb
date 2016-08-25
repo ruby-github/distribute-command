@@ -1884,7 +1884,7 @@ namespace :bn do
     task :patch, [:name, :build_home, :code_home] do |t, args|
       name = args[:name].to_s.nil
       build_home = args[:build_home].to_s.nil || ($build_home || 'build')
-      code_home = args[:code_home].to_s.nil || ($home || 'code')
+      code_home = args[:code_home].to_s.nil || ($code_home || 'code')
 
       if ENV['DEVTOOLS_ROOT'].nil?
         ENV['DEVTOOLS_ROOT'] = File.expand_path $devtools_home || 'devtools'

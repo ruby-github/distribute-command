@@ -691,7 +691,7 @@ module Patch
         end
       end
 
-      to_xml info, File.join(tmpdir, '%s_%s.xml' % [Time.now.strftime('%Y%m%d'), author(info[:info])])
+      to_xml info, File.join(tmpdir, '%s_%s.xml' % [Time.now.strftime('%Y%m%d'), author_info(info[:info])])
 
       true
     end
@@ -762,8 +762,16 @@ module Patch
     end
 
     def author_info info
-      author = info['提交人员'].to_s.strip
-      author.gsub('/', '').gsub('\\', '')
+      if not info.nil?
+        author = info['提交人员'].to_s.strip
+
+        author.gsub! '/', ''
+        author.gsub! '\\', ''
+
+        author
+      else
+        nil
+      end
     end
 
     def get_id
@@ -903,7 +911,7 @@ module Patch
       basename = File.basename filename, '.*'
 
       if OS::windows?
-        case File.extname(file).downcase
+        case File.extname(filename).downcase
         when '.sh'
           filename = File.join dirname, '%s.bat' % basename
         when '.so'
@@ -915,7 +923,7 @@ module Patch
         else
         end
       else
-        case File.extname(file).downcase
+        case File.extname(filename).downcase
         when '.bat'
           filename = File.join dirname, '%s.sh' % basename
         when '.dll', '.lib'
@@ -1004,7 +1012,7 @@ module Patch
         author = nil
 
         if args[:info]
-          author = author_info args[:info]
+          author = author_info args[:info][:info]
           subject += '(%s)' % author
 
           File.tmpdir do |dir|
@@ -1019,7 +1027,7 @@ module Patch
         end
 
         if $x64
-          mail.subject = '%s(%s-X64)' % [subject, OS::name]
+          mail.subject = '%s(%s-x64)' % [subject, OS::name]
         else
           mail.subject = '%s(%s)' % [subject, OS::name]
         end
@@ -1041,7 +1049,9 @@ module Patch
             filename = File.join dir, 'build.log'
 
             File.open filename, 'w' do |file|
-              file.puts $loggers.locale
+              $loggers.each do |line|
+                file.puts line.rstrip.locale
+              end
             end
 
             mail.attach filename.locale
@@ -1052,10 +1062,6 @@ module Patch
   end
 
   class Stn < Bn
-    def patch
-      true
-    end
-
     private
 
     def modules

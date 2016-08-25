@@ -782,7 +782,7 @@ namespace :stn do
 
     task :patch, [:build_home, :code_home] do |t, args|
       build_home = args[:build_home].to_s.nil || ($build_home || 'build')
-      code_home = args[:code_home].to_s.nil || ($home || 'code')
+      code_home = args[:code_home].to_s.nil || ($code_home || 'code')
 
       status = true
 
