@@ -854,6 +854,10 @@ module Jenkins
           :script_path  => 'bn/kloc_cpp.groovy',
           :parameters   => []
         },
+        'bn_kloc_ignore'      => {
+          :script_path  => 'bn/kloc_ignore.groovy',
+          :parameters   => []
+        },
         'bn_kloc_module'      => {
           :script_path  => 'bn/kloc_module.groovy',
           :parameters   => [

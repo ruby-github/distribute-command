@@ -953,8 +953,9 @@ namespace :bn do
       status.exit
     end
 
-    task :kloc, [:name] do |t, args|
+    task :kloc, [:name, :home] do |t, args|
       name = args[:name].to_s.nil
+      home = args[:home].to_s.nil || ($home || 'code')
 
       defaults = BN_PATHS
 
@@ -1054,11 +1055,12 @@ namespace :bn do
         end
       end
 
-      status
+      status.exit
     end
 
-    task :kloc_cpp, [:name] do |t, args|
+    task :kloc_cpp, [:name, :home] do |t, args|
       name = args[:name].to_s.nil
+      home = args[:home].to_s.nil || ($home || 'code')
 
       defaults = BN_CPP_PATHS
 
@@ -1176,7 +1178,63 @@ namespace :bn do
         end
       end
 
-      status
+      status.exit
+    end
+
+    task :kloc_ignore, [:home] do |t, args|
+      home = args[:home].to_s.nil || ($home || 'code')
+
+      status = true
+
+      map = {
+        'BN_PTN/trunk/code/build' => [
+          '../dev-mgnt/clock',
+          '../dev-mgnt/maintenance/overhead',
+          '../dev-mgnt/port/e1subport',
+          '../dev-mgnt/protect'
+        ],
+        'BN_PTN/trunk/code/build' => [
+          '../dev-mgnt/protocol/bgp',
+          '../dev-mgnt/protocol/isis',
+          '../dev-mgnt/protocol/ldp',
+          '../dev-mgnt/protocol/ospf',
+          '../dev-mgnt/qos/classmapng',
+          '../dev-mgnt/qos/policymap',
+          '../dev-mgnt/protocol/ospfv3'
+        ]
+      }
+
+      if File.directory? home
+        Dir.chdir home do
+          map.each do |build, modules|
+            file = File.join build, 'pom.xml'
+
+            if File.file? file
+              begin
+                doc = REXML::Document.file file
+
+                REXML::XPath.each doc, '//modules/module' do |element|
+                  name = File.normalize element.text.to_s.strip
+
+                  modules.each do |module_name|
+                    if name.start_with? module_name
+                      doc.delete element
+                    end
+                  end
+                end
+
+                doc.to_file file
+              rescue
+                Util::Logger::exception $!
+
+                status = false
+              end
+            end
+          end
+        end
+      end
+
+      status.exit
     end
   end
 
