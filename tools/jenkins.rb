@@ -835,6 +835,15 @@ module Jenkins
       ]
 
       {
+        'bn_build_kloc'       => {
+          :concurrent   => false,
+          :script_path  => 'bn/build_kloc.groovy',
+          :parameters   => [
+            ['update',  '版本更新', true],
+            ['compile', '版本编译', true],
+            ['force',   '全量编译', true]
+          ]
+        },
         'bn_kloc'             => {
           :concurrent   => false,
           :script_path  => 'bn/kloc.groovy',
