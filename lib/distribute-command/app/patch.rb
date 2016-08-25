@@ -279,7 +279,7 @@ module Patch
 
           REXML::XPath.each(e, 'compile/attr') do |element|
             name = element.attributes['name'].to_s.nil
-            clean = e_cmdline.attributes['clean'].to_s.nil
+            clean = element.attributes['clean'].to_s.nil
 
             if not name.nil?
               if name =~ /^code\//
@@ -288,7 +288,7 @@ module Patch
 
               map[:compile][name] = clean.to_s.boolean false
             else
-              Util::Logger::error '%s: compile下attr节点的name属性不能为空' % e_cmdline.xpath
+              Util::Logger::error '%s: compile下attr节点的name属性不能为空' % element.xpath
 
               status = false
             end
@@ -485,7 +485,7 @@ module Patch
 
       tmpdir = File.expand_path tmpdir
 
-      package = modules File.dirname(info[:attr][:home])
+      package = modules[File.dirname(info[:attr][:home])]
 
       if package.nil?
         Util::Logger::error 'package is nil'

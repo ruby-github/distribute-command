@@ -239,6 +239,30 @@ class File
       a == b
     end
   end
+
+  def self.root filename
+    filename = expand_path filename
+
+    if filename =~ /^(\w+:\/\/+[^\/\\]+)[\/\\]/
+      $1
+    else
+      loop do
+        dir, name = split filename
+
+        if dir == '.'
+          if not filename.start_with? './'
+            return name
+          end
+        end
+
+        if dir == filename
+          return dir
+        end
+
+        filename = dir
+      end
+    end
+  end
 end
 
 class File
