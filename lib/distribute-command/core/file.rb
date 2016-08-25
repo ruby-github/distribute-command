@@ -314,6 +314,8 @@ class File
         yield path
       end
 
+      Util::Logger::cmdline '[file:mkdir] %s' % path
+
       begin
         FileUtils.mkdir_p path
       rescue
@@ -330,6 +332,8 @@ class File
     if same_path? src, dest, true
       return true
     end
+
+    Util::Logger::cmdline '[file:copy] %s -> %s' % [src, dest]
 
     status = true
 
@@ -417,6 +421,8 @@ class File
             next
           end
 
+          Util::Logger::cmdline '[file:move] %s -> %s' % [src_file, dest_file]
+
           begin
             if not directory? dirname(dest_file)
               FileUtils.mkdir_p dirname(dest_file)
@@ -476,6 +482,8 @@ class File
 
     paths.to_array.each do |path|
       path = normalize path
+
+      Util::Logger::cmdline '[file:delete] %s' % path
 
       glob(path).each do |file|
         list = []

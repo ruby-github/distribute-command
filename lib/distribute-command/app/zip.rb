@@ -45,7 +45,7 @@ class ZipFile < Zip::File
     src = File.normalize src
     path = File.normalize path
 
-    Util::Logger::cmdline 'zip add %s, %s' % [src, path]
+    Util::Logger::cmdline '[zip:add] %s -> %s' % [src, path]
 
     map = {}
 
@@ -168,7 +168,7 @@ class ZipFile < Zip::File
   def update
     file = File.normalize file
 
-    Util::Logger::cmdline 'zip update %s' % file
+    Util::Logger::cmdline '[zip:update] %s' % file
 
     status = true
 
@@ -199,13 +199,11 @@ class ZipFile < Zip::File
   end
 
   def delete path = nil
-    if path.nil?
-      Util::Logger::cmdline 'zip delete'
-    else
+    if not path.nil?
       path = File.normalize path
-
-      Util::Logger::cmdline 'zip delete %s' % path
     end
+
+    Util::Logger::cmdline '[zip:delete] %s' % path
 
     deletes = []
 
@@ -257,7 +255,7 @@ class ZipFile < Zip::File
     old_path = File.normalize old_path
     new_path = File.normalize new_path
 
-    Util::Logger::cmdline 'zip rename %s, %s' % [old_path, new_path]
+    Util::Logger::cmdline '[zip:rename] %s -> %s' % [old_path, new_path]
 
     status = true
 
@@ -293,14 +291,11 @@ class ZipFile < Zip::File
   def unzip dest, paths = nil
     dest = File.normalize dest
 
-    if paths.nil?
-      cmdline = 'zip unzip %s' % dest
-    else
-      paths = paths.map {|x| File.normalize x}
-      cmdline = 'zip unzip %s, %s' % [paths.join(':'), dest]
-    end
+    Util::Logger::cmdline '[zip:unzip] %s' % dest
 
-    Util::Logger::cmdline cmdline
+    if not paths.nil?
+      paths = paths.map {|x| File.normalize x}
+    end
 
     status = true
 
@@ -356,7 +351,7 @@ class ZipFile < Zip::File
   end
 
   def save
-    Util::Logger::cmdline 'zip save %s' % name
+    Util::Logger::cmdline '[zip:save] %s' % File.normalize(name)
 
     if not File.mkdir File.dirname(name)
       return false

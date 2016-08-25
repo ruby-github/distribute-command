@@ -363,8 +363,8 @@ module DistributeCommand
     end
 
     # args
-    #   name, ip, home
-    #   shutdown_cmdline, tmpdir, database, database_name, restore_database_cmdline
+    #   name, ip, home, database
+    #   shutdown_cmdline, tmpdir, database_name, restore_database_cmdline
     def restore_iptn_database args = nil
       args ||= {}
 
