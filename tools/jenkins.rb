@@ -891,7 +891,7 @@ module Jenkins
           :script_path  => 'stn/test.groovy',
           :parameters   => [
             ['version', '版本号',     ''],
-            ['reboot',  '重启测试机', false]
+            ['reboot',  '重启测试机', true]
           ]
         },
 
@@ -1569,6 +1569,6 @@ if $0 == __FILE__
     build.stn_build ['release/20160601_stn']
 
     # STN开发版本
-    build.stn_build ['dev/20160727_stn']
+    build.stn_build ['dev/20160727_stn', 'dev/20160824_stn']
   end
 end

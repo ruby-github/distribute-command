@@ -1049,7 +1049,7 @@ module Patch
 
         if args[:info]
           author = author_info args[:info][:info]
-          subject += '_' % author
+          subject += '_%s' % author
         end
 
         if $x64
