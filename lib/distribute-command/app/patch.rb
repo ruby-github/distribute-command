@@ -33,11 +33,17 @@ module Patch
 
             status = true
 
+            command_list = []
+
+            t = Time.now
+
             File.glob(File.join(tmpdir, '*.xml')).sort {|x, y| File.mtime(x) <=> File.mtime(y)}.each_with_index do |file, index|
               $errors = nil
               $loggers = nil
 
               Util::Logger::cmdline File.basename(file)
+
+              time = Time.now
 
               list = load file
 
@@ -45,12 +51,16 @@ module Patch
                 account, cc_account = account_info nil, file
                 send_smtp account, cc_account, file: file, subject: '<PATCH 通知>解析XML文件失败, 请尽快处理'
 
+                command_list << ['%s:%s' % [File.basename(file), '解析XML文件失败'], false, ((Time.now - time) * 1000).to_i / 1000.0]
+
                 status = false
 
                 next
               end
 
               if list.empty?
+                command_list << ['%s:%s' % [File.basename(file), '空补丁'], true, ((Time.now - time) * 1000).to_i / 1000.0]
+
                 next
               end
 
@@ -116,22 +126,32 @@ module Patch
                 case value
                 when true
                   send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 但关联补丁制作失败, 请尽快处理'
+
+                  command_list << ['%s(%s):%s' % [File.basename(file), index, '补丁制作成功, 但关联补丁制作失败'], nil, ((Time.now - time) * 1000).to_i / 1000.0]
                 when false
                   send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作失败, 请尽快处理'
+
+                  command_list << ['%s(%s):%s' % [File.basename(file), index, '补丁制作失败'], false, ((Time.now - time) * 1000).to_i / 1000.0]
                 else
                   if File.glob(File.join(@build_home, 'patch/patch', value, 'patch/*/*/*')).empty?
                     send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 但没有输出文件(补丁号: %s)' % value, id: value
+
+                    command_list << ['%s(%s):%s' % [File.basename(file), index, '补丁制作成功, 但没有输出文件(补丁号: %s)' % value], false, ((Time.now - time) * 1000).to_i / 1000.0]
                   else
                     send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 请验证(补丁号: %s)' % value, id: value
+
+                    command_list << ['%s(%s):%s' % [File.basename(file), index, '补丁制作成功(补丁号: %s)' % value], false, ((Time.now - time) * 1000).to_i / 1000.0]
                   end
                 end
               end
             end
+
+            Util::Logger::summary command_list, ((Time.now - t) * 1000).to_i / 1000.0
+
+            status
           end
         end
       end
-
-      true
     end
 
     private

@@ -22,6 +22,10 @@ class File
     if absolute? args.last
       args.last.utf8
     else
+      if args.first == '.'
+        args.shift
+      end
+
       __join__ args.utf8
     end
   end
