@@ -303,6 +303,8 @@ module Patch
             clean = element.attributes['clean'].to_s.nil
 
             if not name.nil?
+              name = File.normalize name
+
               if name =~ /^code\//
                 clean ||= true
               end
