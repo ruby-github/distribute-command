@@ -336,6 +336,8 @@ module DistributeCommand
           end
         end
 
+        File.delete tmpdir
+
         if skipfail
           status = true
         end
