@@ -879,8 +879,9 @@ end
 module Install
   module_function
 
-  def install_patch build_home, version, display_version, sp_next = false, type = nil
+  def install_patch build_home, code_home, version, display_version, sp_next = false, type = nil
     build_home = File.normalize build_home
+    code_home = File.normalize code_home
     type ||= 'ems'
 
     installation_home = File.join installation(File.join(build_home, 'patch/installation'), type), 'patch'
@@ -916,7 +917,7 @@ module Install
 
     map = {}
 
-    Dir.chdir home do
+    Dir.chdir patch_home do
       ids.each do |id|
         file = File.glob(File.join(id, '*.xml')).first
 
@@ -987,21 +988,21 @@ module Install
                                   if install_file == 'install/dbscript-patch'
                                     File.glob('install/dbscript-patch/**/*').each do |file|
                                       if file =~ /install\/dbscript-patch\/(dbscript[-\w]*)\//
-                                        map[ppu][:zip][:zip][File.join('scripts', '%s%s' % [ppu, names_suffix.last], $1, $')] = File.join home, dirname, x, ppu, file
+                                        map[ppu][:zip][:zip][File.join('scripts', '%s%s' % [ppu, names_suffix.last], $1, $')] = File.join patch_home, dirname, x, ppu, file
                                       end
                                     end
                                   else
                                     File.glob(File.join(install_file, '**/*')).each do |file|
-                                      map[ppu][:zip][:zip][file] = File.join home, dirname, x, ppu, file
+                                      map[ppu][:zip][:zip][file] = File.join patch_home, dirname, x, ppu, file
                                     end
                                   end
                                 else
-                                  map[ppu][:zip][:zip][install_file] = File.join home, dirname, x, ppu, install_file
+                                  map[ppu][:zip][:zip][install_file] = File.join patch_home, dirname, x, ppu, install_file
                                 end
                               end
                             else
                               File.glob(File.join(ppu_x, '**/*')).each do |file|
-                                map[ppu][:zip][:zip][file] = File.join home, dirname, x, ppu, file
+                                map[ppu][:zip][:zip][file] = File.join patch_home, dirname, x, ppu, file
                               end
                             end
                           end
@@ -1042,21 +1043,21 @@ module Install
                                   if install_file == 'install/dbscript-patch'
                                     File.glob('install/dbscript-patch/**/*').each do |file|
                                       if file =~ /install\/dbscript-patch\/(dbscript[-\w]*)\//
-                                        map[pmu][:zip][:zip][File.join('scripts', '%s%s' % [pmu, names_suffix.last], $1, $')] = File.join home, dirname, x, pmu, file
+                                        map[pmu][:zip][:zip][File.join('scripts', '%s%s' % [pmu, names_suffix.last], $1, $')] = File.join patch_home, dirname, x, pmu, file
                                       end
                                     end
                                   else
                                     File.glob(File.join(install_file, '**/*')).each do |file|
-                                      map[pmu][:zip][:zip][file] = File.join home, dirname, x, pmu, file
+                                      map[pmu][:zip][:zip][file] = File.join patch_home, dirname, x, pmu, file
                                     end
                                   end
                                 else
-                                  map[pmu][:zip][:zip][install_file] = File.join home, dirname, x, pmu, install_file
+                                  map[pmu][:zip][:zip][install_file] = File.join patch_home, dirname, x, pmu, install_file
                                 end
                               end
                             else
                               File.glob(File.join(pmu_x, '**/*')).each do |file|
-                                map[pmu][:zip][:zip][file] = File.join home, dirname, x, pmu, file
+                                map[pmu][:zip][:zip][file] = File.join patch_home, dirname, x, pmu, file
                               end
                             end
                           end
@@ -1093,21 +1094,21 @@ module Install
                           if install_file == 'install/dbscript-patch'
                             File.glob('install/dbscript-patch/**/*').each do |file|
                               if file =~ /install\/dbscript-patch\/(dbscript[-\w]*)\//
-                                map[ppuname][:zip][:zip][File.join('scripts', '%s%s' % [ppuname, names_suffix.last], $1, $')] = File.join home, dirname, file
+                                map[ppuname][:zip][:zip][File.join('scripts', '%s%s' % [ppuname, names_suffix.last], $1, $')] = File.join patch_home, dirname, file
                               end
                             end
                           else
                             File.glob(File.join(install_file, '**/*')).each do |file|
-                              map[ppuname][:zip][:zip][file] = File.join home, dirname, file
+                              map[ppuname][:zip][:zip][file] = File.join patch_home, dirname, file
                             end
                           end
                         else
-                          map[ppuname][:zip][:zip][install_file] = File.join home, dirname, install_file
+                          map[ppuname][:zip][:zip][install_file] = File.join patch_home, dirname, install_file
                         end
                       end
                     else
                       File.glob(File.join(x, '**/*')).each do |file|
-                        map[ppuname][:zip][:zip][file] = File.join home, dirname, file
+                        map[ppuname][:zip][:zip][file] = File.join patch_home, dirname, file
                       end
                     end
 
@@ -1150,7 +1151,7 @@ module Install
 
       deletes.each do |x, id|
         if v[:zip][:zip].has_key? x
-          cur_id = File.relative_path(v[:zip][:zip][x], home).split('/').first
+          cur_id = File.relative_path(v[:zip][:zip][x], patch_home).split('/').first
 
           if cur_id =~ /^[0-9_]+$/
             if cur_id < id
@@ -1168,10 +1169,10 @@ module Install
 
       v[:zip][:zip][File.basename(path)] = path
 
-      path = ums_db_update_info names.last, v[:dbs]
+      path = ums_db_update_info names.last, v[:dbs], tmpdir
       v[:zip][:zip][File.basename(path)] = path
 
-      path = patchinfo v[:ids], home, type
+      path = patchinfo v[:ids], patch_home, type
       v[:zip][:zip][File.basename(path)] = path
 
       opt = {
@@ -1231,7 +1232,7 @@ module Install
       end
 
       if status
-        changedesc File.join(installation_home, name), v[:ids], home, type
+        changedesc File.join(installation_home, name), v[:ids], patch_home, type
       end
 
       if not File.delete tmpdir
@@ -1246,7 +1247,7 @@ module Install
     # update info
     update_ids = {}
 
-    Dir.chdir home do
+    Dir.chdir patch_home do
       File.glob('*').each do |id|
         if id =~ /^\d{8}_\d{4}$/
           Dir.chdir id do
@@ -1490,7 +1491,7 @@ module Install
     'SP%03d' % last_sp
   end
 
-  def ppuinfo version, display_version, tempdir
+  def ppuinfo version, display_version, tmpdir
     # ums-server/procs/ppus/bn.ppu/ppuinfo.xml
     # ums-server/procs/ppus/e2e.ppu/ppuinfo.xml
 
