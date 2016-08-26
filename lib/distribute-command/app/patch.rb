@@ -1034,6 +1034,9 @@ module Patch
       if args[:id]
         dirname = File.join '//%s' % ip, share_name, 'patch', args[:id]
         lines << '补丁位置: <a href = "file:%s"><font color = "red">%s</font></a><br>' % [dirname, dirname.gsub('/', '\\')]
+      else
+        cc_account ||= []
+        cc_account += ($mail_cc || []).to_array
       end
 
       if not $errors.nil?
