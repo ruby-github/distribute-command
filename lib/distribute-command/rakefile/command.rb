@@ -3,7 +3,7 @@ require 'rake'
 namespace :command do
   task :exec, [:home, :configure, :version, :reboot] do |t, args|
     home = args[:home].to_s.nil || ($home || '.')
-    configure = args[:configure].to_s.nil || 'configure.xml'
+    configure = args[:configure].to_s.nil || 'installation.xml'
     version = args[:version].to_s.nil || $version
     reboot = args[:reboot].to_s.boolean false
 
@@ -33,7 +33,7 @@ namespace :command do
 
   task :puts, [:home, :configure, :version] do |t, args|
     home = args[:home].to_s.nil || ($home || '.')
-    configure = args[:configure].to_s.nil || 'configure.xml'
+    configure = args[:configure].to_s.nil || 'installation.xml'
     version = args[:version].to_s.nil || $version
 
     if not version.nil?

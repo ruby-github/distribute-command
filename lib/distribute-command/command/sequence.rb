@@ -299,10 +299,10 @@ module DistributeCommand
           command_file = File.join tmpdir, index.to_s, 'command.xml'
 
           doc = REXML::Document.new '<sequence/>'
-          doc.add_element << sequence.element
+          doc.root << sequence.element
           doc.to_file command_file
 
-          cmdline += 'ruby -e "distributecommand(%s, %s)"' % [command_file, File.dirname(command_file)]
+          cmdline = 'ruby -e "distributecommand(\'%s\', \'%s\')"' % [command_file, File.dirname(command_file)]
           cmdline += ' -r "distribute-command"'
 
           threads << Thread.new do
@@ -743,7 +743,7 @@ module DistributeCommand
 
             lines = []
 
-            if not drb.cmdline cmdline, args do |line, stdin, wait_thr|
+            if not drb.cmdline args['cmdline'], args do |line, stdin, wait_thr|
                 Util::Logger::puts line
 
                 lines << line
