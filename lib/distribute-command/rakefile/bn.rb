@@ -1193,7 +1193,7 @@ namespace :bn do
           '../dev-mgnt/port/e1subport',
           '../dev-mgnt/protect'
         ],
-        'BN_PTN/trunk/code/build' => [
+        'BN_PTN2/trunk/code/build'=> [
           '../dev-mgnt/protocol/bgp',
           '../dev-mgnt/protocol/isis',
           '../dev-mgnt/protocol/ldp',
