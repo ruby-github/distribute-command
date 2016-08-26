@@ -16,9 +16,9 @@ namespace :command do
     Dir.chdir home do
       if not distributecommand configure do |command|
           if reboot
-            command.reboot
+            OS::remote_reboot command.ips
           else
-            command.reboot_drb
+            OS::remote_reboot_drb command.ips
           end
 
           true

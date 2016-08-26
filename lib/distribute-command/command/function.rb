@@ -657,8 +657,22 @@ module DistributeCommand
 
       true
     end
+  end
 
-    def file_reset args = nil
+  module Function
+    module_function
+
+    def reboot args = nil
+      ips = args['ip_list'].to_s.nil
+
+      if not ips.nil?
+        ips = ips.split(',').map {|x| x.strip}
+      end
+
+      OS::remote_reboot ips
+    end
+
+    def reset_file args = nil
       args ||= {}
 
       if not args['filename'].nil?

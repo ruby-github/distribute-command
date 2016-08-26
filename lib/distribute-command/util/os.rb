@@ -342,107 +342,154 @@ module OS
     status
   end
 
-  def remote_reboot ips, password = nil, windows = true
-    if ips.is_a? Array
-      ip_list = ips
-    else
-      ip_list = ips.to_s.gsub(';', ',').split(',').map {|x| x.strip}
-    end
-
-    threads = []
-
-    if windows
-      ip_list.each do |ip|
-        threads << Thread.new do
-          Util::Logger::info 'reboot %s' % ip
-
-          begin
-            telnet = Net::Telnet::new 'Host' => ip, 'windows' => true
-
-            telnet.login 'administrator', password || 'admin!1234' do |c|
-              print c
-            end
-
-            telnet.cmd "start shutdown -f -r -t 0" do |c|
-              print c
-            end
-
-            telnet.cmd "start shutdown -f -r -t 0" do |c|
-              print c
-            end
-
-            telnet.cmd 'exit' do |c|
-              print c
-            end
-
-            telnet.close
-
-            sleep 120
-
-            true
-          rescue
-            false
-          end
-        end
-      end
-    else
-      ip_list.each do |ip|
-        threads << Thread.new do
-          Util::Logger::info 'reboot %s' % ip
-
-          begin
-            Net::SSH::start ip, 'root', :password => (password || 'admin-cgs') do |ssh|
-              ssh.exec 'init 6'
-              ssh.exec 'init 6'
-            end
-
-            sleep 60
-
-            true
-          rescue
-            false
-          end
-        end
-      end
-    end
-
-    threads.each do |thread|
-      thread.join
-    end
-
+  def remote_reboot ips, windows = nil
     status = true
 
-    threads.each do |thread|
-      if not thread.value
-        status = false
-      end
-    end
+    if not ips.nil?
+      map = {}
 
-    if ip_list.size >= 1
-      sleep 120
+      ips.to_array.each do |ip|
+        ip, password = ip.split ':'
+
+        map[ip] = password
+      end
+
+      if not map.empty?
+        Util::Logger::puts '重启计算机: %s' % map.keys.join(', ')
+
+        windows_ips = {}
+        unix_ips = {}
+
+        if windows.nil?
+          map.each do |ip, password|
+            drb = DRb::Object.new
+
+            begin
+              if drb.connect ip
+                if drb.osname == 'windows'
+                  windows_ips[ip] = password
+                else
+                  unix_ips[ip] = password
+                end
+              end
+            rescue
+              begin
+                Net::SSH::start ip, 'root', :password => (password || 'admin-cgs') do |ssh|
+                end
+
+                unix_ips[ip] = password
+              rescue
+                windows_ips[ip] = password
+              end
+            end
+          end
+        else
+          if windows
+            windows_ips = map
+          else
+            unix_ips = map
+          end
+        end
+
+        threads = []
+
+        windows_ips.each do |ip, password|
+          threads << Thread.new do
+            Util::Logger::cmdline 'reboot %s' % ip
+
+            begin
+              telnet = Net::Telnet::new 'Host' => ip, 'windows' => true
+
+              telnet.login 'administrator', password || 'admin!1234' do |c|
+                print c
+              end
+
+              telnet.cmd "start shutdown -f -r -t 0" do |c|
+                print c
+              end
+
+              sleep 1
+
+              telnet.cmd "start shutdown -f -r -t 0" do |c|
+                print c
+              end
+
+              telnet.cmd 'exit' do |c|
+                print c
+              end
+
+              telnet.close
+
+              sleep 120
+
+              true
+            rescue
+              false
+            end
+          end
+        end
+
+        unix_ips.each do |ip, password|
+          threads << Thread.new do
+            Util::Logger::cmdline 'reboot %s' % ip
+
+            begin
+              Net::SSH::start ip, 'root', :password => (password || 'admin-cgs') do |ssh|
+                ssh.exec 'init 6'
+
+                sleep 1
+
+                ssh.exec 'init 6'
+              end
+
+              sleep 60
+
+              true
+            rescue
+              false
+            end
+          end
+        end
+
+        threads.each do |thread|
+          thread.join
+        end
+
+        threads.each do |thread|
+          if not thread.value
+            status = false
+          end
+        end
+
+        sleep 300
+      end
     end
 
     status
   end
 
   def remote_reboot_drb ips
-    if ips.is_a? Array
-      ip_list = ips
-    else
-      ip_list = ips.to_s.gsub(';', ',').split(',').map {|x| x.strip}
-    end
-
     status = true
 
-    ip_list.each do |ip|
-      drb = DRb::Object.new
+    if not ips.nil?
+      ips = ips.to_array
 
-      begin
-        if drb.connect ip
-          drb.close false, true
+      if not ips.empty?
+        Util::Logger::puts '重启计计算机DRB服务: %s' % ips.join(', ')
+
+        ips.each do |ip|
+          drb = DRb::Object.new
+
+          begin
+            if drb.connect ip
+              drb.close false, true
+            end
+          rescue
+            status = false
+          end
         end
-      rescue
-        status = false
+
+        sleep 30
       end
     end
 

@@ -29,54 +29,26 @@ module DistributeCommand
       status
     end
 
-    def reboot
-      ip_list = ips
+    def ips
+      if not @doc.nil?
+        ips = []
 
-      if not ip_list.nil?
-        if not ip_list.empty?
-          windows_ips = []
-          unix_ips    = []
+        REXML::XPath.each @doc, '//@ip' do |attribute|
+          ip = attribute.value.nil
 
-          ip_list.each do |ip|
-            drb = DRb::Object.new
-
-            begin
-              if drb.connect ip
-                if drb.osname == 'windows'
-                  windows_ips << ip
-                else
-                  unix_ips << ip
-                end
-              end
-            rescue
-              begin
-                Net::SSH::start ip, 'user', :password => 'user' do |ssh|
-                end
-
-                unix_ips << ip
-              rescue
-                windows_ips << ip
-              end
+          if not ip.nil?
+            if not ['127.0.0.1'].include? ip
+              ips << ip
             end
           end
-
-          OS::remote_reboot windows_ips
-          OS::remote_reboot unix_ips, 'admin-cgs', false
-
-          sleep 120
         end
-      end
-    end
 
-    def reboot_drb
-      ip_list = ips
+        ips.sort!
+        ips.uniq!
 
-      if not ip_list.nil?
-        if not ip_list.empty?
-          OS::remote_reboot_drb ip_list
-
-          sleep 30
-        end
+        ips
+      else
+        nil
       end
     end
 
@@ -144,29 +116,6 @@ module DistributeCommand
         else
           element
         end
-      end
-    end
-
-    def ips
-      if not @doc.nil?
-        ips = []
-
-        REXML::XPath.each @doc, '//@ip' do |attribute|
-          ip = attribute.value.nil
-
-          if not ip.nil?
-            if not ['127.0.0.1'].include? ip
-              ips << ip
-            end
-          end
-        end
-
-        ips.sort!
-        ips.uniq!
-
-        ips
-      else
-        nil
       end
     end
   end
