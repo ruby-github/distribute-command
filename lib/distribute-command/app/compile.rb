@@ -206,6 +206,8 @@ module Compile
         status
       end
     else
+      Util::Logger::error 'no such directory - %s' % path
+
       false
     end
   end
