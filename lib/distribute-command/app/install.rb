@@ -884,7 +884,7 @@ module Install
     code_home = File.normalize code_home
     type ||= 'ems'
 
-    installation_home = File.join installation(File.join(build_home, 'patch/installation'), type), 'patch'
+    installation_home = File.join installation(File.join(build_home, 'patch/installation'), version, type), 'patch'
     patch_home = File.join build_home, 'patch/patch'
 
     if not File.directory? patch_home
