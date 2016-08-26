@@ -475,7 +475,7 @@ module OS
       ips = ips.to_array
 
       if not ips.empty?
-        Util::Logger::puts '重启计计算机DRB服务: %s' % ips.join(', ')
+        Util::Logger::puts '重启计算机DRB服务: %s' % ips.join(', ')
 
         ips.each do |ip|
           drb = DRb::Object.new
