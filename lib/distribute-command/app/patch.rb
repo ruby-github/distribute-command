@@ -41,7 +41,9 @@ module Patch
               $errors = nil
               $loggers = nil
 
-              Util::Logger::cmdline '[patch:exec]' % File.basename(file)
+              filename = File.basename(file).utf8
+
+              Util::Logger::cmdline '[patch:exec]' % filename
 
               list = load file
 
@@ -49,7 +51,7 @@ module Patch
                 account, cc_account = account_info nil, file
                 send_smtp account, cc_account, file: file, subject: '<PATCH 通知>解析XML文件失败, 请尽快处理'
 
-                command_list << ['%s:%s' % [File.basename(file), '解析XML文件失败'], false]
+                command_list << ['%s:%s' % [filename, '解析XML文件失败'], false]
 
                 status = false
 
@@ -57,7 +59,7 @@ module Patch
               end
 
               if list.empty?
-                command_list << ['%s:%s' % [File.basename(file), '空补丁'], true]
+                command_list << ['%s:%s' % [filename, '空补丁'], true]
 
                 next
               end
@@ -125,20 +127,20 @@ module Patch
                 when true
                   send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 但关联补丁制作失败, 请尽快处理'
 
-                  command_list << ['%s(%s):%s' % [File.basename(file), index, '补丁制作成功, 但关联补丁制作失败'], nil]
+                  command_list << ['%s(%s):%s' % [filename, index, '补丁制作成功, 但关联补丁制作失败'], nil]
                 when false
                   send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作失败, 请尽快处理'
 
-                  command_list << ['%s(%s):%s' % [File.basename(file), index, '补丁制作失败'], false]
+                  command_list << ['%s(%s):%s' % [filename, index, '补丁制作失败'], false]
                 else
                   if File.glob(File.join(@build_home, 'patch/patch', value, 'patch/*/*/*')).empty?
                     send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 但没有输出文件(补丁号: %s)' % value, id: value
 
-                    command_list << ['%s(%s):%s' % [File.basename(file), index, '补丁制作成功, 但没有输出文件(补丁号: %s)' % value], true]
+                    command_list << ['%s(%s):%s' % [filename, index, '补丁制作成功, 但没有输出文件(补丁号: %s)' % value], true]
                   else
                     send_smtp account, cc_account, info: list[index], subject: '<PATCH 通知>补丁制作成功, 请验证(补丁号: %s)' % value, id: value
 
-                    command_list << ['%s(%s):%s' % [File.basename(file), index, '补丁制作成功(补丁号: %s)' % value], true]
+                    command_list << ['%s(%s):%s' % [filename, index, '补丁制作成功(补丁号: %s)' % value], true]
                   end
                 end
               end
