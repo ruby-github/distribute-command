@@ -306,7 +306,7 @@ module DistributeCommand
           cmdline += ' -r "distribute-command"'
 
           threads << Thread.new do
-            if not CommandLine::cmdline cmdline, cmdline: false do |line, stdin, wait_thr|
+            if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
                 Util::Logger::puts line
               end
 
