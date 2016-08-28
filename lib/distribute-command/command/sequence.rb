@@ -460,7 +460,7 @@ module DistributeCommand
           if not args['callback'].nil?
             if callback_valid? args['callback']
               if not DistributeCommand::Callback::__send__ args['callback'], args do |line|
-                  Logger::puts line
+                  Util::Logger::puts line
                 end
 
                 status = false
@@ -541,7 +541,7 @@ module DistributeCommand
           if not args['callback'].nil?
             if callback_valid? args['callback']
               if not DistributeCommand::Callback::__send__ args['callback'], args do |line|
-                  Logger::puts line
+                  Util::Logger::puts line
                 end
 
                 status = false
@@ -618,7 +618,7 @@ module DistributeCommand
           if not args['callback'].nil?
             if callback_valid? args['callback']
               if not DistributeCommand::Callback::__send__ args['callback'], args do |line|
-                  Logger::puts line
+                  Util::Logger::puts line
                 end
 
                 status = false
@@ -717,7 +717,7 @@ module DistributeCommand
           if not args['callback_finish'].nil?
             if callback_valid? args['callback_finish']
               if not DistributeCommand::Callback::__send__ args['callback_finish'], args.merge({'lines' => lines}) do |line|
-                  Logger::puts line
+                  Util::Logger::puts line
                 end
 
                 status = false
@@ -766,7 +766,7 @@ module DistributeCommand
             if not args['callback_finish'].nil?
               if callback_valid? args['callback_finish']
                 if not drb.callback args['callback_finish'], args.merge({'lines' => lines}) do |line|
-                    Logger::puts line
+                    Util::Logger::puts line
                   end
 
                   status = false
@@ -814,7 +814,7 @@ module DistributeCommand
           if not args['callback'].nil?
             if callback_valid? args['callback']
               if not DistributeCommand::Callback::__send__ args['callback'], args do |line|
-                  Logger::puts line
+                  Util::Logger::puts line
                 end
 
                 status = false
