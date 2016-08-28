@@ -664,12 +664,13 @@ module DistributeCommand
 
     def reboot args = nil
       ips = args['ip_list'].to_s.nil
+      sec = args['sec'].to_s.nil
 
       if not ips.nil?
         ips = ips.split(',').map {|x| x.strip}
       end
 
-      OS::remote_reboot ips
+      OS::remote_reboot ips, sec
     end
 
     def reset_file args = nil

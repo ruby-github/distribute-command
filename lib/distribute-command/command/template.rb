@@ -30,7 +30,7 @@ module DistributeCommand
     end
 
     # args
-    #   name, ip_list
+    #   name, ip_list, sec
     def reboot args = nil
       args ||= {}
 
@@ -40,12 +40,8 @@ module DistributeCommand
 
       function_e.attributes['name'] = args['name']
       function_e.attributes['function'] = 'reboot'
-
-      ip_list = args['ip_list'].to_s.split(',').map {|x| x.strip}
-
-      if not ip_list.empty?
-        function_e.attributes['ip_list'] = ip_list.sort.uniq.join ','
-      end
+      function_e.attributes['ip_list'] = args['ip_list'].to_s.nil
+      function_e.attributes['sec'] = args['sec'].to_s.nil
 
       function_e
     end

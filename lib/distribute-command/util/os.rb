@@ -342,7 +342,7 @@ module OS
     status
   end
 
-  def remote_reboot ips, windows = nil
+  def remote_reboot ips, windows = nil, sec = nil
     status = true
 
     if not ips.nil?
@@ -461,14 +461,14 @@ module OS
           end
         end
 
-        sleep 300
+        sleep sec.to_i || 300
       end
     end
 
     status
   end
 
-  def remote_reboot_drb ips
+  def remote_reboot_drb ips, sec = nil
     status = true
 
     if not ips.nil?
@@ -489,7 +489,7 @@ module OS
           end
         end
 
-        sleep 30
+        sleep sec.to_i || 30
       end
     end
 
