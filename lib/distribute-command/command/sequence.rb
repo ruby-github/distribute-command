@@ -302,8 +302,7 @@ module DistributeCommand
           doc.root << sequence.element
           doc.to_file command_file
 
-          cmdline = 'ruby -e "distributecommand(\'%s\', \'%s\')"' % [command_file, File.dirname(command_file)]
-          cmdline += ' -r "distribute-command"'
+          cmdline = 'ruby -e "distributecommand nil, \'%s\'" -r "distribute-command"' % File.dirname(command_file)
 
           threads << Thread.new do
             if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
@@ -326,7 +325,7 @@ module DistributeCommand
         end
 
         @sequences.each_with_index do |sequence, index|
-          info = YAML::load_tmpfile 'distributecommand', tmpdir
+          info = YAML::load_tmpfile 'command', tmpdir
 
           if not info.nil?
             if info.kind_of? Hash

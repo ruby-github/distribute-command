@@ -58,6 +58,14 @@ module Net
 end
 
 def distributecommand file, tmpdir = nil, args = nil
+  if file.nil?
+    if tmpdir.nil?
+      file = 'command.xml'
+    else
+      file = File.join tmpdir, 'command.xml'
+    end
+  end
+
   command = DistributeCommand::Command.new file, args
 
   exec = true
@@ -79,7 +87,7 @@ def distributecommand file, tmpdir = nil, args = nil
         'distributecommand_errors'  => $distributecommand_errors
       }
 
-      YAML::dump_tmpfile info, 'distributecommand', tmpdir
+      YAML::dump_tmpfile info, 'command', tmpdir
     end
 
     status
