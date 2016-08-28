@@ -298,7 +298,7 @@ module DistributeCommand
         @sequences.each_with_index do |sequence, index|
           command_file = File.join tmpdir, index.to_s, 'command.xml'
 
-          doc = REXML::Document.new '<sequence/>'
+          doc = REXML::Document.new "<sequence inner = 'true'/>"
           doc.root << sequence.element
           doc.to_file command_file
 

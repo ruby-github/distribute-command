@@ -5,6 +5,12 @@ module DistributeCommand
     def initialize file, args = nil
       @doc = nil
       @sequence = load file, args
+
+      @inner = false
+
+      if not @sequence.nil?
+        @inner = @sequence.element.attributes['inner'].to_s.boolean false
+      end
     end
 
     def exec
@@ -19,11 +25,13 @@ module DistributeCommand
         status = @sequence.exec
       end
 
-      Util::Logger::summary $distributecommand, ((Time.now - time) * 1000).to_i / 1000.0
+      if not @inner
+        Util::Logger::summary $distributecommand, ((Time.now - time) * 1000).to_i / 1000.0
 
-      if not $distributecommand_errors.empty?
-        Util::Logger::info nil
-        Util::Logger::summary_error $distributecommand_errors
+        if not $distributecommand_errors.empty?
+          Util::Logger::info nil
+          Util::Logger::summary_error $distributecommand_errors
+        end
       end
 
       status
