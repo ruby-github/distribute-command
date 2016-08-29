@@ -19,7 +19,7 @@ class File
   end
 
   def self.join *args
-    if absolute? args.last
+    if not args.last.nil? and absolute? args.last
       args.last.utf8
     else
       if ['', '.'].include? args.first
@@ -85,7 +85,6 @@ class File
       dir = Dir.pwd
     end
 
-    filename = expand_path filename
     dir = expand_path dir
 
     if not dir.end_with? '/'
@@ -93,8 +92,10 @@ class File
     end
 
     begin
-      Pathname.new(filename.locale).relative_path_from(Pathname.new(dir.locale)).to_s.utf8
+      Pathname.new(expand_path(filename).locale).relative_path_from(Pathname.new(dir.locale)).to_s.utf8
     rescue
+      Util::Logger::exception $!
+
       filename
     end
   end
