@@ -345,6 +345,8 @@ module OS
   def remote_reboot ips, windows = nil, sec = nil
     status = true
 
+    sec = (sec || 600).to_i
+
     if not ips.nil?
       map = {}
 
@@ -461,7 +463,7 @@ module OS
           end
         end
 
-        sleep sec.to_i || 600
+        sleep sec
       end
     end
 
@@ -470,6 +472,8 @@ module OS
 
   def remote_reboot_drb ips, sec = nil
     status = true
+
+    sec = (sec || 60).to_i
 
     if not ips.nil?
       ips = ips.to_array
@@ -489,7 +493,7 @@ module OS
           end
         end
 
-        sleep sec.to_i || 60
+        sleep sec
       end
     end
 
