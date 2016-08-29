@@ -75,6 +75,7 @@ module DistributeCommand
 
       begin
         doc = REXML::Document.file file
+        doc.expand args
 
         @doc = REXML::Document.new
         @doc.add_element expand(doc.root)

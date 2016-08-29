@@ -58,6 +58,12 @@ module DistributeCommand
       element.attributes['name'] = args['name']
       element.attributes['ip'] = args['ip']
       element.attributes['home'] = args['home']
+      element.attributes['installation_home'] = args['installation_home']
+      element.attributes['silencefile'] = args['silencefile']
+
+      if args.has_key? 'license'
+        element.attributes['license'] = args['license']
+      end
 
       element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
 
@@ -183,6 +189,12 @@ module DistributeCommand
       element.attributes['name'] = args['name']
       element.attributes['ip'] = args['ip']
       element.attributes['home'] = args['home']
+      element.attributes['installation_home'] = args['installation_home']
+      element.attributes['silencefile'] = args['silencefile']
+
+      if args.has_key? 'license'
+        element.attributes['license'] = args['license']
+      end
 
       element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
 
@@ -369,6 +381,7 @@ module DistributeCommand
       element.attributes['name'] = args['name']
       element.attributes['ip'] = args['ip']
       element.attributes['home'] = args['home']
+      element.attributes['database'] = args['database']
 
       element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
 
