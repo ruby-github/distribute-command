@@ -305,11 +305,8 @@ module DistributeCommand
           cmdline = 'ruby -e "distributecommand nil, \'%s\'" -r "distribute-command"' % File.dirname(command_file)
 
           threads << Thread.new do
-            if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
-                Util::Logger::puts line
-              end
-
-              status = false
+            CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+              Util::Logger::puts line
             end
           end
         end
