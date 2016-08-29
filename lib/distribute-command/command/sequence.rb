@@ -325,7 +325,7 @@ module DistributeCommand
         end
 
         @sequences.each_with_index do |sequence, index|
-          info = YAML::load_tmpfile 'command', tmpdir
+          info = YAML::load_tmpfile 'command', File.join(tmpdir, index.to_s)
 
           if not info.nil?
             if info.kind_of? Hash
