@@ -91,7 +91,7 @@ module Util
         if @@level <= CMDLINE
           lines = []
 
-          lines << '$ %s' % string
+          lines << '$ %s' % string.to_s.utf8
           lines << '  (in %s)' % Dir.pwd.utf8
 
           if not io.nil?
@@ -245,7 +245,7 @@ module Util
 
         lines << '[INFO]'
         lines << headline
-        lines << '[INFO] %s' % string.utf8
+        lines << '[INFO] %s' % string.to_s.utf8
         lines << headline
         lines << '[INFO]'
 
@@ -302,12 +302,12 @@ module Util
 
         command_list.each do |name, status, time|
           if [STDOUT, STDERR].include? io
-            if name.locale.bytesize > size
-              size = name.locale.bytesize
+            if name.to_s.locale.bytesize > size
+              size = name.to_s.locale.bytesize
             end
           else
-            if name.utf8.bytesize > size
-              size = name.utf8.bytesize
+            if name.to_s.utf8.bytesize > size
+              size = name.to_s.utf8.bytesize
             end
           end
         end
@@ -322,9 +322,9 @@ module Util
 
         command_list.each do |name, status, time|
           if [STDOUT, STDERR].include? io
-            name = name.locale
+            name = name.to_s.locale
           else
-            name = name.utf8
+            name = name.to_s.utf8
           end
 
           if name.bytesize > width
@@ -397,11 +397,11 @@ module Util
 
         command_errors.each do |name, _lines|
           lines << '[INFO]'
-          lines << '[INFO] ' + name.utf8 + ':'
+          lines << '[INFO] ' + name.to_s.utf8 + ':'
 
           _lines.each do |line|
             if not line.nil?
-              lines << '[INFO] ' + INDENT + line.utf8
+              lines << '[INFO] ' + INDENT + line.to_s.utf8
             end
           end
         end
