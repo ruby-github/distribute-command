@@ -540,7 +540,7 @@ module Patch
               return false
             end
 
-            if not SCM::update info[:attr][:home]
+            if not SCM::update info[:attr][:home], nil, nil, ($username || 'u3build'), ($password || 'u3build')
               return false
             end
           end

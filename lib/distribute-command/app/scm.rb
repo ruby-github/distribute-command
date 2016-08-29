@@ -123,6 +123,9 @@ module SVN
   module_function
 
   def info path, args = nil, username = nil, password = nil
+    username ||= $username
+    password ||= $password
+
     cmdline = 'svn info'
 
     if not args.nil?
@@ -177,6 +180,9 @@ module SVN
   end
 
   def log path, args = nil, username = nil, password = nil
+    username ||= $username
+    password ||= $password
+
     cmdline = 'svn log'
 
     if not args.nil?
@@ -278,6 +284,9 @@ module SVN
   end
 
   def update path, repo = nil, args = nil, username = nil, password = nil
+    username ||= $username
+    password ||= $password
+
     if File.exist? path
       cmdline = 'svn update --force'
 
@@ -372,6 +381,9 @@ module GIT
   module_function
 
   def info path, args = nil, username = nil, password = nil
+    username ||= $username
+    password ||= $password
+
     logs = log path, '-1', username, password
 
     if not logs.nil? and not logs.empty?
@@ -390,6 +402,9 @@ module GIT
   end
 
   def log path, args = nil, username = nil, password = nil
+    username ||= $username
+    password ||= $password
+
     if not path.nil?
       path = File.normalize path
     end
@@ -543,6 +558,9 @@ module GIT
   end
 
   def update path, repo = nil, args = nil, username = nil, password = nil
+    username ||= $username
+    password ||= $password
+
     if File.exist? path
       dirname = home path
 
@@ -624,6 +642,9 @@ module GIT
   end
 
   def authorization line, stdin, username = nil, password = nil
+    username ||= $username
+    password ||= $password
+
     case line
     when /^Username.*:$/
       stdin.puts username
