@@ -91,7 +91,9 @@ module DistributeCommand
 
     def expand element
       if Template::respond_to? element.name
-        args = {}
+        args = {
+          :__element__  => element
+        }
 
         element.attributes.each do |name, value|
           args[name] = value

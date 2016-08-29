@@ -732,7 +732,7 @@ module DistributeCommand
         copy_e.attributes['path'] = File.join '${home}', File.join(File.dirname(path), '*.{xls,xlsx}')
         copy_e.attributes['to_path'] = File.join '${tmpdir}', File.dirname(path)
 
-        list_element << copy_e
+        list_sequence << copy_e
 
         # 执行测试用例
 

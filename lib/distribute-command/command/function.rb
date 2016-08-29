@@ -69,6 +69,8 @@ module DistributeCommand
             sleep 10
           end
 
+          sleep 30
+
           CommandLine::cmdline 'sc start %s' % database_name do |line, stdin, wait_thr|
             if block_given?
               yield line
@@ -82,6 +84,8 @@ module DistributeCommand
 
             sleep 10
           end
+
+          sleep 30
         end
       end
 
