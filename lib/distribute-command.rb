@@ -83,6 +83,7 @@ def distributecommand file, tmpdir = nil, args = nil
 
     if not tmpdir.nil?
       info = {
+        'status'                    => status,
         'distributecommand'         => $distributecommand,
         'distributecommand_errors'  => $distributecommand_errors
       }

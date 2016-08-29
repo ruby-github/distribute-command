@@ -326,6 +326,10 @@ module DistributeCommand
 
           if not info.nil?
             if info.kind_of? Hash
+              if not info['status']
+                status = false
+              end
+
               $distributecommand += info['distributecommand'] || []
               $distributecommand_errors += info['distributecommand_errors'] || []
             end
