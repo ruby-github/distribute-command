@@ -349,6 +349,8 @@ namespace :bn do
             end
 
             cmdline = 'kwmaven --output %s install -fn -U' % File.cmdline(outfile)
+          else
+            cmdline = 'mvn install -fn -U'
           end
         end
 
@@ -478,6 +480,8 @@ namespace :bn do
             end
 
             cmdline = 'kwinject --output %s mvn install -fn -U' % File.cmdline(outfile)
+          else
+            cmdline = 'mvn install -fn -U'
           end
         end
 
