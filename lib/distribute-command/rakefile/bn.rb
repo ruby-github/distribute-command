@@ -591,7 +591,7 @@ namespace :bn do
           [
             [File.join(installation_uep, 'documents'), File.join(installation, '../../documents'), true],
             [File.join(installation, '../../../license'), File.join(installation, '../../license'), true],
-            [File.join(home, 'BN_Platform/trunk/installdisk/installation/documents', type), '../../documents', true],
+            [File.join(home, 'BN_Platform/trunk/installdisk/installation/documents', type), File.join(installation, '../../documents'), true],
             [File.join(home, 'BN_Platform/trunk/installdisk/installation/installation', type), installation, false]
           ].each do |path, to_path, delete|
             if delete
