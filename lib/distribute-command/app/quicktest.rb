@@ -62,8 +62,8 @@ class QuickTest
 
             true
           rescue
-            Util::logger::exception $!
-	    Util::logger::error 'create WIN32OLE QuickTest.Application fail'
+            Util::Logger::exception $!
+	          Util::Logger::error 'create WIN32OLE QuickTest.Application fail'
 
             false
           end
@@ -85,7 +85,7 @@ class QuickTest
     @status = false
 
     if not File.file? File.join(path, 'Action1/Script.mts')
-      Util::logger::error 'not found %s' % File.join(path, 'Action1/Script.mts')
+      Util::Logger::error 'not found %s' % File.join(path, 'Action1/Script.mts')
 
       return false
     end
@@ -202,7 +202,7 @@ class QuickTest
         if expired > 0 and duration > expired
           test.Stop
 
-          Util::logger::error 'quicktest execution expired - %s:%s' % [expired, path]
+          Util::Logger::error 'quicktest execution expired - %s:%s' % [expired, path]
 
           @expired = true
         end
@@ -317,8 +317,8 @@ class QuickTest
 
       true
     rescue
-      Util::logger::exception $!
-      Util::logger::error 'set quicktest java tableexternaleditors fail'
+      Util::Logger::exception $!
+      Util::Logger::error 'set quicktest java tableexternaleditors fail'
 
       close
 
@@ -381,7 +381,7 @@ class QuickTest
     else
       File.delete path
 
-      Util::logger::error 'create quicktest testcase fail - %s' % path
+      Util::Logger::error 'create quicktest testcase fail - %s' % path
 
       false
     end
@@ -447,7 +447,7 @@ class QuickTest
         false
       end
     else
-      Util::logger::error 'not found %s' % (qtpro || 'qtpro.exe')
+      Util::Logger::error 'not found %s' % (qtpro || 'qtpro.exe')
 
       false
     end

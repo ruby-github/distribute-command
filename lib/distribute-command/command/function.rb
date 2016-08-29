@@ -44,7 +44,7 @@ module DistributeCommand
 
         true
       else
-        Util::logger::error 'no such directory - %s' % home
+        Util::Logger::error 'no such directory - %s' % home
 
         false
       end
@@ -258,7 +258,7 @@ module DistributeCommand
 
             true
           else
-            Util::logger::error 'no such directory - %s' % path
+            Util::Logger::error 'no such directory - %s' % path
 
             false
           end
@@ -266,7 +266,7 @@ module DistributeCommand
           false
         end
       else
-        Util::logger::error 'no such directory - %s' % home
+        Util::Logger::error 'no such directory - %s' % home
 
         false
       end

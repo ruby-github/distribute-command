@@ -62,7 +62,7 @@ module DistributeCommand
               break
             end
           rescue
-            Util::logger::exception $!
+            Util::Logger::exception $!
           end
 
           if not install_home.nil?
@@ -78,7 +78,7 @@ module DistributeCommand
 
                 doc.to_file db_config
               rescue
-                Util::logger::exception $!
+                Util::Logger::exception $!
               end
             end
           end
@@ -104,7 +104,7 @@ module DistributeCommand
 
             doc.to_file file
           rescue
-            Util::logger::exception $!
+            Util::Logger::exception $!
           end
         end
 
@@ -193,7 +193,7 @@ module DistributeCommand
                   end
                 end
 
-                Util::logger::error "start server expired: #{expired}"
+                Util::Logger::error "start server expired: #{expired}"
 
                 return false
               end
@@ -287,7 +287,7 @@ module DistributeCommand
                   end
                 end
 
-                Util::logger::error "start client expired: #{expired}"
+                Util::Logger::error "start client expired: #{expired}"
 
                 return false
               end
@@ -411,7 +411,7 @@ module DistributeCommand
           'restore failed'
         ].each do |x|
           if args['line'].downcase.include? x
-            Util::logger::error args['line']
+            Util::Logger::error args['line']
 
             status = false
           end
@@ -488,7 +488,7 @@ module DistributeCommand
 
           true
         rescue
-          Util::logger::exception $!
+          Util::Logger::exception $!
 
           if block_given?
             string = Util::Logger::exception $!, false, nil

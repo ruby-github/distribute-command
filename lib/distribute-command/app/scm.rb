@@ -163,9 +163,7 @@ module SVN
           begin
             info[:date] = Time.parse $'.strip[0..24]
           rescue
-            if logger
-              logger.exception $!
-            end
+            Util::Logger::exception $!
 
             info[:date] = nil
           end
@@ -461,9 +459,7 @@ module GIT
                   begin
                     date = Time.parse $'.strip
                   rescue
-                    if logger
-                      logger.exception $!
-                    end
+                    Util::Logger::exception $!
 
                     date = nil
                   end

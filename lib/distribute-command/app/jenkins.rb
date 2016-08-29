@@ -751,7 +751,7 @@ module Jenkins
           cc_account = ['10011354@zte.com.cn', '10017591@zte.com.cn', '10008896@zte.com.cn']
           http = 'https://10.5.72.55:8443/svn/BN_NECOMMON/trunk/doc/跨项目代码修改走查/%s' % name
 
-          Net::send_smtp nil, nil, account, logger, cc: cc_account do |mail|
+          Net::send_smtp nil, nil, account, cc: cc_account do |mail|
             mail.subject = '%s, 请及时走查' % filename
             mail.html = '<a href="%s">%s</a>' % [http, http]
           end
