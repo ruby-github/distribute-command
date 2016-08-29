@@ -461,7 +461,7 @@ module OS
           end
         end
 
-        sleep sec.to_i || 300
+        sleep sec.to_i || 600
       end
     end
 
@@ -489,7 +489,7 @@ module OS
           end
         end
 
-        sleep sec.to_i || 30
+        sleep sec.to_i || 60
       end
     end
 
