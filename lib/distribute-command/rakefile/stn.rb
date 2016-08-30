@@ -272,7 +272,7 @@ namespace :stn do
 
       status = true
 
-      if not Install::install_uep home, installation_uep, installation_home, version, 'sdn' do |home, installation, type|
+      if not Install::install_uep home, installation_uep, installation_home, version, 'stn' do |home, installation, type|
           [
             [File.join(installation, '../../../license'), File.join(installation, '../../license'), true],
             [File.join(home, 'sdn_installation/trunk/installdisk/documents'), File.join(installation, '../../documents'), true],
@@ -330,7 +330,7 @@ namespace :stn do
           next
         end
 
-        if not Install::install home, defaults[module_name], installation_home, version, display_version, 'sdn'
+        if not Install::install home, defaults[module_name], installation_home, version, display_version, 'stn'
           status = false
         end
       end

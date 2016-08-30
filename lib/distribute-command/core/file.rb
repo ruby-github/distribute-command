@@ -177,12 +177,12 @@ class File
     xpath = normalize xpath
 
     if File.exist? xpath
-      [xpath]
+      [xpath].utf8
     else
       if File::FNM_SYSCASE.nonzero?
-        Dir.glob(xpath, File::FNM_CASEFOLD).sort
+        Dir.glob(xpath, File::FNM_CASEFOLD).sort.utf8
       else
-        Dir.glob(xpath).sort
+        Dir.glob(xpath).sort.utf8
       end
     end
   end

@@ -117,7 +117,7 @@ module Install
       osname = OS::name.to_s
     end
 
-    if not ['ems', 'sdn'].include? type.to_s
+    if not ['ems', 'stn'].include? type.to_s
       osname += "(#{type})"
     end
 
@@ -949,6 +949,10 @@ module Install
               ppuname = 'bn-servicetools'
             end
 
+            if type.to_s == 'stn'
+              ppuname = 'stn'
+            end
+
             Dir.chdir dirname do
               list = File.glob '*'
 
@@ -1543,8 +1547,8 @@ module Install
     when 'bn-ip'
       ppuname = 'bn'
       pmuname = 'bn-ip'
-    when 'bn'
-      if type.to_s == 'ems'
+    when 'bn', 'stn'
+      if ['ems', 'stn'].include? type.to_s
         ppuname = 'e2e'
       end
     end
@@ -1563,13 +1567,23 @@ module Install
 
     element = REXML::Element.new 'description'
 
-    e = REXML::Element.new 'zh_cn'
-    e.text = 'NetNumen U31统一网管系统%s' % display_version
-    element << e
+    if type.to_s == 'stn'
+      e = REXML::Element.new 'zh_cn'
+      e.text = 'ICT 管理系统%s' % display_version
+      element << e
 
-    e = REXML::Element.new 'en_us'
-    e.text = 'NetNumen U31 Unified Network Management System %s' % display_version
-    element << e
+      e = REXML::Element.new 'en_us'
+      e.text = 'ICT Management System %s' % display_version
+      element << e
+    else
+      e = REXML::Element.new 'zh_cn'
+      e.text = 'NetNumen U31统一网管系统%s' % display_version
+      element << e
+
+      e = REXML::Element.new 'en_us'
+      e.text = 'NetNumen U31 Unified Network Management System %s' % display_version
+      element << e
+    end
 
     doc.root << element
 
