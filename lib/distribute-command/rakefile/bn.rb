@@ -348,7 +348,7 @@ namespace :bn do
               File.mkdir File.dirname(outfile)
             end
 
-            cmdline = 'kwmaven --output %s install -fn -U' % File.cmdline(outfile)
+            cmdline = 'kwmaven --output %s install' % File.cmdline(outfile)
           else
             cmdline = 'mvn install -fn -U'
           end
@@ -479,9 +479,9 @@ namespace :bn do
               File.mkdir File.dirname(outfile)
             end
 
-            cmdline = 'kwinject --output %s mvn install -fn -U' % File.cmdline(outfile)
+            cmdline = 'kwinject --output %s mvn install -fn -U -Djobs=10' % File.cmdline(outfile)
           else
-            cmdline = 'mvn install -fn -U'
+            cmdline = 'mvn install -fn -U -Djobs=10'
           end
         end
 

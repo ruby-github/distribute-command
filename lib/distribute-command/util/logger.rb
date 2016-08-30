@@ -92,7 +92,7 @@ module Util
           lines = []
 
           lines << '$ %s' % string.to_s.utf8
-          lines << '  (in %s)' % Dir.pwd.utf8
+          lines << '  (in %s)' % Dir.pwd
 
           if not io.nil?
             lines.each do |line|

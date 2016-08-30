@@ -1104,7 +1104,7 @@ module Compile
       end
 
       lines << '操作系统: <font color = "blue">%s</font><br>' % OS::name
-      lines << '当前目录: <font color = "blue">%s</font><br>' % Dir.pwd.utf8
+      lines << '当前目录: <font color = "blue">%s</font><br>' % Dir.pwd
       lines << '<br>'
 
       build_info = {}

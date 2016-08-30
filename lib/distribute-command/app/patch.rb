@@ -41,7 +41,7 @@ module Patch
               $errors = nil
               $loggers = nil
 
-              filename = File.basename(file).utf8
+              filename = File.basename file
 
               Util::Logger::cmdline '[patch:exec]' % filename
 

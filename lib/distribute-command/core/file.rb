@@ -15,7 +15,7 @@ class File
       dir = dir.utf8.strip
     end
 
-    __expand_path__(filename, dir).utf8
+    __expand_path__ filename, dir
   end
 
   def self.join *args
@@ -92,11 +92,11 @@ class File
     end
 
     begin
-      Pathname.new(expand_path(filename).locale).relative_path_from(Pathname.new(dir.locale)).to_s.utf8
+      Pathname.new(expand_path(filename)).relative_path_from(Pathname.new(dir)).to_s
     rescue
       Util::Logger::exception $!
 
-      filename
+      filename.utf8
     end
   end
 
@@ -575,7 +575,7 @@ class Pathname
   private
 
   def chop_basename path
-    base = File.basename path
+    base = File.basename path.utf8
 
     if /\A#{SEPARATOR_PAT}?\z/o =~ base
       return nil

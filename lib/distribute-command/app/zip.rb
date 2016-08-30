@@ -228,7 +228,7 @@ class ZipFile < Zip::File
 
     deletes.each do |zip_path|
       begin
-        Util::Logger::puts zip_path.to_s.utf8
+        Util::Logger::puts zip_path
 
         remove zip_path
       rescue
