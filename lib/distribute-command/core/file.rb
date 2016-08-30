@@ -91,12 +91,16 @@ class File
       dir += '/'
     end
 
-    begin
-      Pathname.new(expand_path(filename).locale).relative_path_from(Pathname.new(dir.locale)).to_s.utf8
-    rescue
-      Util::Logger::exception $!
+    if root(filename) == root(dir)
+      begin
+        Pathname.new(expand_path(filename).locale).relative_path_from(Pathname.new(dir.locale)).to_s.utf8
+      rescue
+        Util::Logger::exception $!
 
-      filename.utf8
+        filename.utf8
+      end
+    else
+      expand_path filename
     end
   end
 
