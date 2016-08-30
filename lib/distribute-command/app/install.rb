@@ -1179,7 +1179,7 @@ module Install
         'zipname' => name
       }
 
-      extends_info = patch_extends code_home, '*/trunk/installdisk/extends.xml', type, opt
+      extends_info = patch_extends File.join(build_home, 'code'), '*/trunk/installdisk/extends.xml', type, opt
 
       if extends_info.nil?
         return false

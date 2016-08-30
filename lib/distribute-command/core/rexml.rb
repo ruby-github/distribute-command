@@ -147,8 +147,10 @@ module REXML
     end
 
     def to_file file, encoding = nil
+      string = to_string encoding
+
       File.open file, 'w', encoding: xml_decl.encoding do |f|
-        f.puts to_string(encoding)
+        f.puts string
       end
     end
 
