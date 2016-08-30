@@ -39,7 +39,7 @@
 
 Dir.chdir __dir__ do
   Dir.glob('distribute-command/**/*.rb').each do |file|
-    if File.basename(file) == 'java.rb'
+    if file == 'distribute-command/util/java.rb'
       autoload :Java, file
 
       next

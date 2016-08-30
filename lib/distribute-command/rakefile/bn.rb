@@ -707,19 +707,23 @@ namespace :bn do
           addrs = BN_MAIL_ADDRS_IPTN
         end
 
-        path = File.join home, defaults[module_name], 'code/build/output'
+        if File.directory? home
+          Dir.chdir home do
+            path = File.join defaults[module_name], 'code/build/output'
 
-        if not Compile::check_size path, true, addrs do |file, errors|
-            if not file.nil?
-              not ignores.include? File.join(path, file)
-            else
-              errors_list << [errors, addrs]
+            if not Compile::check_size path, true, addrs do |file, errors|
+                if not file.nil?
+                  not ignores.include? File.join(path, file)
+                else
+                  errors_list << [errors, addrs]
 
-              false
+                  false
+                end
+              end
+
+              status = false
             end
           end
-
-          status = false
         end
       end
 
@@ -806,19 +810,23 @@ namespace :bn do
           addrs = BN_MAIL_ADDRS_IPTN
         end
 
-        path = File.join home, defaults[module_name], 'code_c/build/output'
+        if File.directory? home
+          Dir.chdir home do
+            path = File.join defaults[module_name], 'code_c/build/output'
 
-        if not Compile::check_size path, true, addrs do |file, errors|
-            if not file.nil?
-              not ignores.include? File.join(path, file)
-            else
-              errors_list << [errors, addrs]
+            if not Compile::check_size path, true, addrs do |file, errors|
+                if not file.nil?
+                  not ignores.include? File.join(path, file)
+                else
+                  errors_list << [errors, addrs]
 
-              false
+                  false
+                end
+              end
+
+              status = false
             end
           end
-
-          status = false
         end
       end
 

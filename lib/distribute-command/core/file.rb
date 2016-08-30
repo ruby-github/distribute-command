@@ -20,13 +20,13 @@ class File
 
   def self.join *args
     if not args.last.nil? and absolute? args.last
-      args.last.utf8
+      args.last
     else
       if ['', '.'].include? args.first
         args.shift
       end
 
-      __join__ args.utf8
+      __join__ args
     end
   end
 
@@ -92,7 +92,7 @@ class File
     end
 
     begin
-      Pathname.new(expand_path(filename)).relative_path_from(Pathname.new(dir)).to_s
+      Pathname.new(expand_path(filename).locale).relative_path_from(Pathname.new(dir.locale)).to_s.utf8
     rescue
       Util::Logger::exception $!
 
@@ -176,9 +176,9 @@ class File
       [xpath]
     else
       if File::FNM_SYSCASE.nonzero?
-        Dir.glob(xpath, File::FNM_CASEFOLD).sort.utf8
+        Dir.glob(xpath, File::FNM_CASEFOLD).sort
       else
-        Dir.glob(xpath).sort.utf8
+        Dir.glob(xpath).sort
       end
     end
   end
@@ -575,7 +575,7 @@ class Pathname
   private
 
   def chop_basename path
-    base = File.basename path.utf8
+    base = File.basename path
 
     if /\A#{SEPARATOR_PAT}?\z/o =~ base
       return nil
