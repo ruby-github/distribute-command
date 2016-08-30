@@ -472,6 +472,15 @@ module DistributeCommand
 
       element << cmdline_e
 
+      # 重启数据库
+
+      function_e = REXML::Element.new 'function'
+
+      function_e.attributes['name'] = '${name}:重启数据库'
+      function_e.attributes['function'] = 'netnumen_database_restart'
+
+      element << function_e
+
       # 启动网管
 
       cmdline_e = REXML::Element.new 'cmdline'
