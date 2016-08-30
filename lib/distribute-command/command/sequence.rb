@@ -477,9 +477,9 @@ module DistributeCommand
           if drb.connect @ip
             if not drb.copy args['path'], args['to_path'] do |src, dest|
                 if dest.nil?
-                  Util::Logger::exception src
+                  Util::Logger::error Util::Logger::drb(src, @ip)
                 else
-                  Util::Logger::puts src
+                  Util::Logger::puts Util::Logger::drb(src, @ip)
                 end
 
                 [src, dest]
@@ -491,13 +491,13 @@ module DistributeCommand
             if not args['callback'].nil?
               if callback_valid? args['callback']
                 if not drb.callback args['callback'], args do |line|
-                    Util::Logger::puts line
+                    Util::Logger::puts Util::Logger::drb(line, @ip)
                   end
 
                   status = false
                 end
               else
-                Util::Logger::error 'No found callback @ command_copy - DistributeCommand::Callback::%s' % args['callback']
+                Util::Logger::error Util::Logger::drb('No found callback @ command_copy - DistributeCommand::Callback::%s' % args['callback'], @ip)
 
                 status = false
               end
@@ -557,7 +557,7 @@ module DistributeCommand
 
           if drb.connect @ip
             if not drb.delete args['path'] do |path|
-                Util::Logger::puts path
+                Util::Logger::puts Util::Logger::drb(path, @ip)
 
                 path
               end
@@ -568,13 +568,13 @@ module DistributeCommand
             if not args['callback'].nil?
               if callback_valid? args['callback']
                 if not drb.callback args['callback'], args do |line|
-                    Util::Logger::puts line
+                    Util::Logger::puts Util::Logger::drb(line, @ip)
                   end
 
                   status = false
                 end
               else
-                Util::Logger::error 'No found callback @ command_delete - DistributeCommand::Callback::%s' % args['callback']
+                Util::Logger::error Util::Logger::drb('No found callback @ command_delete - DistributeCommand::Callback::%s' % args['callback'], @ip)
 
                 status = false
               end
@@ -634,7 +634,7 @@ module DistributeCommand
 
           if drb.connect @ip
             if not drb.mkdir args['path'] do |path|
-                Util::Logger::puts path
+                Util::Logger::puts Util::Logger::drb(path, @ip)
 
                 path
               end
@@ -645,13 +645,13 @@ module DistributeCommand
             if not args['callback'].nil?
               if callback_valid? args['callback']
                 if not drb.callback args['callback'], args do |line|
-                    Util::Logger::puts line
+                    Util::Logger::puts Util::Logger::drb(line, @ip)
                   end
 
                   status = false
                 end
               else
-                Util::Logger::error 'No found callback @ command_mkdir - DistributeCommand::Callback::%s' % args['callback']
+                Util::Logger::error Util::Logger::drb('No found callback @ command_mkdir - DistributeCommand::Callback::%s' % args['callback'], @ip)
 
                 status = false
               end
@@ -736,7 +736,7 @@ module DistributeCommand
 
             if not callback.nil?
               if not callback_valid? callback
-                Util::Logger::error 'No found callback @ command_cmdline - DistributeCommand::Callback::%s' % callback
+                Util::Logger::error Util::Logger::drb('No found callback @ command_cmdline - DistributeCommand::Callback::%s' % callback, @ip)
 
                 callback = nil
                 status = false
@@ -746,13 +746,13 @@ module DistributeCommand
             lines = []
 
             if not drb.cmdline args['cmdline'], args do |line, stdin, wait_thr|
-                Util::Logger::puts line
+                Util::Logger::puts Util::Logger::drb(line, @ip)
 
                 lines << line
 
                 if not callback.nil?
                   if not drb.callback callback, args.merge({'line' => line}) do |line|
-                      Util::Logger::puts line
+                      Util::Logger::puts Util::Logger::drb(line, @ip)
                     end
 
                     status = false
@@ -766,13 +766,13 @@ module DistributeCommand
             if not args['callback_finish'].nil?
               if callback_valid? args['callback_finish']
                 if not drb.callback args['callback_finish'], args.merge({'lines' => lines}) do |line|
-                    Util::Logger::puts line
+                    Util::Logger::puts Util::Logger::drb(line, @ip)
                   end
 
                   status = false
                 end
               else
-                Util::Logger::error 'No found callback_finish @ command_cmdline - DistributeCommand::Callback::%s' % args['callback_finish']
+                Util::Logger::error Util::Logger::drb('No found callback_finish @ command_cmdline - DistributeCommand::Callback::%s' % args['callback_finish'], @ip)
 
                 status = false
               end
@@ -830,7 +830,7 @@ module DistributeCommand
 
           if drb.connect @ip
             if not drb.function args['function'], args do |line|
-                Util::Logger::puts line
+                Util::Logger::puts Util::Logger::drb(line, @ip)
               end
 
               status = false
@@ -839,13 +839,13 @@ module DistributeCommand
             if not args['callback'].nil?
               if callback_valid? args['callback']
                 if not drb.callback args['callback'], args do |line|
-                    Util::Logger::puts line
+                    Util::Logger::puts Util::Logger::drb(line, @ip)
                   end
 
                   status = false
                 end
               else
-                Util::Logger::error 'No found callback @ command_function - DistributeCommand::Callback::%s' % args['callback']
+                Util::Logger::error Util::Logger::drb('No found callback @ command_function - DistributeCommand::Callback::%s' % args['callback'], @ip)
 
                 status = false
               end

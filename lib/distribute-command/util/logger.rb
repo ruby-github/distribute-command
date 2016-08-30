@@ -516,5 +516,9 @@ module Util
     def headline
       '[INFO] ------------------------------------------------------------------------'
     end
+
+    def drb string, ip
+      '[%s] %s' % [ip, string]
+    end
   end
 end
