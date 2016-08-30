@@ -69,6 +69,14 @@ module DistributeCommand
             sleep 10
           end
 
+          sleep 10
+
+          CommandLine::cmdline 'sc query %s' % database_name do |line, stdin, wait_thr|
+            if block_given?
+              yield line
+            end
+          end
+
           sleep 30
 
           CommandLine::cmdline 'sc start %s' % database_name do |line, stdin, wait_thr|
@@ -83,6 +91,14 @@ module DistributeCommand
             end
 
             sleep 10
+          end
+
+          sleep 10
+
+          CommandLine::cmdline 'sc query %s' % database_name do |line, stdin, wait_thr|
+            if block_given?
+              yield line
+            end
           end
 
           sleep 30
