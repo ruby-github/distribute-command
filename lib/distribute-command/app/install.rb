@@ -1172,7 +1172,7 @@ module Install
       path = ums_db_update_info names.last, v[:dbs], tmpdir
       v[:zip][:zip][File.basename(path)] = path
 
-      path = patchinfo v[:ids], patch_home, type
+      path = patchinfo v[:ids], tmpdir, patch_home, type
       v[:zip][:zip][File.basename(path)] = path
 
       opt = {
@@ -1522,14 +1522,6 @@ module Install
 
     doc.to_file File.join(tmpdir, 'ppuinfo', 'ums-server/procs/ppus/e2e.ppu/ppuinfo.xml'), 'gb2312'
     doc.to_file File.join(tmpdir, 'ppuinfo', 'ums-client/procs/ppus/e2e.ppu/ppuinfo.xml'), 'gb2312'
-
-    File.glob(File.join(tmpdir, 'ppuinfo', 'ums-*/procs/ppus/*/ppuinfo.xml')).each do |file|
-      str = IO.read file
-
-      File.open file, 'w' do |f|
-        f.puts str.gsub('\'', '"')
-      end
-    end
 
     {
       File.join(tmpdir, 'ppuinfo', 'ums-server/procs/ppus/bn.ppu/ppuinfo.xml') => 'ums-server/procs/ppus/bn.ppu/ppuinfo.xml',
@@ -1933,7 +1925,7 @@ module Install
               dest = file_element.attributes['dest']
 
               if not src.nil? and not dest.nil?
-                map[name][action][:zip][dest.strip.vars(opt)] = File.join name, 'trunk', dirname, src.strip.vars(opt)
+                map[name][action][:zip][dest.strip.vars(opt)] = File.join home, name, 'trunk', dirname, src.strip.vars(opt)
               end
             end
 
@@ -1942,7 +1934,7 @@ module Install
 
               Dir.chdir File.join(name, 'trunk', dirname) do
                 File.glob(ignore_path).each do |path|
-                  map[name][action][:ignore] << File.join(name, 'trunk', dirname, path)
+                  map[name][action][:ignore] << File.join(home, name, 'trunk', dirname, path)
                 end
               end
             end
@@ -1985,7 +1977,7 @@ module Install
           if dest.nil?
             src = element.attributes['name'].to_s
 
-            if src =~ /^(sdn,code|code_c)\/build\/output\//
+            if src =~ /^(sdn|code|code_c)\/build\/output\//
               dest = $'
             end
           end
