@@ -29,6 +29,7 @@ module Util
 
           if $drb.nil?
             io.puts line
+            io.flush
           end
         else
           line
@@ -49,6 +50,7 @@ module Util
 
             if $drb.nil?
               io.puts line
+              io.flush
             end
           else
             line
@@ -74,6 +76,7 @@ module Util
 
             if $drb.nil?
               io.puts line
+              io.flush
             end
           else
             line
@@ -103,6 +106,7 @@ module Util
 
               if $drb.nil?
                 io.puts line
+                io.flush
               end
             end
           else
@@ -129,6 +133,7 @@ module Util
 
             if $drb.nil?
               io.puts line
+              io.flush
             end
           else
             line
@@ -157,6 +162,7 @@ module Util
 
             if $drb.nil?
               io.puts line
+              io.flush
             end
           else
             line
@@ -198,6 +204,7 @@ module Util
 
               if $drb.nil?
                 io.puts line
+                io.flush
               end
             end
           else
@@ -227,6 +234,7 @@ module Util
 
             if $drb.nil?
               io.puts line
+              io.flush
             end
           else
             line
@@ -258,6 +266,7 @@ module Util
 
             if $drb.nil?
               io.puts line
+              io.flush
             end
           end
         else
@@ -282,6 +291,7 @@ module Util
 
             if $drb.nil?
               io.puts line
+              io.flush
             end
           end
         else
@@ -380,6 +390,7 @@ module Util
 
             if $drb.nil?
               io.puts line
+              io.flush
             end
           end
         else
@@ -417,6 +428,7 @@ module Util
 
             if $drb.nil?
               io.puts line
+              io.flush
             end
           end
         else
@@ -464,6 +476,7 @@ module Util
 
             if $drb.nil?
               io.puts line
+              io.flush
             end
           end
         else
