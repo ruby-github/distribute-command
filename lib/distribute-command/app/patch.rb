@@ -327,7 +327,7 @@ module Patch
                 case
                 when name =~ /^(code|code_c)\/build\/output\//
                   dest = $'
-                  type = e_deploy.attributes['type'].to_s.strip.nil || 'ems'
+                  type = e_deploy.attributes['type'].to_s.strip.nil || default_type
 
                   if dest =~ /^ums-(\w+)/
                     if ['nms', 'lct'].include? $1
@@ -355,7 +355,7 @@ module Patch
 
                   if not dest.nil?
                     dest = File.normalize dest
-                    type = e_deploy.attributes['type'].to_s.strip.nil || 'ems'
+                    type = e_deploy.attributes['type'].to_s.strip.nil || default_type
 
                     if valid_type? type
                       types = type.split(',').map { |x| x.strip }.uniq
@@ -392,7 +392,7 @@ module Patch
 
               if not name.nil?
                 name = File.normalize name
-                type = e_delete.attributes['type'].to_s.strip.nil || 'ems'
+                type = e_delete.attributes['type'].to_s.strip.nil || default_type
 
                 if name =~ /^ums-(\w+)/
                   if not ['client', 'server'].include? $1
@@ -987,6 +987,10 @@ module Patch
       }
     end
 
+    def default_type
+      'ems'
+    end
+
     # args
     #   id
     #
@@ -1099,6 +1103,16 @@ module Patch
   class Stn < Bn
     private
 
+    def valid_type? type = nil
+      type.to_s.split(',').each do |name|
+        if not ['stn'].include? name.strip
+          return false
+        end
+      end
+
+      true
+    end
+
     def modules
       {
         'u3_interface'    => 'u3_interface',
@@ -1111,6 +1125,10 @@ module Patch
         'SPTN-E2E'        => 'e2e',
         'sdn_installation'=> 'installation'
       }
+    end
+
+    def default_type
+      'stn'
     end
   end
 end
