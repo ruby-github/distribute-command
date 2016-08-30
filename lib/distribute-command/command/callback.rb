@@ -176,6 +176,8 @@ module DistributeCommand
 
           map = {}
 
+          sleep 120
+
           loop do
             sleep 10
 
@@ -199,50 +201,56 @@ module DistributeCommand
               end
             end
 
-            files = File.glob(File.join(home, 'utils/console/works/console*/log/console-console*.log')).sort do |x, y|
-              File.basename(x) <=> File.basename(y)
-            end
+            if File.directory? File.join(home, 'utils/console/works')
+              files = File.glob(File.join(home, 'utils/console/works/console*/log/console-console*.log')).sort do |x, y|
+                File.basename(x) <=> File.basename(y)
+              end
 
-            if files.empty?
-              next
-            end
+              if files.empty?
+                next
+              end
 
-            started = false
+              started = false
 
-            files.each do |file|
-              if File.basename(file) =~ /console-console\d+-/
-                if $' > time.strftime('%Y%m%d-%H%M')
-                  lines = IO.read(file).lines
-                  lines.pop
+              files.each do |file|
+                if File.basename(file) =~ /console-console\d+-/
+                  if $' > time.strftime('%Y%m%d-%H%M')
+                    lines = IO.read(file).lines
+                    lines.pop
 
-                  lines.each_with_index do |line, index|
-                    if block_given?
-                      if not map.has_key? file
-                        map[file] = -1
+                    lines.each_with_index do |line, index|
+                      if block_given?
+                        if not map.has_key? file
+                          map[file] = -1
+                        end
+
+                        if index > map[file]
+                          yield line.rstrip
+                        end
+
+                        map[file] = index
                       end
 
-                      if index > map[file]
-                        yield line.rstrip
+                      if line.include? 'All processes started'
+                        started = true
+
+                        break
                       end
-
-                      map[file] = index
-                    end
-
-                    if line.include? 'All processes started'
-                      started = true
-
-                      break
                     end
                   end
+                end
+
+                if started
+                  break
                 end
               end
 
               if started
                 break
               end
-            end
+            else
+              sleep 300
 
-            if started
               break
             end
           end
