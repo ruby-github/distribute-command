@@ -164,6 +164,10 @@ module DistributeCommand
       home = args['home']
       expired = args['expired'].to_i
 
+      if expired <= 0
+        expired = 1800
+      end
+
       if not home.nil?
         home = File.expand_path home
 
@@ -196,6 +200,7 @@ module DistributeCommand
                 end
 
                 Util::Logger::error "start server expired: #{expired}"
+                Util::Logger::head "启动超时: #{expired}"
 
                 return false
               end
@@ -234,6 +239,8 @@ module DistributeCommand
                       if line.include? 'All processes started'
                         started = true
 
+                        Util::Logger::head '启动完成'
+
                         break
                       end
                     end
@@ -250,6 +257,8 @@ module DistributeCommand
               end
             else
               sleep 300
+
+              Util::Logger::head '启动完成'
 
               break
             end
@@ -271,6 +280,10 @@ module DistributeCommand
 
       home = args['home']
       expired = args['expired'].to_i
+
+      if expired <= 0
+        expired = 1800
+      end
 
       if not home.nil?
         home = File.expand_path home

@@ -12,7 +12,8 @@ module Jenkins
         :description        => nil,
         :keep_dependencies  => false,
         :authorization      => nil,
-        :logrotator         => 31,
+        :logrotator_days    => 31,
+        :logrotator_num     => -1,
         :parameters         => nil,
         :scm                => nil,
         :assigned_node      => nil,
@@ -118,11 +119,7 @@ module Jenkins
         element << authorization(args[:authorization])
       end
 
-      if not args[:logrotator].nil?
-        if args[:logrotator].to_i > 0
-          element << logrotator(args[:logrotator].to_i)
-        end
-      end
+      element << logrotator(args[:logrotator_days].to_i, args[:logrotator_num].to_i)
 
       if not args[:parameters].nil? and not args[:parameters].empty?
         element << parameters_definition(args[:parameters])
@@ -321,7 +318,7 @@ module Jenkins
       element
     end
 
-    def logrotator days = 31
+    def logrotator days = 31, num = -1
       element = REXML::Element.new 'jenkins.model.BuildDiscarderProperty'
 
       strategy_element = REXML::Element.new 'strategy'
@@ -332,15 +329,15 @@ module Jenkins
       strategy_element << e
 
       e = REXML::Element.new 'numToKeep'
-      e.text = -1
+      e.text = num.to_i
       strategy_element << e
 
       e = REXML::Element.new 'artifactDaysToKeep'
-      e.text = -1
+      e.text = days.to_i
       strategy_element << e
 
       e = REXML::Element.new 'artifactNumToKeep'
-      e.text = -1
+      e.text = num.to_i
       strategy_element << e
 
       element << strategy_element
@@ -477,7 +474,8 @@ module Jenkins
         :description        => nil,
         :keep_dependencies  => false,
         :authorization      => nil,
-        :logrotator         => 31,
+        :logrotator_days    => 31,
+        :logrotator_num     => -1,
         :parameters         => nil,
         :disabled           => false,
         :concurrent         => true,
@@ -743,7 +741,32 @@ module Jenkins
         end
 
         pipeline = Jenkins::Pipeline.new k
-        pipeline.build v
+
+        case
+        when ['bn_compile_module', 'bn_compile_cpp_module'].include?(k)
+          args = {
+            :logrotator_days  => 7,
+            :logrotator_num   => 500
+          }
+
+          pipeline.build v.merge(args)
+        when ['bn_check_module', 'bn_check_cpp_module'].include?(k)
+          args = {
+            :logrotator_days  => 7,
+            :logrotator_num   => 100
+          }
+
+          pipeline.build v.merge(args)
+        when ['bn_deploy', 'bn_update_devtools', 'bn_update_module', 'bn_install_uep', 'bn_install_module'].include?(k)
+          args = {
+            :logrotator_days  => 3,
+            :logrotator_num   => 100
+          }
+
+          pipeline.build v.merge(args)
+        else
+          pipeline.build v
+        end
       end
 
       parameters = [
@@ -809,16 +832,29 @@ module Jenkins
         v[:parameters] = parameters + v[:parameters]
 
         pipeline = Jenkins::Pipeline.new k
-        pipeline.build v
+
+        case
+        when ['bn_compile_module_win', 'bn_compile_cpp_module_win'].include?(k)
+          args = {
+            :logrotator_days  => 7,
+            :logrotator_num   => 200
+          }
+
+          pipeline.build v.merge(args)
+        else
+          pipeline.build v
+        end
       end
 
       cppcheck = Jenkins::CppCheck.new 'bn_cppcheck'
       cppcheck.build
 
       args = {
-        :authorization=> ['bnbuild'],
-        :script_path  => 'bn/command.groovy',
-        :parameters   => [
+        :authorization    => ['bnbuild'],
+        :logrotator_days  => 3,
+        :logrotator_num   => 20,
+        :script_path      => 'bn/command.groovy',
+        :parameters       => [
           ['home',      '工作目录',   'bn/daily/windows'],
           ['configure', '配置文件',   'installation.xml'],
           ['version',   '版本号',     ''],
@@ -988,7 +1024,32 @@ module Jenkins
         end
 
         pipeline = Jenkins::Pipeline.new k
-        pipeline.build v
+
+        case
+        when ['stn_compile_module'].include?(k)
+          args = {
+            :logrotator_days  => 7,
+            :logrotator_num   => 200
+          }
+
+          pipeline.build v.merge(args)
+        when ['stn_check_module'].include?(k)
+          args = {
+            :logrotator_days  => 7,
+            :logrotator_num   => 100
+          }
+
+          pipeline.build v.merge(args)
+        when ['stn_deploy', 'stn_update_module', 'stn_install_uep', 'stn_install_module'].include?(k)
+          args = {
+            :logrotator_days  => 3,
+            :logrotator_num   => 100
+          }
+
+          pipeline.build v.merge(args)
+        else
+          pipeline.build v
+        end
       end
 
       parameters = [
@@ -1034,13 +1095,26 @@ module Jenkins
         v[:parameters] = parameters + v[:parameters]
 
         pipeline = Jenkins::Pipeline.new k
-        pipeline.build v
+
+        case
+        when ['stn_compile_module_win'].include?(k)
+          args = {
+            :logrotator_days  => 7,
+            :logrotator_num   => 100
+          }
+
+          pipeline.build v.merge(args)
+        else
+          pipeline.build v
+        end
       end
 
       args = {
-        :authorization=> ['stnbuild'],
-        :script_path  => 'stn/command.groovy',
-        :parameters   => [
+        :authorization    => ['stnbuild'],
+        :logrotator_days  => 3,
+        :logrotator_num   => 20,
+        :script_path      => 'stn/command.groovy',
+        :parameters       => [
           ['home',      '工作目录',   'stn/daily/windows'],
           ['configure', '配置文件',   'installation.xml'],
           ['version',   '版本号',     ''],
@@ -1196,6 +1270,11 @@ module Jenkins
     private
 
     def bn_build
+      args_logrotator = {
+        :logrotator_days  => 3,
+        :logrotator_num   => 10
+      }
+
       parameters = [
         ['list',    '变更列表', ''],
         ['authors', '变更人员', '']
@@ -1228,7 +1307,7 @@ module Jenkins
             }
 
             pipeline = Jenkins::Pipeline.new '%s_%s_%s' % [index + 1, module_name, name]
-            pipeline.build args
+            pipeline.build args.merge(args_logrotator)
           end
 
           if cpp
@@ -1239,7 +1318,7 @@ module Jenkins
             }
 
             pipeline = Jenkins::Pipeline.new '%s_%s_%s_cpp' % [index + 1, module_name, name]
-            pipeline.build args
+            pipeline.build args.merge(args_logrotator)
           end
         end
 
@@ -1300,6 +1379,11 @@ module Jenkins
     end
 
     def stn_build
+      args_logrotator = {
+        :logrotator_days  => 3,
+        :logrotator_num   => 10
+      }
+
       parameters = [
         ['list',    '变更列表', ''],
         ['authors', '变更人员', '']
@@ -1313,7 +1397,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new '%s_stn_%s' % [index + 1, name]
-        pipeline.build args
+        pipeline.build args.merge(args_logrotator)
       end
 
       args = {
@@ -1345,6 +1429,11 @@ module Jenkins
     def initialize
       @bn_init = false
       @stn_init = false
+
+      @args_logrotator = {
+        :logrotator_days  => 3,
+        :logrotator_num   => 30
+      }
     end
 
     def bn_build names, osnames = nil
@@ -1365,7 +1454,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'bn_patch_install'
-        pipeline.build args
+        pipeline.build args.merge(@args_logrotator)
 
         args = {
           :script_path  => 'bn/patch_module.groovy',
@@ -1377,7 +1466,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'bn_patch_module'
-        pipeline.build args
+        pipeline.build args.merge(@args_logrotator)
 
         args = {
           :script_path  => 'bn/patch.groovy',
@@ -1388,7 +1477,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'bn_patch'
-        pipeline.build args
+        pipeline.build args.merge(@args_logrotator)
       end
 
       osnames ||= [:linux, :solaris, :windows, :windows32]
@@ -1436,7 +1525,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'stn_patch_install'
-        pipeline.build args
+        pipeline.build args.merge(@args_logrotator)
 
         args = {
           :script_path  => 'stn/patch_module.groovy',
@@ -1446,7 +1535,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'stn_patch_module'
-        pipeline.build args
+        pipeline.build args.merge(@args_logrotator)
 
         args = {
           :script_path  => 'stn/patch.groovy',
@@ -1456,7 +1545,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'stn_patch'
-        pipeline.build args
+        pipeline.build args.merge(@args_logrotator)
       end
 
       names.to_array.each do |name|
