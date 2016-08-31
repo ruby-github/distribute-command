@@ -183,7 +183,7 @@ module DistributeCommand
           sleep 120
 
           loop do
-            sleep 10
+            sleep 30
 
             if expired > 0
               if Time.now - time > expired
@@ -211,11 +211,8 @@ module DistributeCommand
                 File.basename(x) <=> File.basename(y)
               end
 
-              if files.empty?
-                next
-              end
-
               started = false
+              changed = false
 
               files.each do |file|
                 if File.basename(file) =~ /console-console\d+-/
@@ -230,6 +227,8 @@ module DistributeCommand
                         end
 
                         if index > map[file]
+                          changed = true
+
                           yield line.rstrip
                         end
 
@@ -239,7 +238,7 @@ module DistributeCommand
                       if line.include? 'All processes started'
                         started = true
 
-                        Util::Logger::head '启动完成'
+                        Util::Logger::head '启动成功'
 
                         break
                       end
@@ -254,6 +253,12 @@ module DistributeCommand
 
               if started
                 break
+              end
+
+              if not changed
+                Util::Logger::head "启动失败"
+
+                return false
               end
             else
               sleep 300
@@ -326,6 +331,7 @@ module DistributeCommand
             end
 
             started = false
+            changed = false
 
             files.each do |k, v|
               v.sort.each do |file|
@@ -339,6 +345,8 @@ module DistributeCommand
                     end
 
                     if index > map[file]
+                      changed = true
+
                       yield line.rstrip
                     end
 
@@ -347,6 +355,8 @@ module DistributeCommand
 
                   if line.include? 'EMB Started'
                     started = true
+
+                    Util::Logger::head '启动成功'
 
                     break
                   end
@@ -364,6 +374,12 @@ module DistributeCommand
 
             if started
               break
+            end
+
+            if not changed
+              Util::Logger::head "启动失败"
+
+              return false
             end
           end
 
