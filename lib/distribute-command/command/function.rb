@@ -50,6 +50,339 @@ module DistributeCommand
       end
     end
 
+    def netnumen_sptn_cluster_settings args = nil
+      args ||= {}
+
+      home = args['home'].to_s.nil
+      ip = args['ip'].to_s.nil
+
+      anodes = args['anodes'].to_s.nil
+      cnodes = args['cnodes'].to_s.nil
+
+      if home.nil? or ip.nil? or anodes.nil? or cnodes.nil?
+        return true
+      end
+
+      anodes = anodes.split(',').map {|x| x.strip}
+      cnodes = cnodes.split(',').map {|x| x.strip}
+
+      anodes.sort!
+      anodes.uniq!
+
+      cnodes.sort!
+      cnodes.uniq!
+
+      if anodes.include? ip
+        if File.directory? home
+          Dir.chdir home do
+            file = 'ums-server/procs-nfm/etc/sptnconf.properties'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.strip!
+
+                case
+                when line =~ /^sptn\.nodetype\s*=/
+                  lines << 'sptn.nodetype=1'
+                when line =~ /^sptn\.cnode\.number\s*=/
+                  lines << 'sptn.cnode.number=%s' % cnodes.size
+                when line =~ /^sptn\.anodestarter\s*=/
+                  lines << 'sptn.anodestarter=akka.tcp://sptnaccesssys@%s:2553/user/anodestarter' % anodes.first
+                when line =~ /^sptn\.anode\.seed-nodes\s*=/
+                  lines << 'sptn.anode.seed-nodes=[%s]' % anodes.map {|x| '"akka.tcp://sptnaccesssys@%s:2553"' % x}.join(', ')
+                when line =~ /^sptn\.cnode\.seed-nodes\s*=/
+                  lines << 'sptn.cnode.seed-nodes=[%s]' % cnodes.map {|x| '"akka.tcp://sptnclustersys@%s:2556"' % x}.join(', ')
+                else
+                  lines << line
+                end
+              end
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+
+            file = 'ums-server/procs-nfm/configuration/initial/sptnakkaanode.conf'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.rstrip!
+
+                case
+                when line =~ /^(\s*)hostname\s*=/
+                  lines << '%shostname="%s"' % [$1, ip]
+                when line =~ /^(\s*)seed-nodes\s*=/
+                  lines << '%sseed-nodes = [%s]' % [$1, anodes.map{|x| '"akka.tcp://sptnaccesssys@%s:2553"' % x}.join(', ')]
+                else
+                  lines << line
+                end
+              end
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+
+            file = 'ums-server/procs-nfm/bin/setenv.bat'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.strip!
+
+                if line =~ /^SET\s+GOSSIP\s*=/
+                  next
+                end
+
+                lines << line
+              end
+
+              lines << 'SET GOSSIP=%s' % (anodes + cnodes).uniq.join(':')
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+
+            file = 'ums-server/procs-nfm/bin/setenv'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.strip!
+
+                if line =~ /^export\s+GOSSIP\s*=/
+                  next
+                end
+
+                lines << line
+              end
+
+              lines << 'export GOSSIP=%s' % (anodes + cnodes).uniq.join(':')
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+
+            file = 'ums-server/procs-nfm/bin/karaf.bat'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.rstrip!
+
+                case
+                when line =~ /\s*SET\s+RUN_CMD\s*=.*-classpath\s+"%CLASSPATH%"/
+                  if line.include? '-Dsupernodes'
+                    lines << line
+                  else
+                    lines << $& + ' -Dsupernodes="%GOSSIP%" ' + $'.lstrip
+                  end
+                else
+                  lines << line
+                end
+              end
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+
+            file = 'ums-server/procs-nfm/bin/karaf.sh'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.rstrip!
+
+                case
+                when line =~ /\s*"$JAVA"\s+$JAVA_OPTS\s+.*-classpath\s+"$CLASSPATH"/
+                  if line.include? '-Dsupernodes'
+                    lines << line
+                  else
+                    lines << $& + ' -Dsupernodes="$GOSSIP" ' + $'.lstrip
+                  end
+                else
+                  lines << line
+                end
+              end
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+          end
+        else
+          Util::Logger::error 'no such directory - %s' % home
+        end
+      end
+
+      if cnodes.include? ip
+        if File.directory? home
+          Dir.chdir home do
+            file = 'ums-server/procs-nfm/etc/sptnconf.properties'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.strip!
+
+                case
+                when line =~ /^sptn\.nodetype\s*=/
+                  lines << 'sptn.nodetype=2'
+                when line =~ /^sptn\.cnode\.number\s*=/
+                  lines << 'sptn.cnode.number=%s' % cnodes.size
+                when line =~ /^sptn\.anodestarter\s*=/
+                  lines << 'sptn.anodestarter=akka.tcp://sptnaccesssys@%s:2553/user/anodestarter' % anodes.first
+                when line =~ /^sptn\.anode\.seed-nodes\s*=/
+                  lines << 'sptn.anode.seed-nodes=[%s]' % anodes.map {|x| '"akka.tcp://sptnaccesssys@%s:2553"' % x}.join(', ')
+                when line =~ /^sptn\.cnode\.seed-nodes\s*=/
+                  lines << 'sptn.cnode.seed-nodes=[%s]' % cnodes.map {|x| '"akka.tcp://sptnclustersys@%s:2556"' % x}.join(', ')
+                else
+                  lines << line
+                end
+              end
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+
+            file = 'ums-server/procs-nfm/configuration/initial/sptnakkacnode.conf'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.rstrip!
+
+                case
+                when line =~ /^(\s*)hostname\s*=/
+                  lines << '%shostname="%s"' % [$1, ip]
+                when line =~ /^(\s*)seed-nodes\s*=/
+                  lines << '%sseed-nodes = [%s]' % [$1, cnodes.map{|x| '"akka.tcp://sptnclustersys@%s:2556"' % x}.join(', ')]
+                else
+                  lines << line
+                end
+              end
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+
+            file = 'ums-server/procs-nfm/bin/setenv.bat'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.strip!
+
+                if line =~ /^SET\s+GOSSIP\s*=/
+                  next
+                end
+
+                lines << line
+              end
+
+              lines << 'SET GOSSIP=%s' % (anodes + cnodes).uniq.join(':')
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+
+            file = 'ums-server/procs-nfm/bin/setenv'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.strip!
+
+                if line =~ /^export\s+GOSSIP\s*=/
+                  next
+                end
+
+                lines << line
+              end
+
+              lines << 'export GOSSIP=%s' % (anodes + cnodes).uniq.join(':')
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+
+            file = 'ums-server/procs-nfm/bin/karaf.bat'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.rstrip!
+
+                case
+                when line =~ /\s*SET\s+RUN_CMD\s*=.*-classpath\s+"%CLASSPATH%"/
+                  if line.include? '-Dsupernodes'
+                    lines << line
+                  else
+                    lines << $& + ' -Dsupernodes="%GOSSIP%" ' + $'.lstrip
+                  end
+                else
+                  lines << line
+                end
+              end
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+
+            file = 'ums-server/procs-nfm/bin/karaf.sh'
+
+            if File.file? file
+              lines = []
+
+              IO.readlines(file).each do |line|
+                line.rstrip!
+
+                case
+                when line =~ /\s*"$JAVA"\s+$JAVA_OPTS\s+.*-classpath\s+"$CLASSPATH"/
+                  if line.include? '-Dsupernodes'
+                    lines << line
+                  else
+                    lines << $& + ' -Dsupernodes="$GOSSIP" ' + $'.lstrip
+                  end
+                else
+                  lines << line
+                end
+              end
+
+              File.open file, 'w' do |f|
+                f.puts lines
+              end
+            end
+          end
+        else
+          Util::Logger::error 'no such directory - %s' % home
+        end
+      end
+
+      true
+    end
+
     def netnumen_database_restart args = nil
       database_name, database_home = System::database_info
 

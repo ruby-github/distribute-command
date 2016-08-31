@@ -891,5 +891,49 @@ module DistributeCommand
 
       function_e
     end
+
+    # args
+    #   name, home, anodes, cnodes
+    def cluster_settings args = nil
+      args ||= {}
+
+      anodes = args['anodes'].to_s.split(',').map {|x| x.strip}
+      cnodes = args['cnodes'].to_s.split(',').map {|x| x.strip}
+
+      # 配置集群信息
+
+      element = REXML::Element.new 'sequence'
+
+      element.attributes['name'] = args['name']
+      element.attributes['home'] = args['home']
+
+      anodes.each do |ip|
+        function_e = REXML::Element.new 'function'
+
+        function_e.attributes['name'] = '${name}:%s' % ip
+        function_e.attributes['home'] = '${home}'
+        function_e.attributes['ip'] = ip
+        function_e.attributes['anodes'] = anodes.join ','
+        function_e.attributes['cnodes'] = cnodes.join ','
+        function_e.attributes['function'] = 'netnumen_sptn_cluster_settings'
+
+        element << function_e
+      end
+
+      cnodes.each do |ip|
+        function_e = REXML::Element.new 'function'
+
+        function_e.attributes['name'] = '${name}:%s' % ip
+        function_e.attributes['home'] = '${home}'
+        function_e.attributes['ip'] = ip
+        function_e.attributes['anodes'] = anodes.join ','
+        function_e.attributes['cnodes'] = cnodes.join ','
+        function_e.attributes['function'] = 'netnumen_sptn_cluster_settings'
+
+        element << function_e
+      end
+
+      element
+    end
   end
 end
