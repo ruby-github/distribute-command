@@ -935,5 +935,64 @@ module DistributeCommand
 
       element
     end
+
+    # args
+    #   name, path, ip_list
+    #   cmdline, tmpdir
+    def auto_discovery args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.split(',').map {|x| x.strip}
+
+      # 网管自动发现
+
+      element = REXML::Element.new 'parallel'
+
+      element.attributes['path'] = args['path']
+      element.attributes['cmdline'] = args['cmdline'] || 'u3_sqlserver.bat'
+      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
+
+      ip_list.sort.uniq.each do |ip|
+        sequence_element = REXML::Element.new 'sequence'
+
+        sequence_element.attributes['name'] = args['name']
+        sequence_element.attributes['ip'] = ip
+
+        # 拷贝文件
+
+        copy_e = REXML::Element.new 'copy'
+
+        copy_e.attributes['name'] = '${name}:拷贝文件'
+        copy_e.attributes['path'] = '${path}'
+        copy_e.attributes['to_path'] = '${tmpdir}/auto_discovery'
+
+        sequence_element << copy_e
+
+        # 自动发现
+
+        cmdline_e = REXML::Element.new 'cmdline'
+
+        cmdline_e.attributes['name'] = '${name}:自动发现'
+        cmdline_e.attributes['home'] = '${tmpdir}/auto_discovery'
+        cmdline_e.attributes['cmdline'] = '${cmdline}'
+
+        sequence_element << cmdline_e
+
+        # 清除临时文件
+
+        delete_e = REXML::Element.new 'delete'
+
+        delete_e.attributes['name'] = '${name}:清除临时文件'
+        delete_e.attributes['path'] = '${tmpdir}'
+        delete_e.attributes['ensure'] = 'true'
+        delete_e.attributes['skipfail'] = 'true'
+
+        sequence_element << delete_e
+
+        element << sequence_element
+      end
+
+      element
+    end
   end
 end
