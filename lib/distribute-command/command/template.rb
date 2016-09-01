@@ -36,6 +36,10 @@ module DistributeCommand
             next
           end
 
+          if not name.is_a? String
+            next
+          end
+
           copy_e.attributes[name] = value
         end
 
@@ -78,6 +82,10 @@ module DistributeCommand
             next
           end
 
+          if not name.is_a? String
+            next
+          end
+
           delete_e.attributes[name] = value
         end
 
@@ -117,6 +125,10 @@ module DistributeCommand
 
         args.each do |name, value|
           if ['name', 'ip', 'path', 'callback'].include? name
+            next
+          end
+
+          if not name.is_a? String
             next
           end
 
@@ -168,6 +180,10 @@ module DistributeCommand
             next
           end
 
+          if not name.is_a? String
+            next
+          end
+
           cmdline_e.attributes[name] = value
         end
 
@@ -207,6 +223,10 @@ module DistributeCommand
 
         args.each do |name, value|
           if ['name', 'ip', 'function', 'callback'].include? name
+            next
+          end
+
+          if not name.is_a? String
             next
           end
 
