@@ -64,10 +64,10 @@ module DistributeCommand
 
     def load file, args = nil
       args ||= {
-        'date'              => Time.now.strftime('%Y-%m-%d'),
-        'date_string'       => Time.now.strftime('%Y%m%d'),
-        'yesterday'         => (Time.now - 3600 * 24).strftime('%Y-%m-%d'),
-        'yesterday_string'  => (Time.now - 3600 * 24).strftime('%Y%m%d'),
+        'date'              => Time.now.timestamp_day('-'),
+        'date_string'       => Time.now.timestamp_day,
+        'yesterday'         => (Time.now - 3600 * 24).timestamp_day('-'),
+        'yesterday_string'  => (Time.now - 3600 * 24).timestamp_day,
         'version'           => ENV['VERSION'].utf8
       }
 

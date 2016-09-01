@@ -30,6 +30,77 @@ module DistributeCommand
     end
 
     # args
+    #   name, ip, home, bat
+    #   cmdline, tmpdir
+    def batch args = nil
+      args ||= {}
+
+      element = REXML::Element.new 'sequence'
+
+      element.attributes['name'] = args['name']
+      element.attributes['ip'] = args['ip'].to_s.nil
+      element.attributes['home'] = args['home']
+
+      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/batch_%s' % Time.now.timestamp_day
+
+      # 拷贝文件
+
+      copy_e = REXML::Element.new 'copy'
+
+      copy_e.attributes['name'] = '${name}:拷贝文件'
+      copy_e.attributes['path'] = '${home}'
+      copy_e.attributes['to_path'] = '${tmpdir}'
+
+      element << copy_e
+
+      # 执行批处理
+
+      cmdline_e = REXML::Element.new 'cmdline'
+
+      cmdline_e.attributes['name'] = '${name}:执行批处理'
+      cmdline_e.attributes['home'] = '${tmpdir}'
+      cmdline_e.attributes['cmdline'] = args['cmdline'].to_s.nil || args['bat']
+
+      element << cmdline_e
+
+      # 清除临时文件
+
+      delete_e = REXML::Element.new 'delete'
+
+      delete_e.attributes['name'] = '${name}:清除临时文件'
+      delete_e.attributes['path'] = '${tmpdir}'
+      delete_e.attributes['ensure'] = 'true'
+      delete_e.attributes['skipfail'] = 'true'
+
+      element << delete_e
+
+      element
+    end
+
+    # args
+    #   ip_list
+    def batch_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        args['ip'] = ip
+
+        element << batch(args)
+      end
+
+      element
+    end
+
+    # args
     #   name, ip_list, sec
     def reboot args = nil
       args ||= {}
@@ -56,7 +127,7 @@ module DistributeCommand
       element = REXML::Element.new 'sequence'
 
       element.attributes['name'] = args['name']
-      element.attributes['ip'] = args['ip']
+      element.attributes['ip'] = args['ip'].to_s.nil
       element.attributes['home'] = args['home']
       element.attributes['installation_home'] = args['installation_home']
       element.attributes['silencefile'] = args['silencefile']
@@ -65,7 +136,7 @@ module DistributeCommand
         element.attributes['license'] = args['license']
       end
 
-      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
+      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation_%s' % Time.now.timestamp_day
 
       if args.has_key? 'skip'
         element.attributes['skip'] = args['skip']
@@ -179,6 +250,29 @@ module DistributeCommand
     end
 
     # args
+    #   ip_list
+    def installation_iptn_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        args['ip'] = ip
+
+        element << installation_iptn(args)
+      end
+
+      element
+    end
+
+    # args
     #   name, ip, home, installation_home, silencefile, license
     #   cmdline, uninstall_cmdline, tmpdir, skip, installation_home_patch, main_ip, ems_locale
     def installation_sptn args = nil
@@ -187,7 +281,7 @@ module DistributeCommand
       element = REXML::Element.new 'sequence'
 
       element.attributes['name'] = args['name']
-      element.attributes['ip'] = args['ip']
+      element.attributes['ip'] = args['ip'].to_s.nil
       element.attributes['home'] = args['home']
       element.attributes['installation_home'] = args['installation_home']
       element.attributes['silencefile'] = args['silencefile']
@@ -196,7 +290,7 @@ module DistributeCommand
         element.attributes['license'] = args['license']
       end
 
-      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
+      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation_%s' % Time.now.timestamp_day
 
       if args.has_key? 'skip'
         element.attributes['skip'] = args['skip']
@@ -317,54 +411,31 @@ module DistributeCommand
 
     # args
     #   ip_list
-    def installation_iptn_list args = nil
-      args ||= {}
-
-      element = REXML::Element.new 'parallel'
-      element.attributes['name'] = '安装网管'
-
-      ip_list = args['ip_list'].to_s.split(',').map {|x| x.strip}
-
-      if not ip_list.empty?
-        args.delete 'ip_list'
-
-        ip_list.sort.uniq.each do |ip|
-          args['ip'] = ip
-
-          element << installation_iptn(args)
-        end
-      end
-
-      element
-    end
-
-    # args
-    #   ip_list
     def installation_sptn_list args = nil
       args ||= {}
 
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
       element = REXML::Element.new 'parallel'
-      element.attributes['name'] = '安装控制器'
 
-      ip_list = args['ip_list'].to_s.split(',').map {|x| x.strip}
+      ip_list.to_array.each do |ip|
+        args.delete 'main_ip'
 
-      if not ip_list.empty?
-        args.delete 'ip_list'
+        if ip.to_s.include? ':'
+          ip, main_ip = ip.to_s.split(':', 2).map {|x| x.strip}
 
-        ip_list.sort.uniq.each do |ip|
-          args.delete 'main_ip'
-
-          if ip.include? ':'
-            ip, main_ip = ip.split(':', 2).map {|x| x.strip}
-
-            args['ip'] = ip
-            args['main_ip'] = main_ip
-          else
-            args['ip'] = ip
-          end
-
-          element << installation_sptn(args)
+          args['ip'] = ip
+          args['main_ip'] = main_ip
+        else
+          args['ip'] = ip
         end
+
+        element << installation_sptn(args)
       end
 
       element
@@ -379,11 +450,11 @@ module DistributeCommand
       element = REXML::Element.new 'sequence'
 
       element.attributes['name'] = args['name']
-      element.attributes['ip'] = args['ip']
+      element.attributes['ip'] = args['ip'].to_s.nil
       element.attributes['home'] = args['home']
       element.attributes['database'] = args['database']
 
-      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
+      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/database_%s' % Time.now.timestamp_day
 
       # 关闭网管
 
@@ -442,10 +513,56 @@ module DistributeCommand
     end
 
     # args
+    #   ip_list
+    def restore_iptn_database_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        args['ip'] = ip
+
+        element << restore_iptn_database(args)
+      end
+
+      element
+    end
+
+    # args
     #   name, ip, home
     #   shutdown_cmdline, tmpdir, database, database_name, restore_database_cmdline
     def restore_sptn_database args = nil
       restore_iptn_database args
+    end
+
+    # args
+    #   ip_list
+    def restore_sptn_database_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        args['ip'] = ip
+
+        element << restore_sptn_database(args)
+      end
+
+      element
     end
 
     # args
@@ -457,7 +574,7 @@ module DistributeCommand
       element = REXML::Element.new 'sequence'
 
       element.attributes['name'] = args['name']
-      element.attributes['ip'] = args['ip']
+      element.attributes['ip'] = args['ip'].to_s.nil
       element.attributes['home'] = args['home']
 
       # 关闭网管
@@ -497,10 +614,56 @@ module DistributeCommand
     end
 
     # args
+    #   ip_list
+    def start_iptn_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        args['ip'] = ip
+
+        element << start_iptn(args)
+      end
+
+      element
+    end
+
+    # args
     #   name, ip, home
     #   cmdline, shutdown_cmdline
     def start_sptn args = nil
       start_iptn args
+    end
+
+    # args
+    #   ip_list
+    def start_sptn_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        args['ip'] = ip
+
+        element << start_sptn(args)
+      end
+
+      element
     end
 
     # args
@@ -512,7 +675,7 @@ module DistributeCommand
       element = REXML::Element.new 'sequence'
 
       element.attributes['name'] = args['name']
-      element.attributes['ip'] = args['ip']
+      element.attributes['ip'] = args['ip'].to_s.nil
       element.attributes['home'] = args['home']
 
       # 关闭客户端
@@ -543,6 +706,29 @@ module DistributeCommand
     end
 
     # args
+    #   ip_list
+    def start_iptn_client_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        args['ip'] = ip
+
+        element << start_iptn_client(args)
+      end
+
+      element
+    end
+
+    # args
     #   name, ip, home
     #   cmdline
     def close_iptn args = nil
@@ -562,6 +748,29 @@ module DistributeCommand
       cmdline_e.attributes['skipfail'] = 'true'
 
       cmdline_e
+    end
+
+    # args
+    #   ip_list
+    def close_iptn_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        args['ip'] = ip
+
+        element << close_iptn(args)
+      end
+
+      element
     end
 
     # args
@@ -587,6 +796,29 @@ module DistributeCommand
     end
 
     # args
+    #   ip_list
+    def close_sptn_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        args['ip'] = ip
+
+        element << close_sptn(args)
+      end
+
+      element
+    end
+
+    # args
     #   name, ip, home
     def close_iptn_client args = nil
       args ||= {}
@@ -608,6 +840,29 @@ module DistributeCommand
     end
 
     # args
+    #   ip_list
+    def close_iptn_client_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        args['ip'] = ip
+
+        element << close_iptn_client(args)
+      end
+
+      element
+    end
+
+    # args
     #   name, ip, home
     #   table_external_editors, common_vbs, tmpdir, clean
     #   addins, results_location, resources_libraries, recovery
@@ -621,10 +876,10 @@ module DistributeCommand
       element = REXML::Element.new 'sequence'
 
       element.attributes['name'] = args['name']
-      element.attributes['ip'] = args['ip']
+      element.attributes['ip'] = args['ip'].to_s.nil
       element.attributes['home'] = args['home']
 
-      element.attributes['tmpdir'] = File.join args['tmpdir'] || 'd:/autotest_home', Time.now.strftime('%Y%m%d')
+      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/autotest_%s' % Time.now.timestamp_day
 
       paths = {}
 
@@ -897,8 +1152,8 @@ module DistributeCommand
     def cluster_settings args = nil
       args ||= {}
 
-      anodes = args['anodes'].to_s.split(',').map {|x| x.strip}
-      cnodes = args['cnodes'].to_s.split(',').map {|x| x.strip}
+      anodes = args['anodes'].to_s.split(',').map {|x| x.strip}.sort.uniq
+      cnodes = args['cnodes'].to_s.split(',').map {|x| x.strip}.sort.uniq
 
       # 配置集群信息
 
@@ -931,65 +1186,6 @@ module DistributeCommand
         function_e.attributes['function'] = 'netnumen_sptn_cluster_settings'
 
         element << function_e
-      end
-
-      element
-    end
-
-    # args
-    #   name, path, ip_list
-    #   cmdline, tmpdir
-    def auto_discovery args = nil
-      args ||= {}
-
-      ip_list = args['ip_list'].to_s.split(',').map {|x| x.strip}
-
-      # 网管自动发现
-
-      element = REXML::Element.new 'parallel'
-
-      element.attributes['path'] = args['path']
-      element.attributes['cmdline'] = args['cmdline'] || 'u3_sqlserver.bat'
-      element.attributes['tmpdir'] = args['tmpdir'] || 'd:/installation'
-
-      ip_list.sort.uniq.each do |ip|
-        sequence_element = REXML::Element.new 'sequence'
-
-        sequence_element.attributes['name'] = args['name']
-        sequence_element.attributes['ip'] = ip
-
-        # 拷贝文件
-
-        copy_e = REXML::Element.new 'copy'
-
-        copy_e.attributes['name'] = '${name}:拷贝文件'
-        copy_e.attributes['path'] = '${path}'
-        copy_e.attributes['to_path'] = '${tmpdir}/auto_discovery'
-
-        sequence_element << copy_e
-
-        # 自动发现
-
-        cmdline_e = REXML::Element.new 'cmdline'
-
-        cmdline_e.attributes['name'] = '${name}:自动发现'
-        cmdline_e.attributes['home'] = '${tmpdir}/auto_discovery'
-        cmdline_e.attributes['cmdline'] = '${cmdline}'
-
-        sequence_element << cmdline_e
-
-        # 清除临时文件
-
-        delete_e = REXML::Element.new 'delete'
-
-        delete_e.attributes['name'] = '${name}:清除临时文件'
-        delete_e.attributes['path'] = '${tmpdir}'
-        delete_e.attributes['ensure'] = 'true'
-        delete_e.attributes['skipfail'] = 'true'
-
-        sequence_element << delete_e
-
-        element << sequence_element
       end
 
       element
