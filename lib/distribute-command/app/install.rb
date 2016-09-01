@@ -10,16 +10,10 @@ module Install
 
     path = installation installation_home, version, type
 
-    if ['stn'].include? type
-      installdisk_file = 'installdisk_sdn.xml'
-    else
-      installdisk_file = 'installdisk.xml'
-    end
-
     if dirname.nil?
-      xpath = File.join '*/trunk/installdisk', installdisk_file
+      xpath = File.join '*/trunk/installdisk/installdisk.xml'
     else
-      xpath = File.join dirname, 'installdisk', installdisk_file
+      xpath = File.join dirname, 'installdisk/installdisk.xml'
     end
 
     map = installdisk home, xpath, version, display_version, type
