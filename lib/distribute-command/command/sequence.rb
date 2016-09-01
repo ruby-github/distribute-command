@@ -683,6 +683,7 @@ module DistributeCommand
         status = true
 
         if @ip.nil?
+          home = args['home']
           callback = args['callback']
 
           if not callback.nil?
@@ -696,22 +697,50 @@ module DistributeCommand
 
           lines = []
 
-          if not CommandLine::cmdline args['cmdline'], args do |line, stdin, wait_thr|
-              Util::Logger::puts line
+          if home.nil?
+            if not CommandLine::cmdline args['cmdline'], args do |line, stdin, wait_thr|
+                Util::Logger::puts line
 
-              lines << line
+                lines << line
 
-              if not callback.nil?
-                if not DistributeCommand::Callback::__send__ callback, args.merge({'line' => line}) do |line|
+                if not callback.nil?
+                  if not DistributeCommand::Callback::__send__ callback, args.merge({'line' => line}) do |line|
+                      Util::Logger::puts line
+                    end
+
+                    status = false
+                  end
+                end
+              end
+
+              status = false
+            end
+          else
+            if File.directory? home
+              Dir.chdir home do
+                if not CommandLine::cmdline args['cmdline'], args do |line, stdin, wait_thr|
                     Util::Logger::puts line
+
+                    lines << line
+
+                    if not callback.nil?
+                      if not DistributeCommand::Callback::__send__ callback, args.merge({'line' => line}) do |line|
+                          Util::Logger::puts line
+                        end
+
+                        status = false
+                      end
+                    end
                   end
 
                   status = false
                 end
               end
-            end
+            else
+              Util::Logger::error 'no such directory - %s' % home
 
-            status = false
+              status = false
+            end
           end
 
           if not args['callback_finish'].nil?

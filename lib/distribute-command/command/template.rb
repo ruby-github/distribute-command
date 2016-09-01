@@ -3,6 +3,227 @@ module DistributeCommand
     module_function
 
     # args
+    #   name, ip, path, to_path, ip_list
+    #   callback
+    def copy_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      callback = args['callback'].to_s.nil
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        copy_e = REXML::Element.new 'copy'
+
+        copy_e.attributes['name'] = args['name']
+        copy_e.attributes['ip'] = ip
+        copy_e.attributes['path'] = args['path']
+        copy_e.attributes['to_path'] = args['to_path']
+
+        if not callback.nil?
+          copy_e.attributes['callback'] = callback
+        end
+
+        args.each do |name, value|
+          if ['name', 'ip', 'path', 'to_path', 'callback'].include? name
+            next
+          end
+
+          copy_e.attributes[name] = value
+        end
+
+        element << copy_e
+      end
+
+      element
+    end
+
+    # args
+    #   name, ip, path, ip_list
+    #   callback
+    def delete_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      callback = args['callback'].to_s.nil
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        delete_e = REXML::Element.new 'delete'
+
+        delete_e.attributes['name'] = args['name']
+        delete_e.attributes['ip'] = ip
+        delete_e.attributes['path'] = args['path']
+
+        if not callback.nil?
+          delete_e.attributes['callback'] = callback
+        end
+
+        args.each do |name, value|
+          if ['name', 'ip', 'path', 'callback'].include? name
+            next
+          end
+
+          delete_e.attributes[name] = value
+        end
+
+        element << delete_e
+      end
+
+      element
+    end
+
+    # args
+    #   name, ip, path, ip_list
+    #   callback
+    def mkdir_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      callback = args['callback'].to_s.nil
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        mkdir_e = REXML::Element.new 'mkdir'
+
+        mkdir_e.attributes['name'] = args['name']
+        mkdir_e.attributes['ip'] = ip
+        mkdir_e.attributes['path'] = args['path']
+
+        if not callback.nil?
+          mkdir_e.attributes['callback'] = callback
+        end
+
+        args.each do |name, value|
+          if ['name', 'ip', 'path', 'callback'].include? name
+            next
+          end
+
+          mkdir_e.attributes[name] = value
+        end
+
+        element << mkdir_e
+      end
+
+      element
+    end
+
+    # args
+    #   name, ip, home, cmdline, ip_list
+    #   callback, callback_finish
+    def cmdline_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      callback = args['callback'].to_s.nil
+      callback_finish = args['callback_finish'].to_s.nil
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        cmdline_e = REXML::Element.new 'cmdline'
+
+        cmdline_e.attributes['name'] = args['name']
+        cmdline_e.attributes['ip'] = ip
+        cmdline_e.attributes['home'] = args['home']
+        cmdline_e.attributes['cmdline'] = args['cmdline']
+
+        if not callback.nil?
+          cmdline_e.attributes['callback'] = callback
+        end
+
+        if not callback_finish.nil?
+          cmdline_e.attributes['callback_finish'] = callback_finish
+        end
+
+        args.each do |name, value|
+          if ['name', 'ip', 'home', 'cmdline', 'callback', 'callback_finish'].include? name
+            next
+          end
+
+          cmdline_e.attributes[name] = value
+        end
+
+        element << cmdline_e
+      end
+
+      element
+    end
+
+    # args
+    #   name, ip, function, ip_list
+    #   callback
+    def function_list args = nil
+      args ||= {}
+
+      ip_list = args['ip_list'].to_s.nil
+      args.delete 'ip_list'
+
+      if not ip_list.nil?
+        ip_list = ip_list.split(',').map {|x| x.nil}.uniq
+      end
+
+      callback = args['callback'].to_s.nil
+
+      element = REXML::Element.new 'parallel'
+
+      ip_list.to_array.each do |ip|
+        function_e = REXML::Element.new 'function'
+
+        function_e.attributes['name'] = args['name']
+        function_e.attributes['ip'] = ip
+        function_e.attributes['function'] = args['function']
+
+        if not callback.nil?
+          function_e.attributes['callback'] = callback
+        end
+
+        args.each do |name, value|
+          if ['name', 'ip', 'function', 'callback'].include? name
+            next
+          end
+
+          function_e.attributes[name] = value
+        end
+
+        element << function_e
+      end
+
+      element
+    end
+  end
+
+  module Template
+    module_function
+
+    # args
     #   file
     def import_xml args = nil
       args ||= {}
@@ -116,6 +337,10 @@ module DistributeCommand
 
       function_e
     end
+  end
+
+  module Template
+    module_function
 
     # args
     #   name, ip, home, installation_home, silencefile, license

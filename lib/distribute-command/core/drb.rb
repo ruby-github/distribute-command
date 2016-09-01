@@ -383,15 +383,17 @@ module DRb
     def cmdline cmdline, args = nil
       args ||= {}
 
-      if args['home'].nil?
+      home = args['home'].to_s.nil
+
+      if home.nil?
         CommandLine::cmdline cmdline, args do |line, stdin, wait_thr|
           if block_given?
             yield line, stdin, wait_thr
           end
         end
       else
-        if File.directory? args['home']
-          Dir.chdir args['home'] do
+        if File.directory? home
+          Dir.chdir home do
             CommandLine::cmdline cmdline, args do |line, stdin, wait_thr|
               if block_given?
                 yield line, stdin, wait_thr
@@ -399,6 +401,8 @@ module DRb
             end
           end
         else
+          Util::Logger::error 'no such directory - %s' % home
+
           false
         end
       end
