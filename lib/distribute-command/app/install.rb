@@ -10,7 +10,7 @@ module Install
 
     path = installation installation_home, version, type
 
-    if ['sdn'].include? type
+    if ['stn'].include? type
       installdisk_file = 'installdisk_sdn.xml'
     else
       installdisk_file = 'installdisk.xml'

@@ -535,7 +535,7 @@ module Jenkins
 
         data = sht.data
         data.shift
-        head = data.shift || []
+        data.shift
 
         data.each do |x|
           x[1].to_s.gsub(';', "\n").lines.each do |line|
@@ -556,8 +556,8 @@ module Jenkins
             map[modulename] ||= {}
             map[modulename][name] = {
               :info   => {
-                head[2] => [x[2], x[3], x[4]],
-                head[5] => [x[5], x[6], x[7]]
+                'IPTN项目'  => [x[2], x[3], x[4]],
+                'OTN项目'   => [x[5], x[6], x[7]]
               },
               :change => nil
             }
@@ -597,7 +597,7 @@ module Jenkins
           args = '@%s..@%s' % [start_date, finish_date]
         end
 
-        info = SCM::info path, args
+        info = SCM::log path, args
 
         if info.nil?
           return false
@@ -637,7 +637,7 @@ module Jenkins
             application = Excel::Application.new
 
             wk = application.add File.join(gem_dir('distribute-command'), 'doc/bn/change_template.xltx')
-            sht = wk.worksheets 1
+            sht = wk.worksheet 1
           rescue
             Util::Logger::exception $!
 
