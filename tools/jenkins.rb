@@ -431,6 +431,9 @@ module Jenkins
         ['home', '工作目录', 'cppcheck']
       ]
 
+      args[:logrotator_days] = 7
+      args[:logrotator_num] = 30
+
       super args
     end
 
@@ -585,6 +588,26 @@ module Jenkins
     def initialize
       @cmdline = 'mvn deploy -fn -U -T 5'
       @cmdline_cpp = 'mvn deploy -fn -U -T 10 -Djobs=10'
+
+      @args_logrotator = {
+        :logrotator_days  => 31,
+        :logrotator_num   => 150
+      }
+
+      @args_logrotator_command = {
+        :logrotator_days  => 3,
+        :logrotator_num   => 20
+      }
+
+      @args_logrotator_module = {
+        :logrotator_days  => 7,
+        :logrotator_num   => 30
+      }
+
+      @args_logrotator_compile_module = {
+        :logrotator_days  => 7,
+        :logrotator_num   => 500
+      }
     end
 
     def build
@@ -742,30 +765,14 @@ module Jenkins
 
         pipeline = Jenkins::Pipeline.new k
 
-        case
-        when ['bn_compile_module', 'bn_compile_cpp_module'].include?(k)
-          args = {
-            :logrotator_days  => 7,
-            :logrotator_num   => 500
-          }
-
-          pipeline.build v.merge(args)
-        when ['bn_check_module', 'bn_check_cpp_module'].include?(k)
-          args = {
-            :logrotator_days  => 7,
-            :logrotator_num   => 100
-          }
-
-          pipeline.build v.merge(args)
-        when ['bn_deploy', 'bn_update_devtools', 'bn_update_module', 'bn_install_uep', 'bn_install_module'].include?(k)
-          args = {
-            :logrotator_days  => 3,
-            :logrotator_num   => 100
-          }
-
-          pipeline.build v.merge(args)
+        if k.include? '_module'
+          if k.include? '_compile_'
+            pipeline.build v.merge(@args_logrotator_compile_module)
+          else
+            pipeline.build v.merge(@args_logrotator_module)
+          end
         else
-          pipeline.build v
+          pipeline.build v.merge(@args_logrotator)
         end
       end
 
@@ -833,16 +840,14 @@ module Jenkins
 
         pipeline = Jenkins::Pipeline.new k
 
-        case
-        when ['bn_compile_module_win', 'bn_compile_cpp_module_win'].include?(k)
-          args = {
-            :logrotator_days  => 7,
-            :logrotator_num   => 200
-          }
-
-          pipeline.build v.merge(args)
+        if k.include? '_module'
+          if k.include? '_compile_'
+            pipeline.build v.merge(@args_logrotator_compile_module)
+          else
+            pipeline.build v.merge(@args_logrotator_module)
+          end
         else
-          pipeline.build v
+          pipeline.build v.merge(@args_logrotator)
         end
       end
 
@@ -863,7 +868,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'bn_command'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator_command)
 
       parameters = [
         ['home', '工作目录', '/home/user/build/main'],
@@ -910,7 +915,7 @@ module Jenkins
         v[:parameters] = parameters + v[:parameters]
 
         pipeline = Jenkins::Pipeline.new k
-        pipeline.build v
+        pipeline.build v.merge(@args_logrotator_module)
       end
     end
 
@@ -1025,30 +1030,14 @@ module Jenkins
 
         pipeline = Jenkins::Pipeline.new k
 
-        case
-        when ['stn_compile_module'].include?(k)
-          args = {
-            :logrotator_days  => 7,
-            :logrotator_num   => 200
-          }
-
-          pipeline.build v.merge(args)
-        when ['stn_check_module'].include?(k)
-          args = {
-            :logrotator_days  => 7,
-            :logrotator_num   => 100
-          }
-
-          pipeline.build v.merge(args)
-        when ['stn_deploy', 'stn_update_module', 'stn_install_uep', 'stn_install_module'].include?(k)
-          args = {
-            :logrotator_days  => 3,
-            :logrotator_num   => 100
-          }
-
-          pipeline.build v.merge(args)
+        if k.include? '_module'
+          if k.include? '_compile_'
+            pipeline.build v.merge(@args_logrotator_compile_module)
+          else
+            pipeline.build v.merge(@args_logrotator_module)
+          end
         else
-          pipeline.build v
+          pipeline.build v.merge(@args_logrotator)
         end
       end
 
@@ -1096,16 +1085,14 @@ module Jenkins
 
         pipeline = Jenkins::Pipeline.new k
 
-        case
-        when ['stn_compile_module_win'].include?(k)
-          args = {
-            :logrotator_days  => 7,
-            :logrotator_num   => 100
-          }
-
-          pipeline.build v.merge(args)
+        if k.include? '_module'
+          if k.include? '_compile_'
+            pipeline.build v.merge(@args_logrotator_compile_module)
+          else
+            pipeline.build v.merge(@args_logrotator_module)
+          end
         else
-          pipeline.build v
+          pipeline.build v.merge(@args_logrotator)
         end
       end
 
@@ -1123,11 +1110,18 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'stn_command'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
     end
   end
 
   class Build
+    def initialize
+      @args_logrotator = {
+        :logrotator_days  => 31,
+        :logrotator_num   => 150
+      }
+    end
+
     def build name = nil
       bn_build name
       stn_build name
@@ -1206,7 +1200,7 @@ module Jenkins
         v[:concurrent] = false
 
         pipeline = Jenkins::Pipeline.new k
-        pipeline.build v
+        pipeline.build v.merge(@args_logrotator)
       end
     end
 
@@ -1256,12 +1250,19 @@ module Jenkins
         v[:concurrent] = false
 
         pipeline = Jenkins::Pipeline.new k
-        pipeline.build v
+        pipeline.build v.merge(@args_logrotator)
       end
     end
   end
 
   class Dashboard
+    def initialize
+      @args_logrotator = {
+        :logrotator_days  => 3,
+        :logrotator_num   => 3
+      }
+    end
+
     def build
       bn_build
       stn_build
@@ -1270,11 +1271,6 @@ module Jenkins
     private
 
     def bn_build
-      args_logrotator = {
-        :logrotator_days  => 3,
-        :logrotator_num   => 10
-      }
-
       parameters = [
         ['list',    '变更列表', ''],
         ['authors', '变更人员', '']
@@ -1307,7 +1303,7 @@ module Jenkins
             }
 
             pipeline = Jenkins::Pipeline.new '%s_%s_%s' % [index + 1, module_name, name]
-            pipeline.build args.merge(args_logrotator)
+            pipeline.build args.merge(@args_logrotator)
           end
 
           if cpp
@@ -1318,7 +1314,7 @@ module Jenkins
             }
 
             pipeline = Jenkins::Pipeline.new '%s_%s_%s_cpp' % [index + 1, module_name, name]
-            pipeline.build args.merge(args_logrotator)
+            pipeline.build args.merge(@args_logrotator)
           end
         end
 
@@ -1330,7 +1326,7 @@ module Jenkins
           }
 
           pipeline = Jenkins::Pipeline.new '%s_dashboard' % module_name
-          pipeline.build args
+          pipeline.build args.merge(@args_logrotator)
         end
 
         if cpp
@@ -1341,7 +1337,7 @@ module Jenkins
           }
 
           pipeline = Jenkins::Pipeline.new '%s_dashboard_cpp' % module_name
-          pipeline.build args
+          pipeline.build args.merge(@args_logrotator)
         end
       end
 
@@ -1361,7 +1357,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'dashboard_cron'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
 
       args = {
         :parameters => [],
@@ -1375,15 +1371,10 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'dashboard_bn_polling'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
     end
 
     def stn_build
-      args_logrotator = {
-        :logrotator_days  => 3,
-        :logrotator_num   => 10
-      }
-
       parameters = [
         ['list',    '变更列表', ''],
         ['authors', '变更人员', '']
@@ -1397,7 +1388,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new '%s_stn_%s' % [index + 1, name]
-        pipeline.build args.merge(args_logrotator)
+        pipeline.build args.merge(@args_logrotator)
       end
 
       args = {
@@ -1407,7 +1398,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'stn_dashboard'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
 
       args = {
         :parameters => [],
@@ -1421,7 +1412,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'dashboard_stn_polling'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
     end
   end
 
@@ -1431,6 +1422,11 @@ module Jenkins
       @stn_init = false
 
       @args_logrotator = {
+        :logrotator_days  => 3,
+        :logrotator_num   => 10
+      }
+
+      @args_logrotator_module = {
         :logrotator_days  => 3,
         :logrotator_num   => 30
       }
@@ -1466,7 +1462,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'bn_patch_module'
-        pipeline.build args.merge(@args_logrotator)
+        pipeline.build args.merge(@args_logrotator_module)
 
         args = {
           :script_path  => 'bn/patch.groovy',
@@ -1477,7 +1473,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'bn_patch'
-        pipeline.build args.merge(@args_logrotator)
+        pipeline.build args.merge(@args_logrotator_module)
       end
 
       osnames ||= [:linux, :solaris, :windows, :windows32]
@@ -1504,7 +1500,7 @@ module Jenkins
           }
 
           pipeline = Jenkins::Pipeline.new 'bn_patch_%s_%s' % [File.basename(name), osname]
-          pipeline.build args
+          pipeline.build args.merge(@args_logrotator)
         end
       end
     end
@@ -1535,7 +1531,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'stn_patch_module'
-        pipeline.build args.merge(@args_logrotator)
+        pipeline.build args.merge(@args_logrotator_module)
 
         args = {
           :script_path  => 'stn/patch.groovy',
@@ -1545,7 +1541,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'stn_patch'
-        pipeline.build args.merge(@args_logrotator)
+        pipeline.build args.merge(@args_logrotator_module)
       end
 
       names.to_array.each do |name|
@@ -1569,7 +1565,7 @@ module Jenkins
         }
 
         pipeline = Jenkins::Pipeline.new 'stn_patch_%s' % File.basename(name)
-        pipeline.build args
+        pipeline.build args.merge(@args_logrotator)
       end
     end
   end
@@ -1578,6 +1574,10 @@ end
 module Jenkins
   class Tools
     def initialize
+      @args_logrotator = {
+        :logrotator_days  => 3,
+        :logrotator_num   => 10
+      }
     end
 
     def build
@@ -1594,7 +1594,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'autopatch'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
 
       args = {
         :script_path  => 'tools/bn_patch_init.groovy',
@@ -1611,7 +1611,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'bn_patch_init'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
 
       args = {
         :script_path  => 'tools/stn_patch_init.groovy',
@@ -1625,7 +1625,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'stn_patch_init'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
 
       args = {
         :script_path  => 'tools/scm_change.groovy',
@@ -1637,7 +1637,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'scm_change'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
 
       args = {
         :script_path  => 'tools/log_search.groovy',
@@ -1649,7 +1649,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'log_search'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
 
       args = {
         :authorization=> ['bnbuild'],
@@ -1662,7 +1662,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'autotest_update'
-      pipeline.build args
+      pipeline.build args.merge(@args_logrotator)
     end
   end
 end
