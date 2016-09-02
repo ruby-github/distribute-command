@@ -1057,7 +1057,7 @@ namespace :bn do
         outfile = File.join File.dirname(File.expand_path(home)), 'kloc/java', module_name, 'kwinject/kwinject.out'
 
         if File.file? outfile
-          Dir.chdir File.dirname(outfile) do
+          Dir.chdir File.dirname(File.dirname(outfile)) do
             kwname = 'bnxtn-%s-java' % module_name.downcase
 
             found = false
@@ -1180,7 +1180,7 @@ namespace :bn do
         outfile = File.join File.dirname(File.expand_path(home)), 'kloc/cpp', module_name, 'kwinject/kwinject.out'
 
         if File.file? outfile
-          Dir.chdir File.dirname(outfile) do
+          Dir.chdir File.dirname(File.dirname(outfile)) do
             kwname = 'bnxtn-%s-cpp' % module_name.downcase
 
             found = false
