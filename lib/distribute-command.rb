@@ -6,34 +6,47 @@
 #
 # String
 #
-# $klocwork_http
-# $username, $password
-# $smtp_username, $smtp_password
-# $branch, $home
+#   $klocwork_http
+#
+#   $username, $password
+#   $smtp_username, $smtp_password
+#
+#   $version, $display_version, $nfm_version
+#   $branch, $home, $code_home, $build_home, $devtools_home
+#   $installation_home, $installation_uep, $fi2cpp_home, $license_home
+#
+#   $bn_metric_id_e2e, $bn_metric_id_iptn, $bn_metric_id_iptn_nj, $bn_metric_id_naf, $bn_metric_id_wdm, $stn_metric_id
 #
 # Filename
 #
-# $asn1_ignore_file, $asn1_sort_file
+#   $asn1_ignore_file, $asn1_sort_file
 #
 # Boolean
 #
-# $klocwork_build
-# $logging
-# $sendmail
-# $xml_comment_indent, $xml_text_indent
-# $x64
+#   $klocwork_build
+#
+#   $logging
+#   $sendmail
+#   $xml_comment_indent, $xml_text_indent
+#   $x64
+#
+#   $metric
 #
 # Array
 #
-# $mail_admin, $mail_cc
+#   $mail_admin, $mail_cc
 #
 # Hash
 #
-# $asn1_cmdcode
+#   $asn1_cmdcode
+#
+# Time
+#
+#   $start_date, $finish_date
 #
 # Object
 #
-# $drb
+#   $drb
 #
 # ---------------------------------------------------------
 

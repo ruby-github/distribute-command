@@ -612,7 +612,7 @@ module Install
           end
 
           if zip.add src, dest do |src_file, dest_file|
-              if ignore? src_file, ignores
+              if ignore? src_file, ignores, home
                 src_file = nil
               else
                 if File.file? src_file
@@ -867,6 +867,364 @@ module Install
 
   class << self
     private :installation, :installdisk, :expandname, :ignore?, :zip, :cut_installation_upgrade
+  end
+end
+
+module Install
+  module_function
+
+  def install_update home, dirname, installation_home, version, display_version, type = nil
+    if not File.directory? home
+      Util::Logger::error 'no such directory - %s' % home
+
+      return false
+    end
+
+    path = installation installation_home, version, type
+
+    if dirname.nil?
+      xpath = File.join '*/trunk/installdisk/updatedisk.xml'
+    else
+      xpath = File.join dirname, 'installdisk/updatedisk.xml'
+    end
+
+    map = installdisk home, xpath, version, display_version, type
+
+    if not map.nil?
+      File.tmpdir do |tmpdir|
+        zip home, map, tmpdir, nil, nil, type, nil do |name, ver|
+          File.join path, 'update', '%s %s.zip' % [name, ver]
+        end
+      end
+    else
+      false
+    end
+  end
+
+  def install_update_uep home, installation_uep, installation_home, version, type = nil
+    if not File.directory? File.join(installation_uep, 'installation')
+      Util::Logger::error 'no such directory - %s' % File.join(installation_uep, 'installation')
+
+      return false
+    end
+
+    type ||= 'ems'
+
+    path = File.join installation(installation_home, version, type), 'update'
+
+    if not File.delete path do |file|
+        Util::Logger::info file
+
+        file
+      end
+
+      return false
+    end
+
+    if File.directory? File.join(installation_uep, 'extends', type.to_s, 'update')
+      if not File.copy File.join(installation_uep, 'extends', type.to_s, 'update'), path do |src, dest|
+          Util::Logger::info src
+
+          [src, dest]
+        end
+
+        File.delete path
+
+        return false
+      end
+    end
+
+    true
+  end
+end
+
+module Install
+  def install_lct home, installation_uep, installation_home, version, display_version, zh = true,
+    fi2cpp_home = nil, license_home = nil
+    if not File.directory? home
+      Util::Logger::error 'no such directory - %s' % home
+
+      return false
+    end
+
+    if not File.directory? installation_uep
+      Util::Logger::error 'no such directory - %s' % installation_uep
+
+      return false
+    end
+
+    path = installation installation_home, version, 'lct'
+
+    fi2cpp_home ||= File.join path, '../../../fi2cpp'
+    license_home ||= File.join path, '../../../license'
+
+    if File.directory? File.join(fi2cpp_home, 'bnmain1')
+      fi2cpp = fi2cpp_home
+    else
+      fi2cpp = File.glob(File.join(fi2cpp_home, '**/fi2cpp')).first
+    end
+
+    if fi2cpp.nil?
+      Util::Logger::error 'no such directory - %s' % File.join(fi2cpp_home, '**/fi2cpp')
+
+      return false
+    end
+
+    if File.file? File.join(license_home, 'ums-license_LCT.LCS')
+      license = File.join license_home, 'ums-license_LCT.LCS'
+    else
+      license = File.glob(File.join(license_home, '**/ums-license_LCT.LCS')).first
+    end
+
+    if license.nil?
+      Util::Logger::error 'no such file - %s' % File.join(license_home, '**/ums-server/works/uep/deploy/ums-license_LCT.LCS')
+
+      return false
+    end
+
+    if zh
+      lang = 'zh'
+    else
+      lang = 'en'
+    end
+
+    File.tmpdir do |tmpdir|
+      if not File.copy File.join(installation_uep, 'lct-%s' % lang), File.join(tmpdir, lang, 'lct') do |src, dest|
+          Util::Logger::info src
+
+          [src, dest]
+        end
+
+        return false
+      end
+
+      if not File.copy File.join(gem_dir('distribute-command'), 'doc/bn/lct'), File.join(tmpdir, lang, 'lct') do |src, dest|
+          Util::Logger::info src
+
+          [src, dest]
+        end
+
+        return false
+      end
+
+      xpath = File.join '*/trunk/installdisk/installdisk.xml'
+      map = installdisk home, xpath, version, display_version, 'lct'
+
+      if map.nil?
+        return false
+      end
+
+      map.each do |name, info|
+        info[:info].each do |package, zipinfo|
+          zipinfo[:zip].each do |src, dest|
+            if not File.copy File.join(home, src), File.join(tmpdir, lang, 'lct', dest) do |src_file, dest_file|
+                if ignore? src_file, zipinfo[:ignore], home
+                  src_file = nil
+                end
+
+                Util::Logger::info src_file
+
+                [src_file, dest_file]
+              end
+
+              return false
+            end
+          end
+        end
+      end
+
+      if not File.copy fi2cpp, File.join(tmpdir, lang, 'lct', 'ums-server/works/global/runtime/fi2cpp') do |src, dest|
+          Util::Logger::info src
+
+          [src, dest]
+        end
+
+        return false
+      end
+
+      if not File.copy license, File.join(tmpdir, lang, 'lct', 'ums-server/works/uep/deploy/ums-license.LCS') do |src, dest|
+          Util::Logger::info src
+
+          [src, dest]
+        end
+
+        return false
+      end
+
+      Dir.chdir File.join(tmpdir, lang, 'lct') do
+        deletes = []
+
+        if zh
+          File.glob('install/dbscript/dbscript-zh/*').each do |path|
+            if File.basename(path) == 'mssql'
+              next
+            end
+
+            deletes << path
+          end
+
+          deletes << 'install/dbscript/dbscript-zh/mssql/e2e'
+          deletes << 'install/dbscript/dbscript-en'
+        else
+          File.glob('install/dbscript/dbscript-en/*').each do |path|
+            if File.basename(path) == 'mssql'
+              next
+            end
+
+            deletes << path
+          end
+
+          deletes << 'install/dbscript/dbscript-en/mssql/e2e'
+          deletes << 'install/dbscript/dbscript-zh'
+        end
+
+        deletes << 'install/plugins/installdb/uep/impl/uif-7-e2esubnet-jdbc.xml'
+        deletes << 'install/plugins/installdb/uep/impl/uninstall-7-e2esubnet-jdbc.xml'
+        deletes << 'install/plugins/installdb/uep/macro/e2esubnet-macro.properties'
+        deletes << 'install/plugins/installdb/uep/macro/e2esubnet-dbpath.xml'
+        deletes << 'ums-server/utils/dbtool/U3RestoreE2E.xml'
+
+        File.glob('ums-server/works/*').each do |dirname|
+          if ['bnmain', 'bnsubnet', 'bnsubnetptnc', 'cluster', 'global', 'sftpd', 'uca', 'uep'].include? File.basename(dirname)
+            next
+          end
+
+          deletes << dirname
+        end
+
+        deletes << 'ums-server/works/bnsubnetptnc/bnsubnetptnc2'
+        deletes << 'ums-server/works/bnsubnetptnc/bnsubnetptnc3'
+
+        if not File.delete deletes do |file|
+            Util::Logger::info file
+
+            file
+          end
+
+          return false
+        end
+
+        map = {
+          'ums-server/works/global/deploy/deploy-jca-bn-bnmain.properties'  => {
+            /^bn\.core\.serverid\s*=/     => 'bn.core.serverid=49169'
+          },
+          'ums-server/works/global/deploy/deploy-bn-lct.properties'         => {
+            /^bn\.networkType\s*=\s*EMS/  => 'bn.networkType=LCT'
+          },
+          'ums-server/works/global/deploy/deploy-usf.properties'            => {
+            /^ums\.version\.main\s*=/     => 'ums.version.main=%s' % version,
+            /^ums\.version\.patch\s*=/    => 'ums.version.patch='
+          }
+        }
+
+        map.each do |file, info|
+          lines = []
+
+          IO.readlines(file).each do |line|
+            line.strip!
+
+            info.each do |regexp, value|
+              if line =~ regexp
+                line = value
+
+                break
+              end
+            end
+
+            lines << line
+          end
+
+          File.open file, 'w' do |f|
+            lines.each do |line|
+              f.puts line
+            end
+          end
+        end
+
+        File.glob('{ums-server,ums-client}/**/{ppuinfo.xml,pmuinfo.xml}').each do |file|
+          begin
+            doc = REXML::Document.file file
+
+            REXML::XPath.each(doc, '/ppu/info | /pmu/info') do |e|
+              e.attributes['version'] = version
+              e.attributes['display-version'] = display_version
+            end
+
+            doc.to_file file
+          rescue
+            Util::Logger::exception $!
+
+            return false
+          end
+        end
+
+        File.glob('ums-server/utils/dbtool/{U3Backup.xml,U3BackupMe.xml}').each do |file|
+          begin
+            doc = REXML::Document.file file
+
+            REXML::XPath.each(doc, '/T3UpdateConfig/version') do |e|
+              e.text = version
+            end
+
+            doc.to_file file
+          rescue
+            Util::Logger::exception $!
+
+            return false
+          end
+        end
+
+        File.glob('ums-server/utils/dbtool/conf/dbtool-config.xml').each do |file|
+          begin
+            doc = REXML::Document.file file
+
+            REXML::XPath.each(doc, '/dbtool/ems_type') do |e|
+              e.text = 'lct'
+            end
+
+            doc.to_file file
+          rescue
+            Util::Logger::exception $!
+
+            return false
+          end
+        end
+      end
+
+      Dir.chdir File.join(tmpdir, lang) do
+        [
+          '7z a -m0=LZMA lct.7z ./lct/*',
+          'copy /b 7z.sfx+config.txt+lct.7z lct_setup.exe'
+        ].each do |cmdline|
+          if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+              Util::Logger::puts line
+            end
+
+            return false
+          end
+        end
+      end
+
+      if not File.delete File.join(path, 'lct_%s_setup.exe' % lang) do |file|
+          Util::Logger::info file
+
+          file
+        end
+
+        return false
+      end
+
+      if not File.move File.join(tmpdir, lang, 'lct_setup.exe'), File.join(path, 'lct_%s_setup.exe' % lang), true do |file|
+          Util::Logger::puts file
+
+          file
+        end
+
+        return false
+      end
+    end
+
+    true
   end
 end
 

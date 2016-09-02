@@ -658,6 +658,73 @@ namespace :bn do
 
       status.exit
     end
+
+    task :update_uep, [:home, :installation_uep, :installation_home, :version, :type] do |t, args|
+      home = args[:home].to_s.nil || ($home || 'code')
+      installation_uep = args[:installation_uep].to_s.nil || $installation_uep
+      installation_home = args[:installation_home].to_s.nil || $installation_home
+      version = args[:version].to_s.nil || $version
+      type = args[:type].to_s.nil
+
+      status = true
+
+      if not Install::install_update_uep home, installation_uep, installation_home, version, type
+        status = false
+      end
+
+      status.exit
+    end
+
+    task :install_update, [:name, :home, :installation_home, :version, :display_version, :type] do |t, args|
+      name = args[:name].to_s.nil
+      home = args[:home].to_s.nil || ($home || 'code')
+      installation_home = args[:installation_home].to_s.nil || $installation_home
+      version = args[:version].to_s.nil || $version
+      display_version = args[:display_version].to_s.nil || ($display_version || version)
+      type = args[:type].to_s.nil
+
+      defaults = BN_PATHS
+
+      if name.nil?
+        name = defaults.keys
+      end
+
+      status = true
+
+      name.to_array.each do |module_name|
+        if not defaults.keys.include? module_name
+          Util::Logger::error 'no such module @bn:install:install_update - %s' % module_name
+          status = false
+
+          next
+        end
+
+        if not Install::install_update home, defaults[module_name], installation_home, version, display_version, type
+          status = false
+        end
+      end
+
+      status.exit
+    end
+
+    task :install_lct, [:home, :installation_uep, :installation_home, :version, :display_version, :zh, :fi2cpp_home, :license_home] do |t, args|
+      home = args[:home].to_s.nil || ($home || 'code')
+      installation_uep = args[:installation_uep].to_s.nil || $installation_uep
+      installation_home = args[:installation_home].to_s.nil || $installation_home
+      version = args[:version].to_s.nil || $version
+      display_version = args[:display_version].to_s.nil || ($display_version || version)
+      zh = args[:zh].to_s.boolean true
+      fi2cpp_home = args[:fi2cpp_home].to_s.nil || $fi2cpp_home
+      license_home = args[:license_home].to_s.nil || $license_home
+
+      status = true
+
+      if not Install::install_lct home, installation_uep, installation_home, version, display_version, zh, fi2cpp_home, license_home
+        status = false
+      end
+
+      status.exit
+    end
   end
 
   namespace :check do
