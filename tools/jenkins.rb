@@ -1110,7 +1110,7 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'stn_command'
-      pipeline.build args.merge(@args_logrotator)
+      pipeline.build args.merge(@args_logrotator_command)
     end
   end
 
