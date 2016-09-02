@@ -569,8 +569,14 @@ module Patch
               Compile::mvn dirname, 'mvn clean -fn -U'
             end
 
-            if not Compile::mvn dirname, 'mvn deploy -fn -U', false, true
-              return false
+            if dirname.include? '/code_c/'
+              if not Compile::mvn dirname, 'mvn deploy -Djobs=5 -fn -U', false, true
+                return false
+              end
+            else
+              if not Compile::mvn dirname, 'mvn deploy -fn -U', false, true
+                return false
+              end
             end
           end
         end
