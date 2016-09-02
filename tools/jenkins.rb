@@ -629,7 +629,7 @@ module Jenkins
       ]
 
       {
-        'bn_build'      => {
+        'bn_build'                  => {
           :script_path  => 'bn/build.groovy',
           :parameters   => [
             ['update',  '版本更新', true],
@@ -644,17 +644,17 @@ module Jenkins
             ['type',            '版本类型',   '']
           ]
         },
-        'bn_update'     => {
+        'bn_update'                 => {
           :script_path  => 'bn/update.groovy',
           :parameters   => []
         },
-        'bn_deploy'  => {
+        'bn_deploy'                 => {
           :script_path  => 'bn/deploy.groovy',
           :parameters   => [
             ['version', '版本号', '']
           ]
         },
-        'bn_compile'    => {
+        'bn_compile'                => {
           :script_path  => 'bn/compile.groovy',
           :parameters   => [
             ['cmdline', '编译命令', @cmdline],
@@ -662,7 +662,7 @@ module Jenkins
             ['version', '版本号',   '']
           ]
         },
-        'bn_compile_cpp'=> {
+        'bn_compile_cpp'            => {
           :script_path  => 'bn/compile_cpp.groovy',
           :parameters   => [
             ['cmdline', '编译命令', @cmdline_cpp],
@@ -670,7 +670,7 @@ module Jenkins
             ['version', '版本号',   '']
           ]
         },
-        'bn_install'    => {
+        'bn_install'                => {
           :authorization=> ['bnbuild'],
           :script_path  => 'bn/install.groovy',
           :parameters   => [
@@ -679,15 +679,33 @@ module Jenkins
             ['type',            '版本类型',   '']
           ]
         },
-        'bn_check'      => {
+        'bn_install_update'         => {
+          :authorization=> ['bnbuild'],
+          :script_path  => 'bn/install_update.groovy',
+          :parameters   => [
+            ['version',         '版本号',     ''],
+            ['display_version', '显示版本号', ''],
+            ['type',            '版本类型',   '']
+          ]
+        },
+        'bn_install_lct'            => {
+          :authorization=> ['bnbuild'],
+          :script_path  => 'bn/install_lct.groovy',
+          :parameters   => [
+            ['version',         '版本号',     ''],
+            ['display_version', '显示版本号', ''],
+            ['zh',              '中文版本',   true]
+          ]
+        },
+        'bn_check'                  => {
           :script_path  => 'bn/check.groovy',
           :parameters   => []
         },
-        'bn_check_cpp'  => {
+        'bn_check_cpp'              => {
           :script_path  => 'bn/check_cpp.groovy',
           :parameters   => []
         },
-        'bn_test'       => {
+        'bn_test'                   => {
           :authorization=> ['bnbuild'],
           :script_path  => 'bn/test.groovy',
           :parameters   => [
@@ -696,17 +714,17 @@ module Jenkins
           ]
         },
 
-        'bn_update_devtools'    => {
+        'bn_update_devtools'        => {
           :script_path  => 'bn/update_devtools.groovy',
           :parameters   => []
         },
-        'bn_update_module'      => {
+        'bn_update_module'          => {
           :script_path  => 'bn/update_module.groovy',
           :parameters   => [
             ['name', '模块名称', '']
           ]
         },
-        'bn_compile_module'     => {
+        'bn_compile_module'         => {
           :script_path  => 'bn/compile_module.groovy',
           :parameters   => [
             ['name',    '模块名称', ''],
@@ -717,7 +735,7 @@ module Jenkins
             ['version', '版本号',   '']
           ]
         },
-        'bn_compile_cpp_module' => {
+        'bn_compile_cpp_module'     => {
           :script_path  => 'bn/compile_cpp_module.groovy',
           :parameters   => [
             ['name',    '模块名称', ''],
@@ -728,14 +746,21 @@ module Jenkins
             ['version', '版本号',   '']
           ]
         },
-        'bn_install_uep'        => {
+        'bn_install_uep'            => {
           :script_path  => 'bn/install_uep.groovy',
           :parameters   => [
             ['version', '版本号',   ''],
             ['type',    '版本类型', '']
           ]
         },
-        'bn_install_module'     => {
+        'bn_install_uep_update'     => {
+          :script_path  => 'bn/install_uep_update.groovy',
+          :parameters   => [
+            ['version', '版本号',   ''],
+            ['type',    '版本类型', '']
+          ]
+        },
+        'bn_install_module'         => {
           :script_path  => 'bn/install_module.groovy',
           :parameters   => [
             ['name',            '模块名称',   ''],
@@ -744,7 +769,16 @@ module Jenkins
             ['type',            '版本类型',   '']
           ]
         },
-        'bn_check_module'       => {
+        'bn_install_update_module'  => {
+          :script_path  => 'bn/install_update_module.groovy',
+          :parameters   => [
+            ['name',            '模块名称',   ''],
+            ['version',         '版本号',     ''],
+            ['display_version', '显示版本号', ''],
+            ['type',            '版本类型',   '']
+          ]
+        },
+        'bn_check_module'           => {
           :script_path  => 'bn/check_module.groovy',
           :parameters   => [
             ['name', '模块名称', '']
@@ -757,7 +791,7 @@ module Jenkins
           ]
         }
       }.each do |k, v|
-        if k == 'bn_test'
+        if ['bn_install_lct', 'bn_test'].include? k
           v[:parameters] = parameters_test + v[:parameters]
         else
           v[:parameters] = parameters + v[:parameters]

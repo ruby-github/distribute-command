@@ -659,7 +659,7 @@ namespace :bn do
       status.exit
     end
 
-    task :update_uep, [:home, :installation_uep, :installation_home, :version, :type] do |t, args|
+    task :uep_update, [:home, :installation_uep, :installation_home, :version, :type] do |t, args|
       home = args[:home].to_s.nil || ($home || 'code')
       installation_uep = args[:installation_uep].to_s.nil || $installation_uep
       installation_home = args[:installation_home].to_s.nil || $installation_home
