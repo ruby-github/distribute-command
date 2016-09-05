@@ -41,7 +41,7 @@ module Patch
               $errors = nil
               $loggers = nil
 
-              filename = File.basename file
+              filename = File.basename(file).utf8
 
               Util::Logger::cmdline '[patch:exec]' % filename
 
@@ -570,7 +570,7 @@ module Patch
             end
 
             if dirname.include? '/code_c/'
-              if not Compile::mvn dirname, 'mvn deploy -Djobs=5 -fn -U', false, true
+              if not Compile::mvn dirname, 'mvn deploy -fn -U', false, true
                 return false
               end
             else
