@@ -232,9 +232,9 @@ namespace :bn do
 
       [
         'BN_Platform/trunk/pom/version',
-        'BN_Platform/trunk/code/tools/testframework',
+        'BN_Platform/trunk/pom/testframework',
         'BN_Platform/trunk/pom/cpp',
-        'BN_Platform/trunk/pom'
+        'BN_Platform/trunk/pom/java'
       ].each do |path|
         if not Compile::mvn File.join(home, path), 'mvn deploy'
           status = false
