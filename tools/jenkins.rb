@@ -1014,7 +1014,7 @@ module Jenkins
           :script_path  => 'stn/test.groovy',
           :parameters   => [
             ['version', '版本号',     ''],
-            ['reboot',  '重启测试机', true]
+            ['reboot',  '重启测试机', false]
           ]
         },
 
