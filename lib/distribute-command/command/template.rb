@@ -484,6 +484,15 @@ module DistributeCommand
 
       delete_e = REXML::Element.new 'delete'
 
+      delete_e.attributes['name'] = '${name}:清除临时安装文件'
+      delete_e.attributes['path'] = '${tmpdir}/../install_tmp*'
+      delete_e.attributes['ensure'] = 'true'
+      delete_e.attributes['skipfail'] = 'true'
+
+      element << delete_e
+
+      delete_e = REXML::Element.new 'delete'
+
       delete_e.attributes['name'] = '${name}:清除临时文件'
       delete_e.attributes['path'] = '${tmpdir}'
       delete_e.attributes['ensure'] = 'true'
@@ -641,6 +650,15 @@ module DistributeCommand
       element << function_e
 
       # 清除临时文件
+
+      delete_e = REXML::Element.new 'delete'
+
+      delete_e.attributes['name'] = '${name}:清除临时安装文件'
+      delete_e.attributes['path'] = '${tmpdir}/../install_tmp*'
+      delete_e.attributes['ensure'] = 'true'
+      delete_e.attributes['skipfail'] = 'true'
+
+      element << delete_e
 
       delete_e = REXML::Element.new 'delete'
 

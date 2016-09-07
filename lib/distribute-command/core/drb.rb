@@ -237,6 +237,10 @@ module DRb
       end
     end
 
+    def system cmdline
+      @server.system cmdline
+    end
+
     def mkdir path
       begin
         @server.mkdir path do |path|
@@ -449,6 +453,10 @@ module DRb
 
       thread.join
       thread.value
+    end
+
+    def system cmdline
+      Kernel::system cmdline
     end
 
     def mkdir path

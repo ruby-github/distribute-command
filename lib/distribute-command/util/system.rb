@@ -107,4 +107,146 @@ module System
       nil
     end
   end
+
+  def update_windows_hostname ip, name, new_name
+    cmdline = 'wmic computersystem where name="%s" call rename "%s"' % [name, new_name]
+
+    status = true
+
+    if ip.nil?
+      if not system cmdline
+        status = false
+      end
+    else
+      drb = DRb::Object.new
+
+      if drb.connect ip
+        drb.system cmdline
+      else
+        begin
+          telnet = Net::Telnet::new 'Host' => ip, 'windows' => true
+
+          telnet.login 'administrator', $password || 'admin!1234' do |c|
+            print c
+          end
+
+          telnet.cmd cmdline do |c|
+            print c
+          end
+
+          telnet.cmd 'exit' do |c|
+            print c
+          end
+
+          telnet.close
+        rescue
+          status = false
+        end
+      end
+
+      drb.close
+    end
+
+    status
+  end
+
+  def update_windows_dns ip, dns1, dns2 = nil, name = nil
+    name ||= '本地连接'
+
+    cmds = []
+    cmds << 'netsh interface ip set dns name="%s" source=static addr=none' % name
+    cmds << 'netsh interface ip set dns name="%s" source=static addr=%s' % [name, dns1]
+
+    if not dns2.nil?
+      cmds << 'netsh interface ip add dnsservers name="%s" address=%s index=2' % [name, dns2]
+    end
+
+    status = true
+
+    if ip.nil?
+      cmds.each do |cmdline|
+        if not system cmdline
+          status = false
+        end
+      end
+    else
+      drb = DRb::Object.new
+
+      if drb.connect ip
+        drb.system cmdline
+      else
+        begin
+          telnet = Net::Telnet::new 'Host' => ip, 'windows' => true
+
+          telnet.login 'administrator', $password || 'admin!1234' do |c|
+            print c
+          end
+
+          cmds.each do |cmdline|
+            telnet.cmd cmdline do |c|
+              print c
+            end
+          end
+
+          telnet.cmd 'exit' do |c|
+            print c
+          end
+
+          telnet.close
+        rescue
+          status = false
+        end
+      end
+
+      drb.close
+    end
+
+    status
+  end
+
+  def update_windows_ip ip, new_ip, mask = nil, gateway = nil, name=nil
+    mask ||= '255.255.252.0'
+    gateway ||= '10.8.8.3'
+    name ||= '本地连接'
+
+    cmdline = 'start netsh interface ip set address name="%s" source=static addr=%s mask=%s gateway=%s' % [name, new_ip, mask, gateway]
+
+    status = true
+
+    if ip.nil?
+      if not system cmdline
+        status = false
+      end
+    else
+      drb = DRb::Object.new
+
+      if drb.connect ip
+        drb.system cmdline
+      else
+        begin
+          telnet = Net::Telnet::new 'Host' => ip, 'windows' => true
+
+          telnet.login 'administrator', $password || 'admin!1234' do |c|
+            print c
+          end
+
+          telnet.cmd cmdline do |c|
+            print c
+          end
+
+          telnet.cmd 'exit' do |c|
+            print c
+          end
+
+          telnet.close
+        rescue
+          status = false
+        end
+      end
+
+      drb.close
+    end
+
+    status
+  end
 end
