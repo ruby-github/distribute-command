@@ -114,14 +114,22 @@ module System
     status = true
 
     if ip.nil?
-      if not system cmdline
+      if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+          Util::Logger::puts line
+        end
+
         status = false
       end
     else
       drb = DRb::Object.new
 
       if drb.connect ip
-        drb.system cmdline
+        if not drb.cmdline cmdline do |line, stdin, wait_thr|
+            Util::Logger::puts line
+          end
+
+          status = false
+        end
       else
         begin
           telnet = Net::Telnet::new 'Host' => ip, 'windows' => true
@@ -165,7 +173,10 @@ module System
 
     if ip.nil?
       cmds.each do |cmdline|
-        if not system cmdline
+        if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+            Util::Logger::puts line
+          end
+
           status = false
         end
       end
@@ -173,7 +184,14 @@ module System
       drb = DRb::Object.new
 
       if drb.connect ip
-        drb.system cmdline
+        cmds.each do |cmdline|
+          if not drb.cmdline cmdline do |line, stdin, wait_thr|
+              Util::Logger::puts line
+            end
+
+            status = false
+          end
+        end
       else
         begin
           telnet = Net::Telnet::new 'Host' => ip, 'windows' => true
@@ -214,14 +232,21 @@ module System
     status = true
 
     if ip.nil?
-      if not system cmdline
+      if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+          Util::Logger::puts line
+        end
+
         status = false
       end
     else
       drb = DRb::Object.new
 
       if drb.connect ip
-        drb.system cmdline
+        Util::Logger::cmdline cmdline
+
+        if not drb.system cmdline
+          status = false
+        end
       else
         begin
           telnet = Net::Telnet::new 'Host' => ip, 'windows' => true
