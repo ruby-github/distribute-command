@@ -108,6 +108,112 @@ module System
     end
   end
 
+  def update_windows_gem ip, file = nil
+    file ||= 'd:/git/distribute-command/distribute-command-0.0.1.gem'
+
+    status = true
+
+    if ip.nil?
+      cmds = []
+
+      cmds << 'gem install "%s" --local -f' % file
+      cmds << 'gem cl'
+
+      cmds.each do |cmdline|
+        if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+            Util::Logger::puts line
+          end
+
+          status = false
+        end
+      end
+    else
+      name = File.join 'd:', File.basename(file)
+
+      cmds = []
+
+      cmds << 'gem install "%s" --local -f' % name
+      cmds << 'gem cl'
+
+      drb = DRb::Object.new
+
+      if drb.connect ip
+        if not drb.copy file, name do |src, dest|
+            Util::Logger::puts src
+
+            [src, dest]
+          end
+
+          status = false
+        end
+
+        if status
+          cmds.each do |cmdline|
+            if not drb.cmdline cmdline do |line, stdin, wait_thr|
+                Util::Logger::puts line
+              end
+
+              status = false
+            end
+          end
+        end
+
+        drb.delete name do |path|
+          Util::Logger::puts path
+
+          path
+        end
+      else
+        if not File.copy file, File.join('//', ip, 'd$', File.basename(name)) do |src, dest|
+            Util::Logger::puts src
+
+            [src, dest]
+          end
+
+          status = false
+        end
+
+        if status
+          begin
+            telnet = Net::Telnet::new 'Host' => ip, 'windows' => true
+
+            telnet.login 'administrator', $password || 'admin!1234' do |c|
+              print c
+            end
+
+            cmds.each do |cmdline|
+              telnet.cmd cmdline do |c|
+                print c
+              end
+            end
+
+            telnet.cmd 'exit' do |c|
+              print c
+            end
+
+            telnet.close
+          rescue
+            status = false
+          end
+        end
+
+        File.delete File.join('//', ip, 'd$', File.basename(name)) do |path|
+          Util::Logger::puts path
+
+          path
+        end
+      end
+
+      if status
+        drb.close false, true
+      else
+        drb.close
+      end
+    end
+
+    status
+  end
+
   def update_windows_hostname ip, name, new_name
     cmdline = 'wmic computersystem where name="%s" call rename "%s"' % [name, new_name]
 
