@@ -1456,13 +1456,13 @@ module Jenkins
       @stn_init = false
 
       @args_logrotator = {
-        :logrotator_days  => 3,
-        :logrotator_num   => 10
+        :logrotator_days  => 7,
+        :logrotator_num   => 200
       }
 
       @args_logrotator_module = {
-        :logrotator_days  => 3,
-        :logrotator_num   => 30
+        :logrotator_days  => 7,
+        :logrotator_num   => 500
       }
     end
 
