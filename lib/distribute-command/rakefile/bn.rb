@@ -1058,6 +1058,10 @@ namespace :bn do
           next
         end
 
+        if ['sdh'].include? module_name
+          next
+        end
+
         outfile = File.join File.dirname(File.expand_path(home)), 'kloc/java', module_name, 'kwinject/kwinject.out'
 
         if File.file? outfile
