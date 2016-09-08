@@ -1065,7 +1065,7 @@ namespace :bn do
             if not CommandLine::cmdline 'kwadmin %s list-projects' % http do |line, stdin, wait_thr|
                 Util::Logger::puts line
 
-                if kwname = line.strip
+                if kwname == line.strip
                   found = true
                 end
               end
@@ -1188,7 +1188,7 @@ namespace :bn do
             if not CommandLine::cmdline 'kwadmin %s list-projects' % http do |line, stdin, wait_thr|
                 Util::Logger::puts line
 
-                if kwname = line.strip
+                if kwname == line.strip
                   found = true
                 end
               end
