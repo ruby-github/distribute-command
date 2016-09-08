@@ -211,6 +211,8 @@ namespace :stn do
         name = defaults.keys
       end
 
+      $mail_threshold = true
+
       status = true
 
       errors_list = []

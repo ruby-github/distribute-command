@@ -324,6 +324,8 @@ namespace :bn do
         dir = 'build'
       end
 
+      $mail_threshold = true
+
       status = true
 
       errors_list = []
@@ -450,6 +452,8 @@ namespace :bn do
 
         name.uniq!
       end
+
+      $mail_threshold = true
 
       status = true
 
