@@ -1141,6 +1141,7 @@ module DistributeCommand
       element.attributes['name'] = args['name']
       element.attributes['ip'] = args['ip'].to_s.nil
       element.attributes['home'] = args['home']
+      element.attributes['skipfail'] = true
 
       element.attributes['tmpdir'] = args['tmpdir'] || 'd:/autotest_%s' % Time.now.timestamp_day
 
