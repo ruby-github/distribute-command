@@ -365,7 +365,7 @@ module DistributeCommand
     # args
     #   name, ip, home, installation_home, silencefile, license
     #   cmdline, uninstall_cmdline, tmpdir, skip, installation_home_patch, ems_locale
-    #   client, server
+    #   client, server, deletes
     def installation_iptn args = nil
       args ||= {}
 
@@ -408,6 +408,18 @@ module DistributeCommand
       copy_e.attributes['to_path'] = '${tmpdir}'
 
       element << copy_e
+
+      # 删除安装文件
+      if args.has_key? 'deletes'
+        delete_e = REXML::Element.new 'delete'
+
+        delete_e.attributes['name'] = '${name}:删除安装文件'
+        delete_e.attributes['path'] = File.join '${tmpdir}', args['deletes']
+        delete_e.attributes['ensure'] = 'true'
+        delete_e.attributes['skipfail'] = 'true'
+
+        element << delete_e
+      end
 
       # 拷贝补丁文件
 
