@@ -1296,12 +1296,14 @@ namespace :bn do
               begin
                 doc = REXML::Document.file file
 
-                REXML::XPath.each doc, '//modules/module' do |element|
-                  name = File.normalize element.text.to_s.strip
+                REXML::XPath.each doc, '//modules' do |e|
+                  REXML::XPath.each e, 'module' do |element|
+                    name = File.normalize element.text.to_s.strip
 
-                  modules.each do |module_name|
-                    if name.start_with? module_name
-                      doc.delete element
+                    modules.each do |module_name|
+                      if name.start_with? module_name
+                        e.delete element
+                      end
                     end
                   end
                 end
