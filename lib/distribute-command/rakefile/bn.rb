@@ -1119,13 +1119,11 @@ namespace :bn do
                 Util::Logger::puts line
               end
 
-              status = false
+              if not File.glob('kwbuild/*.dat').empty?
+                status = false
 
-              next
-            end
-
-            if File.glob('kwbuild/*.dat').empty?
-              next
+                next
+              end
             end
 
             cmdline = 'kwadmin %s load %s kwbuild' % [http, kwname]
@@ -1242,13 +1240,11 @@ namespace :bn do
                 Util::Logger::puts line
               end
 
-              status = false
+              if not File.glob('kwbuild/*.dat').empty?
+                status = false
 
-              next
-            end
-
-            if File.glob('kwbuild/*.dat').empty?
-              next
+                next
+              end
             end
 
             cmdline = 'kwadmin %s load %s kwbuild' % [http, kwname]

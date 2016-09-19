@@ -1653,6 +1653,7 @@ module Jenkins
             ['name',        '补丁名称例如(dev/20160727_stn, release/20160601_stn)', ''],
             ['version',     '版本号',     ''],
             ['uep_version', 'UEP版本号',  ''],
+            ['nfm_version', 'NFM版本号',  ''],
             ['oscp_version','OSCP版本号', ''],
             ['branch',      '分支名称',   '']
           ]

@@ -107,11 +107,12 @@ namespace :jenkins do
     status.exit
   end
 
-  task :stn_patch_init, [:name, :version, :uep_version, :oscp_version, :branch] do |t, args|
+  task :stn_patch_init, [:name, :version, :uep_version, :nfm_version, :oscp_version, :branch] do |t, args|
     name = args[:name].to_s.nil
     version = args[:version].to_s.nil
-    uep_version = args[:uep_version].to_s.nil || ENV['POM_ICT_VERSION']
-    oscp_version = args[:oscp_version].to_s.nil || ENV['POM_NFM_VERSION']
+    uep_version = args[:uep_version].to_s.nil || ENV['POM_UEP_VERSION']
+    nfm_version = args[:nfm_version].to_s.nil || ENV['POM_NFM_VERSION']
+    oscp_version = args[:oscp_version].to_s.nil || ENV['POM_OSCP_VERSION']
     branch = args[:branch].to_s.nil || $branch
 
     status = true
@@ -171,8 +172,9 @@ namespace :jenkins do
             f.puts '# ----------------------------------------------------------'
             f.puts
             f.puts "ENV['POM_VERSION'] = '%s'" % version.to_s.upcase.gsub(/\s+/, '')
-            f.puts "ENV['POM_ICT_VERSION'] = '%s'" % uep_version.to_s.upcase.gsub(/\s+/, '')
-            f.puts "ENV['POM_NFM_VERSION'] = '%s'" % oscp_version.to_s.upcase.gsub(/\s+/, '')
+            f.puts "ENV['POM_UEP_VERSION'] = '%s'" % uep_version.to_s.upcase.gsub(/\s+/, '')
+            f.puts "ENV['POM_NFM_VERSION'] = '%s'" % nfm_version.to_s.upcase.gsub(/\s+/, '')
+            f.puts "ENV['POM_OSCP_VERSION'] = '%s'" % oscp_version.to_s.upcase.gsub(/\s+/, '')
           end
         end
       else

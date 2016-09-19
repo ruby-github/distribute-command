@@ -126,65 +126,67 @@ end
 module POM
   module_function
 
-  def cleanup xpath
+  def cleanup xpaths
     hash = {}
     docs = {}
 
-    File.glob(xpath).each do |file|
-      if not File.file? file
-        next
-      end
+    xpaths.to_array.each do |xpath|
+      File.glob(xpath).each do |file|
+        if not File.file? file
+          next
+        end
 
-      if File.basename(file) != 'pom.xml'
-        next
-      end
+        if File.basename(file) != 'pom.xml'
+          next
+        end
 
-      groupid = nil
-      artifactid = nil
+        groupid = nil
+        artifactid = nil
 
-      begin
-        doc = REXML::Document.file file
-      rescue
-        Util::Logger::execption $!
-
-        next
-      end
-
-      REXML::XPath.each doc, '/project/groupId' do |e|
-        groupid = e.text.to_s.nil
-
-        next
-      end
-
-      REXML::XPath.each doc, '/project/artifactId' do |e|
-        artifactid = e.text.to_s.nil
-
-        next
-      end
-
-      dependencies = []
-
-      REXML::XPath.each doc, '/project/dependencies/dependency' do |e|
-        dependency_groupid = nil
-        dependency_artifactid = nil
-
-        REXML::XPath.each e, 'groupId' do |element|
-          dependency_groupid = element.text.to_s.nil
+        begin
+          doc = REXML::Document.file file
+        rescue
+          Util::Logger::execption $!
 
           next
         end
 
-        REXML::XPath.each e, 'artifactId' do |element|
-          dependency_artifactid = element.text.to_s.nil
+        REXML::XPath.each doc, '/project/groupId' do |e|
+          groupid = e.text.to_s.nil
 
           next
         end
 
-        dependencies << [dependency_groupid, dependency_artifactid]
-      end
+        REXML::XPath.each doc, '/project/artifactId' do |e|
+          artifactid = e.text.to_s.nil
 
-      hash[[groupid, artifactid]] = dependencies
-      docs[doc] = file
+          next
+        end
+
+        dependencies = []
+
+        REXML::XPath.each doc, '/project/dependencies/dependency' do |e|
+          dependency_groupid = nil
+          dependency_artifactid = nil
+
+          REXML::XPath.each e, 'groupId' do |element|
+            dependency_groupid = element.text.to_s.nil
+
+            next
+          end
+
+          REXML::XPath.each e, 'artifactId' do |element|
+            dependency_artifactid = element.text.to_s.nil
+
+            next
+          end
+
+          dependencies << [dependency_groupid, dependency_artifactid]
+        end
+
+        hash[[groupid, artifactid]] = dependencies
+        docs[doc] = file
+      end
     end
 
     docs.each do |doc, file|
