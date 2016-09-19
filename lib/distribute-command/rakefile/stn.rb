@@ -73,7 +73,7 @@ namespace :stn do
 
         File.lock File.join(home, File.dirname(update_home), 'create.id') do
           if module_name == 'u3_interface'
-            if not SVN::update File.join(home, update_home), File.join(http, branch || 'trunk'), nil, username, password
+            if not SVN::update File.join(home, update_home), File.join(http, branch || 'trunk'), nil, username, password, true
               status = false
             end
           else
@@ -85,7 +85,7 @@ namespace :stn do
               end
             end
 
-            if not GIT::update File.join(home, update_home), http, args, username, password
+            if not GIT::update File.join(home, update_home), http, args, username, password, true
               status = false
             end
           end
@@ -484,7 +484,7 @@ namespace :stn do
               http = File.join http, branch || 'trunk'
             end
 
-            if not SVN::update File.join(home, update_home), http, nil, username, password
+            if not SVN::update File.join(home, update_home), http, nil, username, password, true
               status = false
             end
           else
@@ -496,7 +496,7 @@ namespace :stn do
               end
             end
 
-            if not GIT::update File.join(home, update_home), http, nil, username, password
+            if not GIT::update File.join(home, update_home), http, nil, username, password, true
               status = false
             end
           end

@@ -123,15 +123,15 @@ namespace :bn do
               end
             end
 
-            if not GIT::update File.join(home, update_home), http, args, username, password
+            if not GIT::update File.join(home, update_home), http, args, username, password, true
               status = false
             end
           when 'naf'
-            if not TFS::update File.join(home, update_home), File.join(http, branch || 'trunk'), nil, username, password
+            if not TFS::update File.join(home, update_home), File.join(http, branch || 'trunk'), nil, username, password, true
               status = false
             end
           else
-            if not SVN::update File.join(home, update_home), File.join(http, branch || 'trunk'), nil, username, password
+            if not SVN::update File.join(home, update_home), File.join(http, branch || 'trunk'), nil, username, password, true
               status = false
             end
           end
@@ -173,7 +173,7 @@ namespace :bn do
         end
 
         File.lock File.join(File.dirname(home), 'create.id') do
-          if not SVN::update home, File.join(repo, branch || 'trunk', tag), nil, username, password
+          if not SVN::update home, File.join(repo, branch || 'trunk', tag), nil, username, password, true
             status = false
           end
         end
@@ -1428,7 +1428,7 @@ namespace :bn do
                 end
               end
 
-              if not GIT::update File.join(home, update_home), http, args, username, password
+              if not GIT::update File.join(home, update_home), http, args, username, password, true
                 status = false
               end
             when update_home.include?(BN_PATHS['naf'])
@@ -1436,7 +1436,7 @@ namespace :bn do
                 http = File.join http, branch || 'trunk'
               end
 
-              if not TFS::update File.join(home, update_home), http, nil, username, password
+              if not TFS::update File.join(home, update_home), http, nil, username, password, true
                 status = false
               end
             else
@@ -1444,7 +1444,7 @@ namespace :bn do
                 http = File.join http, branch || 'trunk'
               end
 
-              if not SVN::update File.join(home, update_home), http, nil, username, password
+              if not SVN::update File.join(home, update_home), http, nil, username, password, true
                 status = false
               end
             end
@@ -1896,7 +1896,7 @@ namespace :bn do
                 end
               end
 
-              if not GIT::update File.join(home, update_home), http, args, username, password
+              if not GIT::update File.join(home, update_home), http, args, username, password, true
                 status = false
               end
             when update_home.include?(BN_PATHS['naf'])
@@ -1904,7 +1904,7 @@ namespace :bn do
                 http = File.join http, branch || 'trunk'
               end
 
-              if not TFS::update File.join(home, update_home), http, nil, username, password
+              if not TFS::update File.join(home, update_home), http, nil, username, password, true
                 status = false
               end
             else
@@ -1912,7 +1912,7 @@ namespace :bn do
                 http = File.join http, branch || 'trunk'
               end
 
-              if not SVN::update File.join(home, update_home), http, nil, username, password
+              if not SVN::update File.join(home, update_home), http, nil, username, password, true
                 status = false
               end
             end

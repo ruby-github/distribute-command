@@ -27,38 +27,51 @@ module SCM
     end
   end
 
-  def update path, repo = nil, args = nil, username = nil, password = nil
+  def update path, repo = nil, args = nil, username = nil, password = nil, restore = false
     if File.exist? path
       case scm(path)
       when :svn
-        SVN::update path, repo, args, username, password
+        SVN::update path, repo, args, username, password, restore
       when :git
-        GIT::update path, repo, args, username, password
+        GIT::update path, repo, args, username, password, restore
       when :tfs
-        TFS::update path, repo, args, username, password
+        TFS::update path, repo, args, username, password, restore
       else
         nil
       end
     else
       case
       when repo.end_with?(':svn')
-        SVN::update path, repo[0..-5], args, username, password
+        SVN::update path, repo[0..-5], args, username, password, restore
       when repo.end_with?(':git')
-        GIT::update path, repo[0..-5], args, username, password
+        GIT::update path, repo[0..-5], args, username, password, restore
       when repo.end_with?(':tfs')
-        TFS::update path, repo[0..-5], args, username, password
+        TFS::update path, repo[0..-5], args, username, password, restore
       else
         case
         when repo.include?('svn')
-          SVN::update path, repo, args, username, password
+          SVN::update path, repo, args, username, password, restore
         when repo.include?('git')
-          GIT::update path, repo, args, username, password
+          GIT::update path, repo, args, username, password, restore
         when args.to_s.start_with?('$/')
-          TFS::update path, repo, args, username, password
+          TFS::update path, repo, args, username, password, restore
         else
           nil
         end
       end
+    end
+  end
+
+  def revert path
+    case scm(path)
+    when :svn
+      SVN::revert path
+    when :git
+      GIT::revert path
+    when :tfs
+      TFS::revert path
+    else
+      nil
     end
   end
 
@@ -283,9 +296,13 @@ module SVN
     end
   end
 
-  def update path, repo = nil, args = nil, username = nil, password = nil
+  def update path, repo = nil, args = nil, username = nil, password = nil, restore = false
     username ||= $username
     password ||= $password
+
+    if restore
+      revert path
+    end
 
     if File.exist? path
       cmdline = 'svn update --force'
@@ -348,6 +365,19 @@ module SVN
 
         false
       end
+    end
+  end
+
+  def revert path
+    if File.exist? path
+      cmdline = 'svn revert -R'
+      cmdline += ' %s' % File.cmdline(path)
+
+      CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+        Util::Logger::puts line
+      end
+    else
+      true
     end
   end
 
@@ -557,9 +587,13 @@ module GIT
     end
   end
 
-  def update path, repo = nil, args = nil, username = nil, password = nil
+  def update path, repo = nil, args = nil, username = nil, password = nil, restore = false
     username ||= $username
     password ||= $password
+
+    if restore
+      revert path
+    end
 
     if File.exist? path
       dirname = home path
@@ -634,6 +668,19 @@ module GIT
 
         false
       end
+    end
+  end
+
+  def revert path
+    if File.exist? path
+      cmdline = 'git checkout'
+      cmdline += ' -- %s' % File.cmdline(path)
+
+      CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+        Util::Logger::puts line
+      end
+    else
+      true
     end
   end
 
@@ -734,13 +781,21 @@ module TFS
     GIT::log path, args, username, password
   end
 
-  def update path, repo = nil, args = nil, username = nil, password = nil
+  def update path, repo = nil, args = nil, username = nil, password = nil, restore = false
+    if restore
+      revert path
+    end
+
     GIT::update path, repo, args, username, password do |cmdline|
       cmdline.gsub 'git', 'git-tf'
     end
   end
 
+  def revert path
+    GIT::revert path
+  end
+
   def cleanup path
-    true
+    GIT::cleanup path
   end
 end
