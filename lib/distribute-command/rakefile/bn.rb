@@ -1272,11 +1272,14 @@ namespace :bn do
       map = {
         'BN_PTN/trunk/code/build' => [
           '../dev-mgnt/clock',
+          '../dev-mgnt/maintenance/maint',
           '../dev-mgnt/maintenance/overhead',
           '../dev-mgnt/port/e1subport',
-          '../dev-mgnt/protect'
+          '../dev-mgnt/protect',
+          '../dev-mgnt/ptnservice'
         ],
         'BN_PTN2/trunk/code/build'=> [
+          '../dev-mgnt/basicmng/routeMap',
           '../dev-mgnt/protocol/bgp',
           '../dev-mgnt/protocol/isis',
           '../dev-mgnt/protocol/ldp',
