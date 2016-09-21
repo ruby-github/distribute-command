@@ -379,7 +379,7 @@ module Deploy
         end
 
         map.each do |k, v|
-          cmdline = 'mvn deploy:deploy-file -Dfile=%s -DgroupId=%s -DartifactId=%s -Dversion=%s -Durl=http://10.8.9.81:8081/nexus/content/repositories/snapshots -DrepositoryId=snapshots' % [v, 'com.zte.uep-ict', k, version]
+          cmdline = 'mvn deploy:deploy-file -Dfile=%s -DgroupId=%s -DartifactId=%s -Dversion=%s -Durl=http://10.8.9.81:8081/nexus/content/repositories/snapshots -DrepositoryId=snapshots' % [v, 'com.zte.uep', k, version]
 
           if not CommandLine::cmdline cmdline do |line, stdin, wait_thr|
               Util::Logger::puts line

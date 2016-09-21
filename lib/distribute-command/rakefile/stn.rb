@@ -170,7 +170,7 @@ namespace :stn do
 
     task :uep, [:home, :version] do |t, args|
       home = args[:home].to_s.nil || $installation_uep
-      version = args[:version].to_s.nil || ENV['POM_ICT_VERSION']
+      version = args[:version].to_s.nil || ENV['POM_UEP_VERSION']
 
       status = true
 
