@@ -253,19 +253,31 @@ class File
     filename = expand_path filename
 
     if filename =~ /^(\w+:\/\/+[^\/\\]+)[\/\\]/
-      $1
+      if File::FNM_SYSCASE.nonzero?
+        $1.downcase
+      else
+        $1
+      end
     else
       loop do
         dir, name = split filename
 
         if dir == '.'
           if not filename.start_with? './'
-            return name
+            if File::FNM_SYSCASE.nonzero?
+              return name.to_s.downcase
+            else
+              return name.to_s
+            end
           end
         end
 
         if dir == filename
-          return dir
+          if File::FNM_SYSCASE.nonzero?
+            return dir.downcase
+          else
+            return dir
+          end
         end
 
         filename = dir

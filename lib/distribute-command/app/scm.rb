@@ -450,11 +450,7 @@ module GIT
         end
 
         if not path.nil?
-          tmp_path = File.relative_path path, dirname
-
-          if tmp_path != '.'
-            cmdline += ' -- %s' % File.cmdline(tmp_path)
-          end
+          cmdline += ' -- %s' % File.cmdline(File.relative_path(path, dirname))
         end
 
         lines = []
@@ -672,15 +668,28 @@ module GIT
   end
 
   def revert path
-    if File.exist? path
-      cmdline = 'git checkout'
-      cmdline += ' -- %s' % File.cmdline(path)
+    if not path.nil?
+      path = File.normalize path
+    end
 
-      CommandLine::cmdline cmdline do |line, stdin, wait_thr|
-        Util::Logger::puts line
+    dirname = home path
+
+    if not dirname.nil?
+      Dir.chdir dirname do
+        cmdline = 'git checkout'
+
+        if not path.nil?
+          cmdline += ' -- %s' % File.cmdline(File.relative_path(path, dirname))
+        else
+          cmdline += ' -- .'
+        end
+
+        CommandLine::cmdline cmdline do |line, stdin, wait_thr|
+          Util::Logger::puts line
+        end
       end
     else
-      true
+      false
     end
   end
 

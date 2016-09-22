@@ -51,7 +51,13 @@ namespace :stn do
 
       status = true
 
+      updates = {}
+
+      time = Time.now
+
       name.to_array.each do |module_name|
+        updates[module_name] = true
+
         http = repo
 
         if repo.nil?
@@ -60,6 +66,8 @@ namespace :stn do
 
         if not defaults.keys.include? module_name
           Util::Logger::error 'no such module @stn:update:update - %s' % module_name
+          updates[module_name] = false
+
           status = false
 
           next
@@ -74,6 +82,8 @@ namespace :stn do
         File.lock File.join(home, File.dirname(update_home), 'create.id') do
           if module_name == 'u3_interface'
             if not SVN::update File.join(home, update_home), File.join(http, branch || 'trunk'), nil, username, password, true
+              updates[module_name] = false
+
               status = false
             end
           else
@@ -86,11 +96,15 @@ namespace :stn do
             end
 
             if not GIT::update File.join(home, update_home), http, args, username, password, true
+              updates[module_name] = false
+
               status = false
             end
           end
         end
       end
+
+      Util::Logger::summary updates.to_a, ((Time.now - time) * 1000).to_i / 1000.0
 
       status.exit
     end

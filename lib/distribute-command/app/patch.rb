@@ -43,7 +43,7 @@ module Patch
 
               filename = File.basename(file).utf8
 
-              Util::Logger::cmdline '[patch:exec]' % filename
+              Util::Logger::cmdline '[patch:exec] %s' % filename
 
               list = load file
 
