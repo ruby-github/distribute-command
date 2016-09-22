@@ -304,6 +304,7 @@ module Util
       @@lock.synchronize do
         lines = []
 
+        lines << ''
         lines << headline
         lines << '[INFO] Command Summary:'
         lines << '[INFO]'
@@ -403,6 +404,7 @@ module Util
       @@lock.synchronize do
         lines = []
 
+        lines << ''
         lines << headline
         lines << '[INFO] Command Errors Summary:'
 

@@ -146,7 +146,6 @@ module Patch
               end
             end
 
-            Util::Logger::puts ''
             Util::Logger::summary command_list, ((Time.now - time) * 1000).to_i / 1000.0
 
             status

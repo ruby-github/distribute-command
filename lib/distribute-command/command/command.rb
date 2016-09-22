@@ -29,7 +29,6 @@ module DistributeCommand
         Util::Logger::summary $distributecommand, ((Time.now - time) * 1000).to_i / 1000.0
 
         if not $distributecommand_errors.empty?
-          Util::Logger::info nil
           Util::Logger::summary_error $distributecommand_errors
         end
       end
