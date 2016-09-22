@@ -679,24 +679,24 @@ module DistributeCommand
     def command_cmdline
       args = attributes
 
-      if not args['cmdline'].nil?
-        status = true
+      status = true
 
-        if @ip.nil?
-          home = args['home']
-          callback = args['callback']
+      if @ip.nil?
+        home = args['home']
+        callback = args['callback']
 
-          if not callback.nil?
-            if not callback_valid? callback
-              Util::Logger::error 'No found callback @ command_cmdline - DistributeCommand::Callback::%s' % callback
+        if not callback.nil?
+          if not callback_valid? callback
+            Util::Logger::error 'No found callback @ command_cmdline - DistributeCommand::Callback::%s' % callback
 
-              callback = nil
-              status = false
-            end
+            callback = nil
+            status = false
           end
+        end
 
-          lines = []
+        lines = []
 
+        if not args['cmdline'].nil?
           if home.nil?
             if not CommandLine::cmdline args['cmdline'], args do |line, stdin, wait_thr|
                 Util::Logger::puts line
@@ -742,38 +742,40 @@ module DistributeCommand
               status = false
             end
           end
+        end
 
-          if not args['callback_finish'].nil?
-            if callback_valid? args['callback_finish']
-              if not DistributeCommand::Callback::__send__ args['callback_finish'], args.merge({'lines' => lines}) do |line|
-                  Util::Logger::puts line
-                end
-
-                status = false
+        if not args['callback_finish'].nil?
+          if callback_valid? args['callback_finish']
+            if not DistributeCommand::Callback::__send__ args['callback_finish'], args.merge({'lines' => lines}) do |line|
+                Util::Logger::puts line
               end
-            else
-              Util::Logger::error 'No found callback_finish @ command_cmdline - DistributeCommand::Callback::%s' % args['callback_finish']
 
               status = false
             end
+          else
+            Util::Logger::error 'No found callback_finish @ command_cmdline - DistributeCommand::Callback::%s' % args['callback_finish']
+
+            status = false
           end
-        else
-          drb = DRb::Object.new
+        end
+      else
+        drb = DRb::Object.new
 
-          if drb.connect @ip
-            callback = args['callback']
+        if drb.connect @ip
+          callback = args['callback']
 
-            if not callback.nil?
-              if not callback_valid? callback
-                Util::Logger::error Util::Logger::drb('No found callback @ command_cmdline - DistributeCommand::Callback::%s' % callback, @ip)
+          if not callback.nil?
+            if not callback_valid? callback
+              Util::Logger::error Util::Logger::drb('No found callback @ command_cmdline - DistributeCommand::Callback::%s' % callback, @ip)
 
-                callback = nil
-                status = false
-              end
+              callback = nil
+              status = false
             end
+          end
 
-            lines = []
+          lines = []
 
+          if not args['cmdline'].nil?
             if not drb.cmdline args['cmdline'], args do |line, stdin, wait_thr|
                 Util::Logger::puts Util::Logger::drb(line, @ip)
 
@@ -791,39 +793,35 @@ module DistributeCommand
 
               status = false
             end
+          end
 
-            if not args['callback_finish'].nil?
-              if callback_valid? args['callback_finish']
-                if not drb.callback args['callback_finish'], args.merge({'lines' => lines}) do |line|
-                    Util::Logger::puts Util::Logger::drb(line, @ip)
-                  end
-
-                  status = false
+          if not args['callback_finish'].nil?
+            if callback_valid? args['callback_finish']
+              if not drb.callback args['callback_finish'], args.merge({'lines' => lines}) do |line|
+                  Util::Logger::puts Util::Logger::drb(line, @ip)
                 end
-              else
-                Util::Logger::error Util::Logger::drb('No found callback_finish @ command_cmdline - DistributeCommand::Callback::%s' % args['callback_finish'], @ip)
 
                 status = false
               end
-            end
+            else
+              Util::Logger::error Util::Logger::drb('No found callback_finish @ command_cmdline - DistributeCommand::Callback::%s' % args['callback_finish'], @ip)
 
-            if not drb.errors.nil?
-              $errors ||= []
-              $errors += drb.errors
+              status = false
             end
-          else
-            status = false
           end
 
-          drb.close
+          if not drb.errors.nil?
+            $errors ||= []
+            $errors += drb.errors
+          end
+        else
+          status = false
         end
 
-        status
-      else
-        Util::Logger::error 'No found parameter @ command_cmdline - cmdline'
-
-        false
+        drb.close
       end
+
+      status
     end
 
     def command_function
