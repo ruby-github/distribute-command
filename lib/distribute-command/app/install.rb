@@ -97,6 +97,17 @@ module Install
       end
     end
 
+    if File.directory? path
+      Dir.chdir path do
+        File.glob('**/*').each do |file|
+          begin
+            File.chmod 0755, file
+          rescue
+          end
+        end
+      end
+    end
+
     true
   end
 
@@ -643,6 +654,8 @@ module Install
           if not zip.save
             return false
           end
+
+          File.chmod 0755, zip.name
         end
       end
     end
@@ -652,7 +665,7 @@ module Install
         return false
       end
 
-      File.chmod 0755, file
+      File.chmod 0755, zip.name
     end
 
     true
