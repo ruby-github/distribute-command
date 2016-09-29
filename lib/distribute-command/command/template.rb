@@ -1336,8 +1336,8 @@ module DistributeCommand
         function_e.attributes['home'] = '.'
         function_e.attributes['path'] = path
         function_e.attributes['autotest_home'] = '${tmpdir}'
+        function_e.attributes['localhost'] = true
 
-        function_e.attributes['ip'] = '127.0.0.1'
         function_e.attributes['client_ip'] = '${ip}'
 
         if args.has_key? 'server_ip' and args.has_key? 'ems_home'
@@ -1396,7 +1396,8 @@ module DistributeCommand
 
       function_e.attributes['name'] = '${name}:汇总测试报告 - ${ip}'
       function_e.attributes['home'] = args['log_home']
-      function_e.attributes['ip'] = ''
+      function_e.attributes['localhost'] = true
+
       function_e.attributes['client_ip'] = '${ip}'
       function_e.attributes['function'] = 'compare_index_client'
       function_e.attributes['ensure'] = 'true'

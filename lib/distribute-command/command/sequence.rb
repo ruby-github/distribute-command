@@ -28,6 +28,12 @@ module DistributeCommand
         ip = nil
       end
 
+      if element.attributes['localhost'].to_s.boolean false
+        element.attributes.delete 'ip'
+
+        ip = nil
+      end
+
       if element.attributes.has_key? 'ip'
         ip = element.attributes['ip'].to_s.nil
 
