@@ -302,8 +302,10 @@ module DistributeCommand
 
           map = {}
 
+          sleep 60
+
           loop do
-            sleep 10
+            sleep 30
 
             if expired > 0
               if Time.now - time > expired
