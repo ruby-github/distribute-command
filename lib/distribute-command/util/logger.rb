@@ -3,15 +3,16 @@ module Util
     module_function
 
     DEBUG     = 1
-    INFO      = 2
-    CMDLINE   = 3
-    WARN      = 4
-    ERROR     = 5
-    EXCEPTION = 6
-    FATAL     = 7
+    PUTS      = 2
+    INFO      = 3
+    CMDLINE   = 4
+    WARN      = 5
+    ERROR     = 6
+    EXCEPTION = 7
+    FATAL     = 8
 
     @@lock = Monitor.new
-    @@level = INFO
+    @@level = PUTS
 
     def set_level level
       @@level = level
@@ -19,20 +20,26 @@ module Util
 
     def puts string, io = STDOUT
       @@lock.synchronize do
-        line = string.to_s.utf8
+        if @@level <= PUTS
+          line = string.to_s.utf8
 
-        if not io.nil?
-          if $logging
-            $loggers ||= []
-            $loggers << line
-          end
+          if not io.nil?
+            if $logging
+              $loggers ||= []
+              $loggers << line
+            end
 
-          if $drb.nil?
-            io.puts line
-            io.flush
+            if $drb.nil?
+              io.puts line
+              io.flush
+            end
+          else
+            line
           end
         else
-          line
+          if io.nil?
+            nil
+          end
         end
       end
     end
