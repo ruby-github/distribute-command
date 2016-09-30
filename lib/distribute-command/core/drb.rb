@@ -414,10 +414,20 @@ module DRb
 
     def callback callback_name, args = nil
       if DistributeCommand::Callback::respond_to? callback_name
-        DistributeCommand::Callback::__send__ callback_name, args do |line|
-          if block_given?
-            yield line
+        begin
+          DistributeCommand::Callback::__send__ callback_name, args do |line|
+            if block_given?
+              yield line
+            end
           end
+        rescue
+          string = Util::Logger::exception $!, nil
+
+          if block_given?
+            yield string
+          end
+
+          false
         end
       else
         false
@@ -426,10 +436,20 @@ module DRb
 
     def function function_name, args = nil
       if DistributeCommand::Function::respond_to? function_name
-        DistributeCommand::Function::__send__ function_name, args do |line|
-          if block_given?
-            yield line
+        begin
+          DistributeCommand::Function::__send__ function_name, args do |line|
+            if block_given?
+              yield line
+            end
           end
+        rescue
+          string = Util::Logger::exception $!, nil
+
+          if block_given?
+            yield string
+          end
+
+          false
         end
       else
         false
@@ -441,7 +461,7 @@ module DRb
         begin
           Kernel::eval string
         rescue
-          string = Util::Logger::exception $!, false, nil
+          string = Util::Logger::exception $!, nil
 
           if block_given?
             yield string
@@ -559,7 +579,7 @@ module DRb
 
           true
         rescue
-          string = Util::Logger::exception $!, false, nil
+          string = Util::Logger::exception $!, nil
 
           if block_given?
             yield string

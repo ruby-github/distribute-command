@@ -24,7 +24,7 @@ module CommandLine
       stdin, stdout_and_stderr, wait_thr = Open3.popen2e cmdline.locale
     rescue
       if block_given?
-        string = Util::Logger::exception $!, false, nil
+        string = Util::Logger::exception $!, nil
 
         yield string, nil, nil
       end
@@ -267,7 +267,7 @@ module CommandLine
 
     if expired
       if block_given?
-        string = Util::Logger::exception 'cmdline execute expired - %s' % wait_thr[:expired], false, nil
+        string = Util::Logger::exception 'cmdline execute expired - %s' % wait_thr[:expired], nil
 
         yield string, nil
       end

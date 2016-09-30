@@ -1741,6 +1741,6 @@ if $0 == __FILE__
     build.stn_build ['release/20160601_stn']
 
     # STN开发版本
-    build.stn_build ['dev/20160727_stn', 'dev/20160824_stn']
+    build.stn_build ['dev/20160824_stn', 'dev/20160926_stn']
   end
 end

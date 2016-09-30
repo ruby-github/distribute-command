@@ -23,6 +23,7 @@
 #
 # Boolean
 #
+#   $exception_backtrace
 #   $klocwork_build
 #
 #   $logging
@@ -49,6 +50,8 @@
 #   $drb
 #
 # ---------------------------------------------------------
+
+$exception_backtrace = true
 
 Dir.chdir __dir__ do
   Dir.glob('distribute-command/**/*.rb').each do |file|

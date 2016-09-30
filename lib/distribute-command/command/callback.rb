@@ -400,13 +400,17 @@ module DistributeCommand
       args ||= {}
 
       OS::kill do |pid, info|
-        if info[:command_line].include? 'ums-server' or info[:name].include? 'zte_'
-          true
+        if info[:name].include? 'ruby'
+          false
         else
-          if OS::windows?
-            info[:command_line].include? 'console.bat' or info[:name].include? 'bcp.exe'
+          if info[:command_line].include? 'ums-server' or info[:name].include? 'zte_'
+            true
           else
-            info[:command_line].include? 'console.sh' or info[:name].include? 'sqlldr'
+            if OS::windows?
+              info[:command_line].include? 'console.bat' or info[:name].include? 'bcp.exe'
+            else
+              info[:command_line].include? 'console.sh' or info[:name].include? 'sqlldr'
+            end
           end
         end
       end
@@ -424,13 +428,17 @@ module DistributeCommand
       end
 
       OS::kill do |pid, info|
-        if info[:command_line].include? 'ums-client'
-          true
+        if info[:name].include? 'ruby'
+          false
         else
-          if OS::windows?
-            info[:command_line].include? '/K run.bat'
+          if info[:command_line].include? 'ums-client'
+            true
           else
-            info[:command_line].include? '/K run.sh'
+            if OS::windows?
+              info[:command_line].include? '/K run.bat'
+            else
+              info[:command_line].include? '/K run.sh'
+            end
           end
         end
       end
@@ -530,7 +538,7 @@ module DistributeCommand
           Util::Logger::exception $!
 
           if block_given?
-            string = Util::Logger::exception $!, false, nil
+            string = Util::Logger::exception $!, nil
 
             string.lines.each do |line|
               yield line.rstrip

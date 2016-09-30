@@ -175,9 +175,7 @@ module Util
       end
     end
 
-    def exception exception, backtrace = false, io = STDOUT
-      backtrace = true
-
+    def exception exception, io = STDOUT
       @@lock.synchronize do
         if @@level <= EXCEPTION
           lines = []
@@ -185,7 +183,7 @@ module Util
           lines << '[EXCEPTION] ' + exception.to_s.utf8
 
           if exception.is_a? Exception
-            if backtrace
+            if $exception_backtrace
               exception.backtrace.each do |line|
                 lines << line.utf8
               end
