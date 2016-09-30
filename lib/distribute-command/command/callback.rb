@@ -215,35 +215,43 @@ module DistributeCommand
               changed = false
 
               files.each do |file|
-                if File.basename(file) =~ /console-console\d+-/
-                  if $' > time.strftime('%Y%m%d-%H%M')
-                    lines = IO.read(file).lines
-                    lines.pop
+                begin
+                  if File.basename(file) =~ /console-console\d+-/
+                    if $' > time.strftime('%Y%m%d-%H%M')
+                      if File.file? file
+                        lines = IO.read(file).lines.utf8
+                        lines.pop
 
-                    lines.each_with_index do |line, index|
-                      if block_given?
-                        if not map.has_key? file
-                          map[file] = -1
+                        lines.each_with_index do |line, index|
+                          line = line.rstrip
+
+                          if block_given?
+                            if not map.has_key? file
+                              map[file] = -1
+                            end
+
+                            if index > map[file]
+                              changed = true
+
+                              yield line
+                            end
+
+                            map[file] = index
+                          end
+
+                          if line.include? 'All processes started'
+                            started = true
+
+                            Util::Logger::head '启动成功'
+
+                            break
+                          end
                         end
-
-                        if index > map[file]
-                          changed = true
-
-                          yield line.rstrip
-                        end
-
-                        map[file] = index
-                      end
-
-                      if line.include? 'All processes started'
-                        started = true
-
-                        Util::Logger::head '启动成功'
-
-                        break
                       end
                     end
                   end
+                rescue
+                  Util::Logger::exception $!
                 end
 
                 if started
@@ -337,31 +345,39 @@ module DistributeCommand
 
             files.each do |k, v|
               v.sort.each do |file|
-                lines = IO.read(file).lines
-                lines.pop
+                begin
+                  if File.file? file
+                    lines = IO.read(file).lines.utf8
+                    lines.pop
 
-                lines.each_with_index do |line, index|
-                  if block_given?
-                    if not map.has_key? file
-                      map[file] = -1
+                    lines.each_with_index do |line, index|
+                      line = line.rstrip
+
+                      if block_given?
+                        if not map.has_key? file
+                          map[file] = -1
+                        end
+
+                        if index > map[file]
+                          changed = true
+
+                          yield line
+                        end
+
+                        map[file] = index
+                      end
+
+                      if line.include? 'EMB Started'
+                        started = true
+
+                        Util::Logger::head '启动成功'
+
+                        break
+                      end
                     end
-
-                    if index > map[file]
-                      changed = true
-
-                      yield line.rstrip
-                    end
-
-                    map[file] = index
                   end
-
-                  if line.include? 'EMB Started'
-                    started = true
-
-                    Util::Logger::head '启动成功'
-
-                    break
-                  end
+                rescue
+                  Util::Logger::exception $!
                 end
 
                 if started
