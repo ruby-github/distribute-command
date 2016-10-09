@@ -569,11 +569,11 @@ module Patch
             end
 
             if dirname.include? '/code_c/'
-              if not Compile::mvn dirname, 'mvn deploy -fn -U', false, true
+              if not Compile::mvn dirname, 'mvn deploy -fn -U', false, true, subject: '<PATCH 通知>补丁编译失败, 请尽快处理'
                 return false
               end
             else
-              if not Compile::mvn dirname, 'mvn deploy -fn -U', false, true
+              if not Compile::mvn dirname, 'mvn deploy -fn -U', false, true, subject: '<PATCH 通知>补丁编译失败, 请尽快处理'
                 return false
               end
             end

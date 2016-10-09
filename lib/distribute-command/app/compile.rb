@@ -6,7 +6,7 @@ module Compile
   MAIL_THRESHOLD_DAY = 7
   PATH = ENV['PATH']
 
-  def mvn path, cmdline = nil, _retry = false, sendmail = false
+  def mvn path, cmdline = nil, _retry = false, sendmail = false, args = nil
     if not ENV['DEVTOOLS_ROOT'].nil?
       if $x64
         case OS::name
@@ -191,14 +191,14 @@ module Compile
               errors_puts errors
 
               if sendmail
-                errors_mail errors
+                errors_mail errors, args
               end
             end
           else
             errors_puts errors
 
             if sendmail
-              errors_mail errors
+              errors_mail errors, args
             end
           end
         end
