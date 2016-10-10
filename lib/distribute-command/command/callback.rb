@@ -219,11 +219,11 @@ module DistributeCommand
                   if File.basename(file) =~ /console-console\d+-/
                     if $' > time.strftime('%Y%m%d-%H%M')
                       if File.file? file
-                        lines = IO.read(file).lines.utf8
+                        lines = IO.readlines file
                         lines.pop
 
                         lines.each_with_index do |line, index|
-                          line = line.rstrip
+                          line = line.utf8.rstrip
 
                           if block_given?
                             if not map.has_key? file
@@ -250,8 +250,8 @@ module DistributeCommand
                       end
                     end
                   end
-                rescue
-                  Util::Logger::exception $!
+                rescue Exception => e
+                  Util::Logger::exception e
                 end
 
                 if started
@@ -347,11 +347,11 @@ module DistributeCommand
               v.sort.each do |file|
                 begin
                   if File.file? file
-                    lines = IO.read(file).lines.utf8
+                    lines = IO.readlines file
                     lines.pop
 
                     lines.each_with_index do |line, index|
-                      line = line.rstrip
+                      line = line.utf8.rstrip
 
                       if block_given?
                         if not map.has_key? file
@@ -376,8 +376,10 @@ module DistributeCommand
                       end
                     end
                   end
-                rescue
-                  Util::Logger::exception $!
+                rescue Exception => e
+                  p e
+
+                  Util::Logger::exception e
                 end
 
                 if started
@@ -416,7 +418,7 @@ module DistributeCommand
       args ||= {}
 
       OS::kill do |pid, info|
-        if info[:name].include? 'ruby'
+        if [Process::pid, Process::ppid].include? pid
           false
         else
           if info[:command_line].include? 'ums-server' or info[:name].include? 'zte_'
@@ -444,7 +446,7 @@ module DistributeCommand
       end
 
       OS::kill do |pid, info|
-        if info[:name].include? 'ruby'
+        if [Process::pid, Process::ppid].include? pid
           false
         else
           if info[:command_line].include? 'ums-client'

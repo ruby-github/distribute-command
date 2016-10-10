@@ -594,5 +594,5 @@ at_exit do
     $drb = nil
   end
 
-  #DRb::stop_service
+  DRb::stop_service
 end
