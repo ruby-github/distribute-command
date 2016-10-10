@@ -37,7 +37,7 @@ module DRb
       end
     end
 
-    def close stop_service = false, reboot = false
+    def close reboot = false
       if not @server.nil?
         begin
           @server.close reboot
@@ -45,10 +45,6 @@ module DRb
         end
 
         @server = nil
-      end
-
-      if stop_service
-        DRb::stop_service
       end
     end
 
@@ -598,5 +594,5 @@ at_exit do
     $drb = nil
   end
 
-  DRb::stop_service
+  #DRb::stop_service
 end

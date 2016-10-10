@@ -486,7 +486,7 @@ module OS
 
           begin
             if drb.connect ip
-              drb.close false, true
+              drb.close true
             end
           rescue
             status = false

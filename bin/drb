@@ -44,7 +44,7 @@ begin
 
     status = false
   ensure
-    DRb.stop_service
+    DRb::stop_service
   end
 rescue
   puts "<font color:red;highlight>Unknown command</font>\n"

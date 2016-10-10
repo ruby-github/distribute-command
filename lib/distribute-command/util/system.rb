@@ -205,7 +205,7 @@ module System
       end
 
       if status
-        drb.close false, true
+        drb.close true
       else
         drb.close
       end
