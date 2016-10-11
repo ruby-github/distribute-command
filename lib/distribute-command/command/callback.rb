@@ -163,6 +163,8 @@ module DistributeCommand
 
       if args['status']
         sleep 300
+
+        Util::Logger::head '启动成功'
       end
 
       true
@@ -173,6 +175,8 @@ module DistributeCommand
 
       if args['status']
         sleep 30
+
+        Util::Logger::head '启动成功'
       end
 
       true
