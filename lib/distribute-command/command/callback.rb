@@ -164,7 +164,11 @@ module DistributeCommand
       if args['status']
         sleep 60
 
-        Util::Logger::head '启动成功'
+        if block_given?
+          yield Util::Logger::head('启动成功', nil)
+        else
+          Util::Logger::head '启动成功'
+        end
       end
 
       true
@@ -176,7 +180,11 @@ module DistributeCommand
       if args['status']
         sleep 10
 
-        Util::Logger::head '启动成功'
+        if block_given?
+          yield Util::Logger::head('启动成功', nil)
+        else
+          Util::Logger::head '启动成功'
+        end
       end
 
       true
