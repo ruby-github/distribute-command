@@ -219,7 +219,6 @@ module DistributeCommand
 
       if OS::windows?
         system 'start net stop Launcher'
-        sleep 5
       end
 
       OS::kill do |pid, info|
