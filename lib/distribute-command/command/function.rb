@@ -94,6 +94,8 @@ module DistributeCommand
                   lines << 'sptn.anode.seed-nodes=[%s]' % anodes.map {|x| '"akka.tcp://sptnaccesssys@%s:2553"' % x}.join(', ')
                 when line =~ /^sptn\.cnode\.seed-nodes\s*=/
                   lines << 'sptn.cnode.seed-nodes=[%s]' % cnodes.map {|x| '"akka.tcp://sptnclustersys@%s:2556"' % x}.join(', ')
+                when line =~ /^sptn\.hostname\s*=/
+                  lines << 'sptn.hostname=%s' % ip
                 else
                   lines << line
                 end
