@@ -162,7 +162,7 @@ module DistributeCommand
       args ||= {}
 
       if args['status']
-        sleep 300
+        sleep 60
 
         Util::Logger::head '启动成功'
       end
@@ -174,7 +174,7 @@ module DistributeCommand
       args ||= {}
 
       if args['status']
-        sleep 30
+        sleep 10
 
         Util::Logger::head '启动成功'
       end
