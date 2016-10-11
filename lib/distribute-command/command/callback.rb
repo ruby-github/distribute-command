@@ -210,7 +210,8 @@ module DistributeCommand
       args ||= {}
 
       if OS::windows?
-        system 'net stop Launcher'
+        system 'start net stop Launcher'
+        sleep 5
       end
 
       OS::kill do |pid, info|
