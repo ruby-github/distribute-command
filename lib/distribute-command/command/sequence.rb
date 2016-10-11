@@ -717,6 +717,20 @@ module DistributeCommand
                     status = false
                   end
                 end
+
+                if args.has_key? 'async'
+                  case
+                  when args['async'].is_a?(String)
+                    if line.include? args['async']
+                      wait_thr[:async] = true
+                    end
+                  when args['async'].is_a?(Regexp)
+                    if line =~ args['async']
+                      wait_thr[:async] = true
+                    end
+                  else
+                  end
+                end
               end
 
               status = false
@@ -737,6 +751,20 @@ module DistributeCommand
                         status = false
                       end
                     end
+
+                    if args.has_key? 'async'
+                      case
+                      when args['async'].is_a?(String)
+                        if line.include? args['async']
+                          wait_thr[:async] = true
+                        end
+                      when args['async'].is_a?(Regexp)
+                        if line =~ args['async']
+                          wait_thr[:async] = true
+                        end
+                      else
+                      end
+                    end
                   end
 
                   status = false
@@ -752,7 +780,7 @@ module DistributeCommand
 
         if not args['callback_finish'].nil?
           if callback_valid? args['callback_finish']
-            if not DistributeCommand::Callback::__send__ args['callback_finish'], args.merge({'lines' => lines}) do |line|
+            if not DistributeCommand::Callback::__send__ args['callback_finish'], args.merge({'lines' => lines, 'status' => status}) do |line|
                 Util::Logger::puts line
               end
 
@@ -782,7 +810,7 @@ module DistributeCommand
           lines = []
 
           if not args['cmdline'].nil?
-            if not drb.cmdline args['cmdline'], args do |line, stdin, wait_thr|
+            if not drb.cmdline args['cmdline'], args do |line|
                 Util::Logger::puts Util::Logger::drb(line, @ip)
 
                 lines << line
@@ -803,7 +831,7 @@ module DistributeCommand
 
           if not args['callback_finish'].nil?
             if callback_valid? args['callback_finish']
-              if not drb.callback args['callback_finish'], args.merge({'lines' => lines}) do |line|
+              if not drb.callback args['callback_finish'], args.merge({'lines' => lines, 'status' => status}) do |line|
                   Util::Logger::puts Util::Logger::drb(line, @ip)
                 end
 

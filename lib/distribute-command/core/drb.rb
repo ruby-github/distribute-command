@@ -179,9 +179,9 @@ module DRb
   class Object
     def cmdline cmdline, args = nil
       begin
-        @server.cmdline cmdline, args do |line, stdin, wait_thr|
+        @server.cmdline cmdline, args do |line|
           if block_given?
-            yield line, stdin, wait_thr
+            yield line
           end
         end
       rescue
@@ -388,7 +388,21 @@ module DRb
       if home.nil?
         CommandLine::cmdline cmdline, args do |line, stdin, wait_thr|
           if block_given?
-            yield line, stdin, wait_thr
+            yield line
+          end
+
+          if args.has_key? 'async'
+            case
+            when args['async'].is_a?(String)
+              if line.include? args['async']
+                wait_thr[:async] = true
+              end
+            when args['async'].is_a?(Regexp)
+              if line =~ args['async']
+                wait_thr[:async] = true
+              end
+            else
+            end
           end
         end
       else
@@ -396,7 +410,21 @@ module DRb
           Dir.chdir home do
             CommandLine::cmdline cmdline, args do |line, stdin, wait_thr|
               if block_given?
-                yield line, stdin, wait_thr
+                yield line
+              end
+
+              if args.has_key? 'async'
+                case
+                when args['async'].is_a?(String)
+                  if line.include? args['async']
+                    wait_thr[:async] = true
+                  end
+                when args['async'].is_a?(Regexp)
+                  if line =~ args['async']
+                    wait_thr[:async] = true
+                  end
+                else
+                end
               end
             end
           end

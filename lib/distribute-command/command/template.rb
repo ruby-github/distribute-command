@@ -879,9 +879,10 @@ module DistributeCommand
 
       cmdline_e.attributes['name'] = '${name}:启动网管'
       cmdline_e.attributes['home'] = '${home}/ums-server'
-      cmdline_e.attributes['cmdline'] = args['cmdline'] || 'start console.bat'
+      cmdline_e.attributes['cmdline'] = args['cmdline'] || 'console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_start_server'
       cmdline_e.attributes['expired'] = '1800'
+      cmdline_e.attributes['async'] = 'All processes started'
 
       element << cmdline_e
 
@@ -971,9 +972,10 @@ module DistributeCommand
 
       cmdline_e.attributes['name'] = '${name}:启动客户端'
       cmdline_e.attributes['home'] = '${home}/ums-client/procs/bsf/core/bin'
-      cmdline_e.attributes['cmdline'] = args['cmdline'] || ('start run.bat -serverip %s -username admin -password ""' % (args['server_ip'] || '127.0.0.1'))
-      cmdline_e.attributes['expired'] = '1800'
+      cmdline_e.attributes['cmdline'] = args['cmdline'] || ('run.bat -serverip %s -username admin -password ""' % (args['server_ip'] || '127.0.0.1'))
       cmdline_e.attributes['callback_finish'] = 'netnumen_start_client'
+      cmdline_e.attributes['expired'] = '1800'
+      cmdline_e.attributes['async'] = 'EMB Started'
 
       element << cmdline_e
 

@@ -149,7 +149,7 @@ module System
 
         if status
           cmds.each do |cmdline|
-            if not drb.cmdline cmdline do |line, stdin, wait_thr|
+            if not drb.cmdline cmdline do |line|
                 Util::Logger::puts line
               end
 
@@ -230,7 +230,7 @@ module System
       drb = DRb::Object.new
 
       if drb.connect ip
-        if not drb.cmdline cmdline do |line, stdin, wait_thr|
+        if not drb.cmdline cmdline do |line|
             Util::Logger::puts line
           end
 
@@ -291,7 +291,7 @@ module System
 
       if drb.connect ip
         cmds.each do |cmdline|
-          if not drb.cmdline cmdline do |line, stdin, wait_thr|
+          if not drb.cmdline cmdline do |line|
               Util::Logger::puts line
             end
 
