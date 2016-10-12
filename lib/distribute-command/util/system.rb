@@ -205,7 +205,7 @@ module System
       end
 
       if status
-        drb.close true
+        drb.reboot_drb
       else
         drb.close
       end
