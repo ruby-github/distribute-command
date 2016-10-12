@@ -307,6 +307,8 @@ module OS
   def kill all = false, opt = nil
     opt ||= {}
 
+    all = false
+
     status = true
 
     processes.each do |pid, info|
@@ -496,7 +498,7 @@ module OS
 
           begin
             if drb.connect ip
-              drb.close true
+              drb.reboot_drb
             end
           rescue
             status = false

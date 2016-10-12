@@ -37,10 +37,21 @@ module DRb
       end
     end
 
-    def close reboot = false
+    def close
       if not @server.nil?
         begin
-          @server.close reboot
+          @server.close
+        rescue
+        end
+
+        @server = nil
+      end
+    end
+
+    def reboot_drb
+      if not @server.nil?
+        begin
+          @server.reboot_drb
         rescue
         end
 
@@ -107,24 +118,26 @@ module DRb
       @variables = {}
     end
 
-    def close reboot = false
+    def close
       clear
+    end
 
-      if reboot
-        begin
-          DRb::stop_service
-        rescue
+    def reboot_drb
+      ppid = Process::ppid
+
+      begin
+        DRb::stop_service
+      rescue
+      end
+
+      if OS::windows?
+        system 'start drb'
+
+        OS::kill true do |pid, info|
+          info[:name] == 'cmd.exe' and pid == ppid
         end
-
-        if OS::windows?
-          OS::kill do |pid, info|
-            info[:name] == 'cmd.exe' and info[:command_line].include? '/K drb'
-          end
-
-          system 'start drb'
-        else
-          system 'drb &'
-        end
+      else
+        system 'drb &'
       end
     end
 
@@ -622,5 +635,5 @@ at_exit do
     $drb = nil
   end
 
-  DRb::stop_service
+  #DRb::stop_service
 end
