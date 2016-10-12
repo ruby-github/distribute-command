@@ -304,7 +304,7 @@ module OS
     info
   end
 
-  def kill opt = nil
+  def kill all = false, opt = nil
     opt ||= {}
 
     status = true
@@ -322,6 +322,16 @@ module OS
         end
 
         if opt.has_key? :name and opt[:name] != process_name
+          next
+        end
+      end
+
+      if not all
+        if [Process::pid, Process::ppid].include? pid
+          next
+        end
+
+        if ['ruby', 'ruby.exe'].include? info[:name]
           next
         end
       end
