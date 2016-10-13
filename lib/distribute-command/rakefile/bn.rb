@@ -729,7 +729,7 @@ namespace :bn do
 
     task :install_lct, [:home, :installation_uep, :installation_home, :version, :display_version, :zh, :fi2cpp_home, :license_home] do |t, args|
       home = args[:home].to_s.nil || ($home || 'code')
-      installation_uep = args[:installation_uep].to_s.nil || $installation_uep
+      installation_uep = args[:installation_uep].to_s.nil || $installation_lct_uep
       installation_home = args[:installation_home].to_s.nil || $installation_home
       version = args[:version].to_s.nil || $version
       display_version = args[:display_version].to_s.nil || ($display_version || version)

@@ -952,6 +952,8 @@ module Install
 end
 
 module Install
+  module_function
+
   def install_lct home, installation_uep, installation_home, version, display_version, zh = true,
     fi2cpp_home = nil, license_home = nil
     if not File.directory? home
