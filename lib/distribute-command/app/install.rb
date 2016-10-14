@@ -1013,7 +1013,7 @@ module Install
         return false
       end
 
-      if not File.copy File.join(gem_dir('distribute-command'), 'doc/bn/lct'), File.join(tmpdir, lang, 'lct') do |src, dest|
+      if not File.copy File.join(gem_dir('distribute-command'), 'doc/bn/lct'), File.join(tmpdir, lang) do |src, dest|
           Util::Logger::info src
 
           [src, dest]
@@ -2383,7 +2383,7 @@ module Install
         end
 
         REXML::XPath.each(e, 'deploy/delete/attr') do |element|
-          cur_type = (element.attributes['type'].to_s.strip.nil || 'ems').split(',') {|x| x.strip}
+          cur_type = (element.attributes['type'].to_s.strip.nil || 'ems').split(',').map {|x| x.strip}
 
           if cur_type.include? type.to_s
             map[:delete] << element.attributes['name'].to_s
