@@ -11,11 +11,29 @@ namespace :jenkins do
     status.exit
   end
 
-  task :bn_patch_init, [:name, :version, :uep_version, :branch] do |t, args|
+  task :bn_patch_init, [:name, :version, :branch] do |t, args|
     name = args[:name].to_s.nil
     version = args[:version].to_s.nil
-    uep_version = args[:uep_version].to_s.nil || ENV['POM_UEP_VERSION']
     branch = args[:branch].to_s.nil || $branch
+
+    uep_version = ENV['POM_UEP_VERSION']
+
+    if uep_version.nil?
+      file = 'code/BN_Platform/trunk/pom/version/pom.xml'
+
+      if File.file? file
+        begin
+          doc = REXML::Document.file file
+
+          REXML::XPath.each doc, '/project/properties/uep.version' do |e|
+            uep_version = e.text.to_s.gsub '-SNAPSHOT', ''
+
+            break
+          end
+        rescue
+        end
+      end
+    end
 
     status = true
 
@@ -81,7 +99,7 @@ namespace :jenkins do
             f.puts '# ----------------------------------------------------------'
             f.puts
             f.puts "ENV['POM_VERSION'] = '%s'" % version.to_s.upcase.gsub(/\s+/, '')
-            f.puts "ENV['POM_UEP_VERSION'] = '%s'" % uep_version.to_s.upcase.gsub(/\s+/, '')
+            f.puts "ENV['POM_UEP_VERSION'] = '%s'" % uep_version.to_s
             f.puts
 
             f.puts '# ----------------------------------------------------------'
@@ -107,13 +125,49 @@ namespace :jenkins do
     status.exit
   end
 
-  task :stn_patch_init, [:name, :version, :uep_version, :nfm_version, :oscp_version, :branch] do |t, args|
+  task :stn_patch_init, [:name, :version, :branch] do |t, args|
     name = args[:name].to_s.nil
     version = args[:version].to_s.nil
-    uep_version = args[:uep_version].to_s.nil || ENV['POM_UEP_VERSION']
-    nfm_version = args[:nfm_version].to_s.nil || ENV['POM_NFM_VERSION']
-    oscp_version = args[:oscp_version].to_s.nil || ENV['POM_OSCP_VERSION']
     branch = args[:branch].to_s.nil || $branch
+
+    uep_version = ENV['POM_UEP_VERSION']
+    nfm_version = ENV['POM_NFM_VERSION']
+    oscp_version = ENV['POM_OSCP_VERSION']
+
+    if uep_version.nil? or nfm_version.nil? or oscp_version.nil?
+      file = 'code/sdn_interface/trunk/pom/version/pom.xml'
+
+      if File.file? file
+        begin
+          doc = REXML::Document.file file
+
+          if uep_version.nil?
+            REXML::XPath.each doc, '/project/properties/uep.version' do |e|
+              uep_version = e.text.to_s
+
+              break
+            end
+          end
+
+          if nfm_version.nil?
+            REXML::XPath.each doc, '/project/properties/nfm.version' do |e|
+              nfm_version = e.text.to_s
+
+              break
+            end
+          end
+
+          if oscp_version.nil?
+            REXML::XPath.each doc, '/project/properties/oscp.version' do |e|
+              oscp_version = e.text.to_s
+
+              break
+            end
+          end
+        rescue
+        end
+      end
+    end
 
     status = true
 
@@ -172,9 +226,9 @@ namespace :jenkins do
             f.puts '# ----------------------------------------------------------'
             f.puts
             f.puts "ENV['POM_VERSION'] = '%s'" % version.to_s.upcase.gsub(/\s+/, '')
-            f.puts "ENV['POM_UEP_VERSION'] = '%s'" % uep_version.to_s.upcase.gsub(/\s+/, '')
-            f.puts "ENV['POM_NFM_VERSION'] = '%s'" % nfm_version.to_s.upcase.gsub(/\s+/, '')
-            f.puts "ENV['POM_OSCP_VERSION'] = '%s'" % oscp_version.to_s.upcase.gsub(/\s+/, '')
+            f.puts "ENV['POM_UEP_VERSION'] = '%s'" % uep_version.to_s
+            f.puts "ENV['POM_NFM_VERSION'] = '%s'" % nfm_version.to_s
+            f.puts "ENV['POM_OSCP_VERSION'] = '%s'" % oscp_version.to_s
           end
         end
       else
