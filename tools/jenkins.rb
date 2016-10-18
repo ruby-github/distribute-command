@@ -1185,7 +1185,7 @@ module Jenkins
           :script_path  => 'bn/build_main.groovy',
           :triggers     => {
             :timer  => {
-              :spec => '0 0,13 * * 1-5'
+              :spec => '0 0,13 * * *'
             }
           },
           :parameters   => [
@@ -1385,7 +1385,7 @@ module Jenkins
         :script_path=> 'bn/dashboard/cron.groovy',
         :triggers   => {
           :timer  => {
-            :spec => '0 3 * * *'
+            :spec => '0 3,13 * * *'
           }
         }
       }
