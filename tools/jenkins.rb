@@ -1728,10 +1728,10 @@ if $0 == __FILE__
     build.bn_build ['release/20160606']
 
     # IPTN开发版本
-    build.bn_build ['dev/20160417_wdm', 'dev/20160704'], [:windows, :windows32]
+    build.bn_build ['dev/20160417_wdm', 'dev/20160704', 'dev/20161008'], [:windows, :windows32]
     build.bn_build ['dev/20160627_MTN'], [:windows]
 
-    build.bn_build ['dev/20160822', 'dev/20160919', 'dev/20161008']
+    build.bn_build ['dev/20160822', 'dev/20160919']
 
     # STN工程版本
     build.stn_build ['release/20160601_stn']
