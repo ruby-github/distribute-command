@@ -731,35 +731,68 @@ module Patch
       if info.nil?
         if not file.nil?
           if File.file? file
-            IO.readlines(file).each do |line|
-              line = line.utf8
+            doc = nil
 
-              if line =~ /<\s*attr\s*.*提交人员.*>(.*)</
-                if $1.strip =~ /\d+$/
-                  account = '%s@zte.com.cn' % $&
+            begin
+              doc = REXML::Document.file file
+            rescue
+              doc = nil
+            end
+
+            if doc.nil?
+              IO.readlines(file).each do |line|
+                line = line.utf8
+
+                if line =~ /<\s*attr\s*.*提交人员.*>(.*)</
+                  if $1.strip =~ /\d+$/
+                    account = '%s@zte.com.cn' % $&
+                  end
+
+                  next
                 end
 
-                next
-              end
+                if line =~ /<\s*attr\s*.*抄送人员.*>(.*)</
+                  $1.split(',').each do |string|
+                    string.strip!
 
-              if line =~ /<\s*attr\s*.*抄送人员.*>(.*)</
-                $1.split(',').each do |string|
-                  string.strip!
+                    if string =~ /\d+$/
+                      cc_account << '%s@zte.com.cn' % $&
+                    end
+                  end
 
-                  if string =~ /\d+$/
+                  next
+                end
+
+                if line =~ /<\s*attr\s*.*开发经理.*>(.*)</
+                  if $1.strip =~ /\d+$/
                     cc_account << '%s@zte.com.cn' % $&
                   end
-                end
 
-                next
+                  next
+                end
               end
+            else
+              REXML::XPath.each doc, '/patches/patch/info/attr' do |e|
+                name = e.attributes['name'].to_s.strip
+                value = e.text.to_s.strip
 
-              if line =~ /<\s*attr\s*.*开发经理.*>(.*)</
-                if $1.strip =~ /\d+$/
-                  cc_account << '%s@zte.com.cn' % $&
+                case name
+                when '提交人员'
+                  if value =~ /\d+$/
+                    account = '%s@zte.com.cn' % $&
+                  end
+                when '抄送人员'
+                  value.split(',').each do |string|
+                    if string =~ /\d+$/
+                      cc_account << '%s@zte.com.cn' % $&
+                    end
+                  end
+                when '开发经理'
+                  if value =~ /\d+$/
+                    cc_account << '%s@zte.com.cn' % $&
+                  end
+                else
                 end
-
-                next
               end
             end
           end
