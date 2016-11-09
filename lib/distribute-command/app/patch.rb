@@ -324,7 +324,7 @@ module Patch
                 name = File.normalize name
 
                 case
-                when name =~ /^(code|code_c)\/build\/output\//
+                when name =~ /^(code|code_c|sdn)\/build\/output\//
                   dest = $'
                   type = e_deploy.attributes['type'].to_s.strip.nil || default_type
 
@@ -375,7 +375,7 @@ module Patch
                     status = false
                   end
                 else
-                  Util::Logger::error '%s: 源文件必须以code/build/output, code_c/build/output或installdisk开始' % e_deploy.xpath
+                  Util::Logger::error '%s: 源文件必须以code/build/output, sdn/build/output, code_c/build/output或installdisk开始' % e_deploy.xpath
 
                   status = false
                 end
