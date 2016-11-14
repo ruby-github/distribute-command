@@ -1707,6 +1707,7 @@ if $0 == __FILE__
 
     build = Jenkins::Build.new
     build.build
+    build.build 'appraisal'
 
     build = Jenkins::Dashboard.new
     build.build
@@ -1731,12 +1732,12 @@ if $0 == __FILE__
     build.bn_build ['dev/20160417_wdm', 'dev/20160704', 'dev/20161008_wdm'], [:windows, :windows32]
     build.bn_build ['dev/20160627_MTN'], [:windows]
 
-    build.bn_build ['dev/20160822', 'dev/20160919']
+    build.bn_build ['dev/20160822', 'dev/20160919', 'dev/20161025']
 
     # STN工程版本
     build.stn_build ['release/20160601_stn']
 
     # STN开发版本
-    build.stn_build ['dev/20160926_stn']
+    build.stn_build ['dev/20161026_stn']
   end
 end

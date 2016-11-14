@@ -164,6 +164,12 @@ namespace :bn do
       username = args[:username].to_s.nil || ($username || 'u3build')
       password = args[:password].to_s.nil || ($password || 'u3build')
 
+      if not branch.nil?
+        if branch == File.basename(branch)
+          branch = File.join 'branches', branch
+        end
+      end
+
       defaults = BN_REPOS_DEVTOOLS
 
       case OS::name
