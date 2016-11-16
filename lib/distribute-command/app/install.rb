@@ -623,7 +623,7 @@ module Install
           end
 
           if zip.add src, dest do |src_file, dest_file|
-              if ignore? src_file, ignores, home
+              if ignore? src_file, ignores
                 src_file = nil
               else
                 if File.file? src_file
