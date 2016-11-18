@@ -1156,15 +1156,16 @@ module Jenkins
       }
     end
 
-    def build name = nil
-      bn_build name
-      stn_build name
+    def build name = nil, specs = nil
+      bn_build name, specs
+      stn_build name, specs
     end
 
-    private
+    #private
 
-    def bn_build name = nil
+    def bn_build name = nil, specs = nil
       name ||= 'main'
+      specs ||= {}
 
       parameters = [
         ['update',  '版本更新', true],
@@ -1185,7 +1186,7 @@ module Jenkins
           :script_path  => 'bn/build_main.groovy',
           :triggers     => {
             :timer  => {
-              :spec => '0 0,13 * * *'
+              :spec => (specs[name + '_linux'] || '0 0,13 * * *')
             }
           },
           :parameters   => [
@@ -1197,7 +1198,7 @@ module Jenkins
           :script_path  => 'bn/build_main.groovy',
           :triggers     => {
             :timer  => {
-              :spec => '0 0 * * 1-5'
+              :spec => (specs[name + '_solaris'] || '0 0 * * 1-5')
             }
           },
           :parameters   => [
@@ -1209,7 +1210,7 @@ module Jenkins
           :script_path  => 'bn/build_main_win.groovy',
           :triggers     => {
             :timer  => {
-              :spec => '0 22 * * 0-4'
+              :spec => (specs[name + '_windows'] || '0 22 * * 0-4')
             }
           },
           :parameters   => [
@@ -1221,7 +1222,7 @@ module Jenkins
           :script_path  => 'bn/build_main.groovy',
           :triggers     => {
             :timer  => {
-              :spec => '0 2 * * 1-5'
+              :spec => (specs[name + '_windows32'] || '0 2 * * 1-5')
             }
           },
           :parameters   => [
@@ -1238,8 +1239,9 @@ module Jenkins
       end
     end
 
-    def stn_build name = nil
+    def stn_build name = nil, specs = nil
       name ||= 'main'
+      specs ||= {}
 
       parameters = [
         ['update',  '版本更新', true],
@@ -1259,7 +1261,7 @@ module Jenkins
           :script_path  => 'stn/build_main.groovy',
           :triggers     => {
             :timer  => {
-              :spec => '30 0,16 * * *'
+              :spec => (specs[name + '_linux'] || '30 0,16 * * *')
             }
           },
           :parameters   => [
@@ -1271,7 +1273,7 @@ module Jenkins
           :script_path  => 'stn/build_main_win.groovy',
           :triggers     => {
             :timer  => {
-              :spec => '0 0 * * 1-5'
+              :spec => (specs[name + '_windows'] || '0 0 * * 1-5')
             }
           },
           :parameters   => [
@@ -1706,8 +1708,23 @@ if $0 == __FILE__
     build.build
 
     build = Jenkins::Build.new
-    build.build
-    build.build 'appraisal'
+
+    bn_specs = {
+      'main_linux'          => '0 15 * * *',
+      'main_solaris'        => '0 12 * * 1,3,5',
+      'main_windows'        => '0 22 * * 1,3',
+      'main_windows32'      => '0 2 * * 2,4',
+
+      'appraisal_linux'     => '0 12 * * *',
+      'appraisal_solaris'   => '0 12 * * 2,4,6',
+      'appraisal_windows'   => '0 22 * * 2,4,7',
+      'appraisal_windows32' => '0 2 * * 1,3,5',
+    }
+
+    build.bn_build 'main', bn_specs
+    build.bn_build 'appraisal', bn_specs
+
+    build.stn_build
 
     build = Jenkins::Dashboard.new
     build.build
@@ -1732,7 +1749,7 @@ if $0 == __FILE__
     build.bn_build ['dev/20160417_wdm', 'dev/20160704', 'dev/20161008_wdm'], [:windows, :windows32]
     build.bn_build ['dev/20160627_MTN'], [:windows]
 
-    build.bn_build ['dev/20160822', 'dev/20160919', 'dev/20161025']
+    build.bn_build ['dev/20160822', 'dev/20160919', 'dev/20161025', 'dev/20161114']
 
     # STN工程版本
     build.stn_build ['release/20160601_stn']
