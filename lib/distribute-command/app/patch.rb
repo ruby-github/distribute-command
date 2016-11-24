@@ -897,6 +897,8 @@ module Patch
 
           compile_element << e
         end
+
+        element << compile_element
       end
 
       if not info[:deploy].nil?
