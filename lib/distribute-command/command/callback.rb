@@ -262,8 +262,6 @@ module DistributeCommand
       file = File.expand_path args['to_path'].to_s
 
       if File.file? file
-        database_name, database_home = System::database_info
-
         begin
           doc = REXML::Document.file file
 
@@ -295,23 +293,117 @@ module DistributeCommand
             e.text = File.expand_path args['install_home']
           end
 
-          REXML::XPath.each(doc, '/UserSetValue/MainIP | /UserSetValue/Datasources/db/DatabaseContext/IP') do |e|
+          REXML::XPath.each(doc, '/UserSetValue/MainIP') do |e|
             e.text = args['ip'].nil || System::ip
           end
 
           doc.delete_element '/UserSetValue/EMSID'
 
+          db_type     = nil
+          db_ip       = nil
+          db_port     = nil
+          db_sid      = nil
+          db_user     = nil
+          db_password = nil
+
+          if not args['db'].to_s.nil.nil?
+            list = args['db'].to_s.split(':').map {|x| x.strip.nil}
+
+            db_type     = list[0]
+            db_ip       = list[1]
+            db_port     = list[2]
+            db_sid      = list[3]
+            db_user     = list[4]
+            db_password = list[5]
+          end
+
           REXML::XPath.each(doc, '/UserSetValue/Datasources/db/DatabaseContext/Type') do |e|
-            if OS::windows?
-              e.text = 'mssql'
-            else
-              e.text = 'oracle'
+            if db_type.nil?
+              db_type = e.text.to_s.nil
             end
+
+            if db_type.nil?
+              if OS::windows?
+                db_type = 'mssql'
+              else
+                db_type = 'oracle'
+              end
+            end
+
+            e.text = db_type
+          end
+
+          REXML::XPath.each(doc, '/UserSetValue/Datasources/db/DatabaseContext/IP') do |e|
+            if db_ip.nil?
+              db_ip = args['ip'].nil || System::ip
+            end
+
+            e.text = db_ip
+          end
+
+          REXML::XPath.each(doc, '/UserSetValue/Datasources/db/DatabaseContext/Port') do |e|
+            if db_port.nil?
+              case db_type
+              when 'mssql'
+                db_port = 1433
+              when 'oracle'
+                db_port = 1521
+              when 'mysql'
+                db_port = 3306
+              else
+              end
+            end
+
+            if not db_port.nil?
+              e.text = db_port
+            end
+          end
+
+          REXML::XPath.each(doc, '/UserSetValue/Datasources/db/DatabaseContext/SID') do |e|
+            e.text = db_sid
+          end
+
+          REXML::XPath.each(doc, '/UserSetValue/Datasources/db/DatabaseContext/SuperUser') do |e|
+            if db_user.nil?
+              case db_type
+              when 'mssql'
+                db_user = 'sa'
+              when 'oracle'
+                db_user = 'system'
+              when 'mysql'
+                db_user = 'root'
+              else
+              end
+            end
+
+            e.text = db_user
+          end
+
+          REXML::XPath.each(doc, '/UserSetValue/Datasources/db/DatabaseContext/SuperUserPassword') do |e|
+            if db_user.nil?
+              case db_type
+              when 'mssql'
+                db_password = 'sa'
+              when 'oracle'
+                db_password = 'oracle'
+              when 'mysql'
+                db_password = 'mysql'
+              else
+              end
+            end
+
+            e.text = db_password
+          end
+
+          database_home = nil
+
+          if ['mssql', 'oracle', nil].include? db_type
+            database_name, database_home = System::database_info
           end
 
           REXML::XPath.each(doc, '/UserSetValue/InstallDBMacro/Property') do |e|
             if not database_home.nil?
-              if e.text.to_s.include? 'MSSQL' or e.text.to_s.include? 'oracle'
+              if e.text.to_s.downcase.include? 'mssql' or e.text.to_s.downcase.include? 'oracle'
                 e.text = database_home
               end
             end

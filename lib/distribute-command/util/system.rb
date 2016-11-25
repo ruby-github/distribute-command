@@ -12,11 +12,12 @@ module System
       end
     end
 
-    list.sort!
-
     if list.empty? or local
       list << '127.0.0.1'
     end
+
+    list.sort!
+    list.uniq!
 
     list
   end

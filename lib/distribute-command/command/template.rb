@@ -366,6 +366,7 @@ module DistributeCommand
     #   name, ip, home, installation_home, silencefile, license
     #   cmdline, uninstall_cmdline, tmpdir, skip, installation_home_patch, ems_locale
     #   client, server, deletes
+    #   db(type:ip:port:sid:user:password)
     def installation_iptn args = nil
       args ||= {}
 
@@ -443,6 +444,7 @@ module DistributeCommand
       copy_e.attributes['callback'] = 'netnumen_update_silenceinstall'
 
       copy_e.attributes['install_home'] = '${home}'
+      copy_e.attributes['db'] = args['db'].to_s.nil
 
       if args.has_key? 'ems_locale'
         copy_e.attributes['ems_locale'] = args['ems_locale']
@@ -459,11 +461,12 @@ module DistributeCommand
       element << copy_e
 
       # 重启数据库
-
       if args['client'] != 'true'
         function_e = REXML::Element.new 'function'
 
         function_e.attributes['name'] = '${name}:重启数据库'
+        function_e.attributes['home'] = '${home}'
+        function_e.attributes['db'] = args['db'].to_s.nil
         function_e.attributes['function'] = 'netnumen_database_restart'
 
         element << function_e
@@ -541,6 +544,7 @@ module DistributeCommand
     # args
     #   name, ip, home, installation_home, silencefile, license
     #   cmdline, uninstall_cmdline, tmpdir, skip, installation_home_patch, main_ip, ems_locale
+    #   db(type:ip:port:sid:user:password)
     def installation_sptn args = nil
       args ||= {}
 
@@ -606,6 +610,7 @@ module DistributeCommand
       copy_e.attributes['callback'] = 'netnumen_update_silenceinstall'
 
       copy_e.attributes['install_home'] = '${home}'
+      copy_e.attributes['db'] = args['db'].to_s.nil
 
       if args.has_key? 'ems_locale'
         copy_e.attributes['ems_locale'] = args['ems_locale']
@@ -620,6 +625,8 @@ module DistributeCommand
       function_e = REXML::Element.new 'function'
 
       function_e.attributes['name'] = '${name}:重启数据库'
+      function_e.attributes['home'] = '${home}'
+      function_e.attributes['db'] = args['db'].to_s.nil
       function_e.attributes['function'] = 'netnumen_database_restart'
 
       element << function_e
@@ -719,6 +726,7 @@ module DistributeCommand
     # args
     #   name, ip, home, database
     #   shutdown_cmdline, tmpdir, database_name, restore_database_cmdline
+    #   db(type:ip:port:sid:user:password)
     def restore_iptn_database args = nil
       args ||= {}
 
@@ -748,6 +756,8 @@ module DistributeCommand
       function_e = REXML::Element.new 'function'
 
       function_e.attributes['name'] = '${name}:重启数据库'
+      function_e.attributes['home'] = '${home}'
+      function_e.attributes['db'] = args['db'].to_s.nil
       function_e.attributes['function'] = 'netnumen_database_restart'
 
       element << function_e
@@ -764,11 +774,26 @@ module DistributeCommand
 
       # 恢复数据
 
+      default_cmdline = 'dbtool.bat -dbms:mssql -ip:${ip} -port:1433 -user:sa -pwd:sa -restoreems:%s' % File.join('${tmpdir}', args['database_name'] || 'database_backup.zip')
+
+      if args['db'].to_s.nil.nil?
+        list = args['db'].to_s.split(':').map {|x| x.strip.nil}
+
+        db_type     = list[0]
+        db_ip       = list[1]
+        db_port     = list[2]
+        db_sid      = list[3]
+        db_user     = list[4]
+        db_password = list[5]
+
+        default_cmdline = 'dbtool.bat -dbms:%s -ip:%s -port:%s -user:%s -pwd:%s -restoreems:%s' % [db_type, db_ip, db_port, db_user, db_password, File.join('${tmpdir}', args['database_name'] || 'database_backup.zip')]
+      end
+
       cmdline_e = REXML::Element.new 'cmdline'
 
       cmdline_e.attributes['name'] = '${name}:恢复数据'
       cmdline_e.attributes['home'] = '${home}/ums-server/utils/dbtool'
-      cmdline_e.attributes['cmdline'] = args['restore_database_cmdline'] || ('dbtool.bat -dbms:mssql -ip:${ip} -port:1433 -user:sa -pwd:sa -restoreems:%s' % File.join('${tmpdir}', args['database_name'] || 'database_backup.zip'))
+      cmdline_e.attributes['cmdline'] = args['restore_database_cmdline'] || default_cmdline
       cmdline_e.attributes['callback'] = 'netnumen_restore_database'
 
       element << cmdline_e
@@ -813,6 +838,7 @@ module DistributeCommand
     # args
     #   name, ip, home
     #   shutdown_cmdline, tmpdir, database, database_name, restore_database_cmdline
+    #   db(type:ip:port:sid:user:password)
     def restore_sptn_database args = nil
       restore_iptn_database args
     end
@@ -869,6 +895,7 @@ module DistributeCommand
       function_e = REXML::Element.new 'function'
 
       function_e.attributes['name'] = '${name}:重启数据库'
+      function_e.attributes['home'] = '${home}'
       function_e.attributes['function'] = 'netnumen_database_restart'
 
       element << function_e

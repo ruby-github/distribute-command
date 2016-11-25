@@ -121,6 +121,55 @@ module DistributeCommand
     end
 
     def netnumen_database_restart args = nil
+      args ||= {}
+
+      db_type = nil
+      db_ip = nil
+
+      if not args['db'].to_s.nil.nil?
+        list = args['db'].to_s.split(':').map {|x| x.strip.nil}
+
+        db_type = list[0]
+        db_ip = list[1]
+      end
+
+      if db_type.nil? or db_ip.nil?
+        if not args['home'].to_s.nil.nil?
+          file = File.join args['home'].to_s.nil, 'uif/conf/silenceinstall-for-localhost.xml'
+
+          if File.file? file
+            begin
+              doc = REXML::Document.file file
+
+              REXML::XPath.each doc, '/UserSetValue/Datasources/db/DatabaseContext/Type' do |e|
+                db_type = e.text.to_s.nil
+
+                break
+              end
+
+              REXML::XPath.each doc, '/UserSetValue/Datasources/db/DatabaseContext/IP' do |e|
+                db_ip = e.text.to_s.nil
+
+                break
+              end
+            rescue
+            end
+          end
+        end
+      end
+
+      if not db_ip.nil?
+        if not System::ip_list(true).include? db_ip
+          return true
+        end
+      end
+
+      if not db_type.nil?
+        if db_type != 'mssql'
+          return true
+        end
+      end
+
       database_name, database_home = System::database_info
 
       if not database_name.nil?
