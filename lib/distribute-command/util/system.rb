@@ -85,7 +85,11 @@ module System
         end
       end
     else
-      database_home = '/opt/oracle/oradata/uep/'
+      if not ENV['ORACLE_HOME'].nil?
+        database_home = File.join ENV['ORACLE_HOME'], '../../../oradata/uep'
+      else
+        database_home = '/opt/oracle/oradata/uep'
+      end
     end
 
     [database_name, database_home]

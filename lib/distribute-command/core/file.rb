@@ -387,7 +387,34 @@ class File
             FileUtils.mkdir_p dest_file
           end
         else
-          raise Errno::ENOENT, src_file
+          ascii_src_file = src_file.dup.force_encoding('ASCII-8BIT')
+          ascii_dest_file = dest_file.dup.force_encoding('ASCII-8BIT')
+
+          if exist? ascii_src_file
+            if not OS::windows?
+              if directory?(ascii_src_file)
+                if not directory? ascii_dest_file
+                  FileUtils.mkdir_p ascii_dest_file
+                end
+              else
+                if not directory? dirname(ascii_dest_file)
+                  FileUtils.mkdir_p dirname(ascii_dest_file)
+                end
+
+                if not system 'cp -f "%s" "%s"' % [ascii_src_file, ascii_dest_file]
+                  raise Errno::ENOENT, src_file
+                end
+
+                if preserve
+                  File.utime File.atime(ascii_src_file), File.mtime(ascii_src_file), ascii_dest_file
+                end
+              end
+            else
+              raise Errno::ENOENT, src_file
+            end
+          else
+            raise Errno::ENOENT, src_file
+          end
         end
       rescue
         Util::Logger::exception $!
