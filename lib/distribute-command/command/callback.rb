@@ -380,7 +380,7 @@ module DistributeCommand
           end
 
           REXML::XPath.each(doc, '/UserSetValue/Datasources/db/DatabaseContext/SuperUserPassword') do |e|
-            if db_user.nil?
+            if db_password.nil?
               case db_type
               when 'mssql'
                 db_password = 'sa'
