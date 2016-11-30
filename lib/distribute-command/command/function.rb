@@ -18,7 +18,7 @@ module DistributeCommand
             lines = []
 
             IO.readlines(file).each do |line|
-              line.strip!
+              line = line.utf8.strip
 
               case
               when line =~ /^odl\.IsDController\s*=/
@@ -36,7 +36,7 @@ module DistributeCommand
               end
             end
 
-            File.open file, 'w' do |f|
+            File.open file, 'w:utf-8' do |f|
               f.puts lines
             end
           end
@@ -81,7 +81,7 @@ module DistributeCommand
               lines = []
 
               IO.readlines(file).each do |line|
-                line.strip!
+                line = line.utf8.strip
 
                 case
                 when line =~ /^sptn\.nodetype\s*=/
@@ -107,7 +107,7 @@ module DistributeCommand
                 end
               end
 
-              File.open file, 'w' do |f|
+              File.open file, 'w:utf-8' do |f|
                 f.puts lines
               end
             end
