@@ -73,7 +73,7 @@ module DistributeCommand
                 doc = REXML::Document.file db_config
 
                 REXML::XPath.each doc, '/dbtool/allow_other_language' do |e|
-                  e.text = 'true'
+                  e.text = true
                 end
 
                 doc.to_file db_config
@@ -91,15 +91,15 @@ module DistributeCommand
             doc = REXML::Document.file file
 
             REXML::XPath.each doc, '/dbtool/ignoreUcaConflict' do |e|
-              e.text = 'true'
+              e.text = true
             end
 
             REXML::XPath.each doc, '/dbtool/allow_other_language' do |e|
-              e.text = 'true'
+              e.text = true
             end
 
             REXML::XPath.each doc, '/dbtool/allow_all_scale' do |e|
-              e.text = 'true'
+              e.text = true
             end
 
             doc.to_file file
@@ -277,13 +277,13 @@ module DistributeCommand
             e.text = 'ALL'
           end
 
-          if args['client'] == 'true'
+          if args['client'].to_s.boolean false
             REXML::XPath.each(doc, '/UserSetValue/InstallType') do |e|
               e.text = 'CLIENT'
             end
           end
 
-          if args['server'] == 'true'
+          if args['server'].to_s.boolean false
             REXML::XPath.each(doc, '/UserSetValue/InstallType') do |e|
               e.text = 'SERVER'
             end

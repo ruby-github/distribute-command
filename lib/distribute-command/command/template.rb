@@ -310,8 +310,8 @@ module DistributeCommand
 
       delete_e.attributes['name'] = '${name}:清除临时文件'
       delete_e.attributes['path'] = '${tmpdir}'
-      delete_e.attributes['ensure'] = 'true'
-      delete_e.attributes['skipfail'] = 'true'
+      delete_e.attributes['ensure'] = true
+      delete_e.attributes['skipfail'] = true
 
       element << delete_e
 
@@ -396,7 +396,7 @@ module DistributeCommand
       cmdline_e.attributes['home'] = '${home}/ums-server'
       cmdline_e.attributes['cmdline'] = args['uninstall_cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_uninstall'
-      cmdline_e.attributes['skipfail'] = 'true'
+      cmdline_e.attributes['skipfail'] = true
 
       element << cmdline_e
 
@@ -416,8 +416,8 @@ module DistributeCommand
 
         delete_e.attributes['name'] = '${name}:删除安装文件'
         delete_e.attributes['path'] = File.join '${tmpdir}', args['deletes']
-        delete_e.attributes['ensure'] = 'true'
-        delete_e.attributes['skipfail'] = 'true'
+        delete_e.attributes['ensure'] = true
+        delete_e.attributes['skipfail'] = true
 
         element << delete_e
       end
@@ -461,7 +461,7 @@ module DistributeCommand
       element << copy_e
 
       # 重启数据库
-      if args['client'] != 'true'
+      if args['client'].to_s.boolean false
         function_e = REXML::Element.new 'function'
 
         function_e.attributes['name'] = '${name}:重启数据库'
@@ -501,8 +501,8 @@ module DistributeCommand
 
       delete_e.attributes['name'] = '${name}:清除临时安装文件'
       delete_e.attributes['path'] = '${tmpdir}/../install_tmp*'
-      delete_e.attributes['ensure'] = 'true'
-      delete_e.attributes['skipfail'] = 'true'
+      delete_e.attributes['ensure'] = true
+      delete_e.attributes['skipfail'] = true
 
       element << delete_e
 
@@ -510,8 +510,8 @@ module DistributeCommand
 
       delete_e.attributes['name'] = '${name}:清除临时文件'
       delete_e.attributes['path'] = '${tmpdir}'
-      delete_e.attributes['ensure'] = 'true'
-      delete_e.attributes['skipfail'] = 'true'
+      delete_e.attributes['ensure'] = true
+      delete_e.attributes['skipfail'] = true
 
       element << delete_e
 
@@ -574,7 +574,7 @@ module DistributeCommand
       cmdline_e.attributes['home'] = '${home}/ums-server'
       cmdline_e.attributes['cmdline'] = args['uninstall_cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_uninstall'
-      cmdline_e.attributes['skipfail'] = 'true'
+      cmdline_e.attributes['skipfail'] = true
 
       element << cmdline_e
 
@@ -616,7 +616,7 @@ module DistributeCommand
         copy_e.attributes['ems_locale'] = args['ems_locale']
       end
 
-      copy_e.attributes['server'] = 'true'
+      copy_e.attributes['server'] = true
 
       element << copy_e
 
@@ -674,8 +674,8 @@ module DistributeCommand
 
       delete_e.attributes['name'] = '${name}:清除临时安装文件'
       delete_e.attributes['path'] = '${tmpdir}/../install_tmp*'
-      delete_e.attributes['ensure'] = 'true'
-      delete_e.attributes['skipfail'] = 'true'
+      delete_e.attributes['ensure'] = true
+      delete_e.attributes['skipfail'] = true
 
       element << delete_e
 
@@ -683,8 +683,8 @@ module DistributeCommand
 
       delete_e.attributes['name'] = '${name}:清除临时文件'
       delete_e.attributes['path'] = '${tmpdir}'
-      delete_e.attributes['ensure'] = 'true'
-      delete_e.attributes['skipfail'] = 'true'
+      delete_e.attributes['ensure'] = true
+      delete_e.attributes['skipfail'] = true
 
       element << delete_e
 
@@ -747,7 +747,7 @@ module DistributeCommand
       cmdline_e.attributes['home'] = '${home}/ums-server'
       cmdline_e.attributes['cmdline'] = args['shutdown_cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_close_server'
-      cmdline_e.attributes['skipfail'] = 'true'
+      cmdline_e.attributes['skipfail'] = true
 
       element << cmdline_e
 
@@ -804,8 +804,8 @@ module DistributeCommand
 
       delete_e.attributes['name'] = '${name}:清除临时文件'
       delete_e.attributes['path'] = '${tmpdir}'
-      delete_e.attributes['ensure'] = 'true'
-      delete_e.attributes['skipfail'] = 'true'
+      delete_e.attributes['ensure'] = true
+      delete_e.attributes['skipfail'] = true
 
       element << delete_e
 
@@ -886,7 +886,7 @@ module DistributeCommand
       cmdline_e.attributes['home'] = '${home}/ums-server'
       cmdline_e.attributes['cmdline'] = args['shutdown_cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_close_server'
-      cmdline_e.attributes['skipfail'] = 'true'
+      cmdline_e.attributes['skipfail'] = true
 
       element << cmdline_e
 
@@ -989,7 +989,7 @@ module DistributeCommand
       cmdline_e.attributes['home'] = '${home}/ums-client'
       cmdline_e.attributes['cmdline'] = nil
       cmdline_e.attributes['callback_finish'] = 'netnumen_close_client'
-      cmdline_e.attributes['skipfail'] = 'true'
+      cmdline_e.attributes['skipfail'] = true
 
       element << cmdline_e
 
@@ -1048,8 +1048,8 @@ module DistributeCommand
 
       cmdline_e.attributes['cmdline'] = args['cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_close_server'
-      cmdline_e.attributes['ensure'] = 'true'
-      cmdline_e.attributes['skipfail'] = 'true'
+      cmdline_e.attributes['ensure'] = true
+      cmdline_e.attributes['skipfail'] = true
 
       cmdline_e
     end
@@ -1093,8 +1093,8 @@ module DistributeCommand
 
       cmdline_e.attributes['cmdline'] = args['cmdline'] || 'shutdown-console.bat'
       cmdline_e.attributes['callback_finish'] = 'netnumen_close_server'
-      cmdline_e.attributes['ensure'] = 'true'
-      cmdline_e.attributes['skipfail'] = 'true'
+      cmdline_e.attributes['ensure'] = true
+      cmdline_e.attributes['skipfail'] = true
 
       cmdline_e
     end
@@ -1137,8 +1137,8 @@ module DistributeCommand
 
       cmdline_e.attributes['cmdline'] = nil
       cmdline_e.attributes['callback_finish'] = 'netnumen_close_client'
-      cmdline_e.attributes['ensure'] = 'true'
-      cmdline_e.attributes['skipfail'] = 'true'
+      cmdline_e.attributes['ensure'] = true
+      cmdline_e.attributes['skipfail'] = true
 
       cmdline_e
     end
@@ -1376,7 +1376,7 @@ module DistributeCommand
 
         function_e.attributes['log_home'] = args['log_home']
         function_e.attributes['function'] = 'quicktest_report'
-        function_e.attributes['ensure'] = 'true'
+        function_e.attributes['ensure'] = true
 
         list_sequence << function_e
       end
@@ -1390,8 +1390,8 @@ module DistributeCommand
 
         delete_e.attributes['name'] = '${name}:清除测试用例'
         delete_e.attributes['path'] = '${tmpdir}'
-        delete_e.attributes['ensure'] = 'true'
-        delete_e.attributes['skipfail'] = 'true'
+        delete_e.attributes['ensure'] = true
+        delete_e.attributes['skipfail'] = true
 
         element << delete_e
 
@@ -1401,8 +1401,8 @@ module DistributeCommand
 
         delete_e.attributes['name'] = '${name}:清除测试日志'
         delete_e.attributes['path'] = File.dirname QUICKTEST_FILENAME_TESTLOG
-        delete_e.attributes['ensure'] = 'true'
-        delete_e.attributes['skipfail'] = 'true'
+        delete_e.attributes['ensure'] = true
+        delete_e.attributes['skipfail'] = true
 
         element << delete_e
 
@@ -1413,8 +1413,8 @@ module DistributeCommand
         function_e.attributes['name'] = '${name}:重置测试日志文件'
         function_e.attributes['filename'] = QUICKTEST_FILENAME_TESTLOG
         function_e.attributes['function'] = 'reset_file'
-        function_e.attributes['ensure'] = 'true'
-        function_e.attributes['skipfail'] = 'true'
+        function_e.attributes['ensure'] = true
+        function_e.attributes['skipfail'] = true
 
         element << function_e
       end
@@ -1429,7 +1429,7 @@ module DistributeCommand
 
       function_e.attributes['client_ip'] = '${ip}'
       function_e.attributes['function'] = 'compare_index_client'
-      function_e.attributes['ensure'] = 'true'
+      function_e.attributes['ensure'] = true
 
       element << function_e
 
@@ -1448,7 +1448,7 @@ module DistributeCommand
       function_e.attributes['name'] = args['name']
       function_e.attributes['home'] = args['home']
       function_e.attributes['function'] = 'compare_index'
-      function_e.attributes['ensure'] = 'true'
+      function_e.attributes['ensure'] = true
 
       function_e
     end

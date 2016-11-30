@@ -187,6 +187,10 @@ class File
     end
   end
 
+  def self.paths filename
+    filename.split /[\/\\]/
+  end
+
   def self.pattern_split xpath
     xpath = normalize xpath
 

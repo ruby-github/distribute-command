@@ -1929,7 +1929,7 @@ module Install
     if type.to_s == 'service'
       doc.root.attributes['ppuname'] = 'bn'
       doc.root.attributes['pmuname'] = 'bn-servicetools'
-      doc.root.attributes['hotpatch'] = 'true'
+      doc.root.attributes['hotpatch'] = true
     end
 
     element = REXML::Element.new 'description'
@@ -1956,8 +1956,8 @@ module Install
 
     if type.to_s == 'service'
       element = REXML::Element.new 'hotpatch'
-      element.attributes['restart-client'] = 'true'
-      element.attributes['run-operation'] = 'true'
+      element.attributes['restart-client'] = true
+      element.attributes['run-operation'] = true
 
       doc.root << element
 

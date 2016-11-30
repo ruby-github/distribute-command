@@ -7,7 +7,7 @@ module Jenkins
   HTTP_METRIC = 'http://10.41.213.28/WebService/ZTE.Wireline.WebService/BuildAPI.ashx'
   JENKINS_BUILD = 'build --username admin --password admin-1234'
 
-  def buildstart_metric project, night = true
+  def buildstart_metric project, item = nil, night = true
     if $metric
       if night
         buildtype = 'night'
@@ -15,7 +15,7 @@ module Jenkins
         buildtype = 'CI'
       end
 
-      cmdline = 'curl --data "action=buildstart&project=%s&buildtype=%s" %s' % [project, buildtype, HTTP_METRIC]
+      cmdline = 'curl --data "action=buildstart&project=%s&buildtype=%s&item=%s" %s' % [project, buildtype, item, HTTP_METRIC]
 
       Util::Logger::puts cmdline
 
