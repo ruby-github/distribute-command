@@ -528,7 +528,7 @@ namespace :stn do
           next
         end
 
-        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key[File.paths(path).first], false
+        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
         Compile::mvn File.join(home, path), 'mvn clean -fn'
 
@@ -603,7 +603,7 @@ namespace :stn do
           next
         end
 
-        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key[File.paths(path).first], false
+        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
         if Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
             errors_list << _errors
@@ -676,7 +676,7 @@ namespace :stn do
           next
         end
 
-        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key[File.paths(path).first], false
+        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
         # if not Compile::mvn File.join(home, path), 'mvn findbugs:findbugs -fn -U', false, true do |_errors|
         #     errors_list << _errors
@@ -760,7 +760,7 @@ namespace :stn do
           next
         end
 
-        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key[File.paths(path).first], false
+        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
         if Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
             errors_list << _errors

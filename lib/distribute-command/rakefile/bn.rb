@@ -1506,7 +1506,7 @@ namespace :bn do
             next
           end
 
-          id = Jenkins::buildstart_metric metric_id, BN_PATHS.key[File.paths(path).first], false
+          id = Jenkins::buildstart_metric metric_id, BN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
           Compile::mvn File.join(home, path), 'mvn clean -fn'
 
@@ -1605,7 +1605,7 @@ namespace :bn do
             next
           end
 
-          id = Jenkins::buildstart_metric metric_id, BN_PATHS.key[File.paths(path).first], false
+          id = Jenkins::buildstart_metric metric_id, BN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
           if Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
               errors_list << _errors
@@ -1704,7 +1704,7 @@ namespace :bn do
             next
           end
 
-          id = Jenkins::buildstart_metric metric_id, BN_PATHS.key[File.paths(path).first], false
+          id = Jenkins::buildstart_metric metric_id, BN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
           # if not Compile::mvn File.join(home, path), 'mvn findbugs:findbugs -fn -U', false, true do |_errors|
           #     errors_list << _errors
@@ -1814,7 +1814,7 @@ namespace :bn do
             next
           end
 
-          id = Jenkins::buildstart_metric metric_id, BN_PATHS.key[File.paths(path).first], false
+          id = Jenkins::buildstart_metric metric_id, BN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
           if Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
               errors_list << _errors
@@ -1986,7 +1986,7 @@ namespace :bn do
             next
           end
 
-          id = Jenkins::buildstart_metric metric_id, BN_CPP_PATHS.key[File.paths(path).first], false
+          id = Jenkins::buildstart_metric metric_id, BN_CPP_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
           Compile::mvn File.join(home, path), 'mvn clean -fn'
 
@@ -2107,7 +2107,7 @@ namespace :bn do
             end
           end
 
-          id = Jenkins::buildstart_metric metric_id, BN_CPP_PATHS.key[File.paths(path).first], false
+          id = Jenkins::buildstart_metric metric_id, BN_CPP_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
           if Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5 -Djobs=5', true, true do |_errors|
               errors_list << _errors
@@ -2214,7 +2214,7 @@ namespace :bn do
             next
           end
 
-          id = Jenkins::buildstart_metric metric_id, BN_CPP_PATHS.key[File.paths(path).first], false
+          id = Jenkins::buildstart_metric metric_id, BN_CPP_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
           # if not Compile::mvn File.join(home, path), 'mvn exec:exec -fn -U', false, true do |_errors|
           #     errors_list << _errors
@@ -2332,7 +2332,7 @@ namespace :bn do
             next
           end
 
-          id = Jenkins::buildstart_metric metric_id, BN_CPP_PATHS.key[File.paths(path).first], false
+          id = Jenkins::buildstart_metric metric_id, BN_CPP_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
           if Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
               errors_list << _errors
