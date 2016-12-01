@@ -40,6 +40,8 @@ if $0	== __FILE__
 				if line	=~ /HWADDR\s*=\s*["']*([0-9a-fA-F:]+)["']*/
 					if $1.upcase !=	mac_addr
 						line = 'HWADDR="%s"' % mac_addr
+
+            update = true
 					end
 				end
 
@@ -53,7 +55,7 @@ if $0	== __FILE__
 					f.puts lines
 				end
 
-				system '/etc/init.d/network	restart'
+        system 'systemctl restart network'
 			end
 		end
 	end
