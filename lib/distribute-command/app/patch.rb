@@ -564,12 +564,14 @@ module Patch
           info[:compile].each do |name, clean|
             dirname = File.join info[:attr][:home], name
 
+            update_pom_version dirname
+
             if clean
               Compile::mvn dirname, 'mvn clean -fn -U'
             end
 
             if dirname.include? '/code_c/'
-              if not Compile::mvn dirname, 'mvn deploy -fn -U', false, true, subject: '<PATCH 通知>补丁编译失败, 请尽快处理'
+              if not Compile::mvn dirname, 'mvn deploy -fn -U -Djobs=5', false, true, subject: '<PATCH 通知>补丁编译失败, 请尽快处理'
                 return false
               end
             else
@@ -1031,6 +1033,39 @@ module Patch
       'ems'
     end
 
+    def update_pom_version home
+      if not ENV['POM_VERSION'].nil?
+        version = ENV['POM_VERSION']
+
+        if not version.end_with? '-SNAPSHOT'
+          version = '%s-SNAPSHOT' % version
+        end
+
+        file = File.join home, 'pom.xml'
+
+        if File.file? file
+          begin
+            doc = REXML::Document.file file
+
+            REXML::XPath.each doc, '/project/parent/version' do |e|
+              text = e.text.to_s.strip
+
+              if version != text
+                if not ['1.0-SNAPSHOT', '2.0-SNAPSHOT', '3.0-SNAPSHOT', '4.0-SNAPSHOT', '5.0-SNAPSHOT'].include? text
+                  e.text = version
+
+                  doc.to_file file
+                end
+              end
+
+              break
+            end
+          rescue
+          end
+        end
+      end
+    end
+
     # args
     #   id
     #
@@ -1169,6 +1204,9 @@ module Patch
 
     def default_type
       'stn'
+    end
+
+    def update_pom_version home
     end
   end
 end
