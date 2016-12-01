@@ -16,14 +16,14 @@ if $0	== __FILE__
 				next
 			end
 
-			if line.start_with?	/^eth0\s*:\s*/
+			if line =~ /^eth0\s*:\s*/
 				eth0_start = true
 
 				next
 			end
 
 			if eth0_start
-				if line	=~ /^ether\s+([0-9a-eA-E:]+)\s+/
+				if line	=~ /^ether\s+([0-9a-fA-F:]+)/
 					mac_addr = $1.upcase
 				end
 			end
@@ -37,7 +37,7 @@ if $0	== __FILE__
 			IO.readlines(file).each	do |line|
 				line.strip!
 
-				if line	=~ /HWADDR\s*=\s*"([0-9a-eA-E:]+)"/
+				if line	=~ /HWADDR\s*=\s*["']*([0-9a-fA-F:]+)["']*/
 					if $1.upcase !=	mac_addr
 						line = 'HWADDR="%s"' % mac_addr
 					end
