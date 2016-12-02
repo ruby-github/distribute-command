@@ -1711,6 +1711,8 @@ if $0 == __FILE__
     stn_build_home = 'jobs'
     stn_dashboard_home = 'jobs'
     stn_patch_home = 'jobs'
+
+    public_home = 'jobs'
   else
     bn_build_home = 'jobs/bn_build'
     bn_dashboard_home = 'jobs/bn_dashboard'
@@ -1719,10 +1721,13 @@ if $0 == __FILE__
     stn_build_home = 'jobs/stn_build'
     stn_dashboard_home = 'jobs/stn_dashboard'
     stn_patch_home = 'jobs/stn_patch'
+
+    public_home = 'jobs/public'
   end
 
   File.mkdir [bn_build_home, bn_dashboard_home, bn_patch_home]
   File.mkdir [stn_build_home, stn_dashboard_home, stn_patch_home]
+  File.mkdir public_home
 
   # bn
 
@@ -1796,5 +1801,12 @@ if $0 == __FILE__
 
     # 开发版本
     build.stn_build ['dev/20161026_stn', 'dev/20161119_stn']
+  end
+
+  # public
+
+  Dir.chdir public_home do
+    build = Jenkins::Tools.new
+    build.build
   end
 end
