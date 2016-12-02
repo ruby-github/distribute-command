@@ -615,7 +615,7 @@ module Jenkins
       stn_build
     end
 
-    private
+    # private
 
     def bn_build
       parameters = [
@@ -1161,7 +1161,7 @@ module Jenkins
       stn_build name, specs
     end
 
-    #private
+    # private
 
     def bn_build name = nil, specs = nil
       name ||= 'main'
@@ -1304,7 +1304,7 @@ module Jenkins
       stn_build
     end
 
-    private
+    # private
 
     def bn_build
       parameters = [
@@ -1701,14 +1701,32 @@ module Jenkins
 end
 
 if $0 == __FILE__
-  File.mkdir 'jobs'
+  all = false
 
-  Dir.chdir 'jobs' do
-    build = Jenkins::Base.new
-    build.build
+  if all
+    bn_build_home = 'jobs'
+    bn_dashboard_home = 'jobs'
+    bn_patch_home = 'jobs'
 
-    build = Jenkins::Build.new
+    stn_build_home = 'jobs'
+    stn_dashboard_home = 'jobs'
+    stn_patch_home = 'jobs'
+  else
+    bn_build_home = 'jobs/bn_build'
+    bn_dashboard_home = 'jobs/bn_dashboard'
+    bn_patch_home = 'jobs/bn_patch'
 
+    stn_build_home = 'jobs/stn_build'
+    stn_dashboard_home = 'jobs/stn_dashboard'
+    stn_patch_home = 'jobs/stn_patch'
+  end
+
+  File.mkdir [bn_build_home, bn_dashboard_home, bn_patch_home]
+  File.mkdir [stn_build_home, stn_dashboard_home, stn_patch_home]
+
+  # bn
+
+  Dir.chdir bn_build_home do
     bn_specs = {
       'main_linux'          => '0 15 * * *',
       'main_solaris'        => '0 12 * * 1,3,5',
@@ -1721,20 +1739,23 @@ if $0 == __FILE__
       'appraisal_windows32' => '0 2 * * 1,3,5',
     }
 
+    build = Jenkins::Base.new
+    build.bn_build
+
+    build = Jenkins::Build.new
     build.bn_build 'main', bn_specs
     build.bn_build 'appraisal', bn_specs
+  end
 
-    build.stn_build
-
+  Dir.chdir bn_dashboard_home do
     build = Jenkins::Dashboard.new
-    build.build
+    build.bn_build
+  end
 
-    build = Jenkins::Tools.new
-    build.build
-
+  Dir.chdir bn_patch_home do
     build = Jenkins::Patch.new
 
-    # IPTN工程版本
+    # 工程版本
 
     # -- 2014 --
     build.bn_build ['release/20140630', 'release/20141208'], [:linux, :solaris, :windows32]
@@ -1745,16 +1766,35 @@ if $0 == __FILE__
     # -- 2016 --
     build.bn_build ['release/20160606']
 
-    # IPTN开发版本
+    # 开发版本
     build.bn_build ['dev/20160417_wdm', 'dev/20161008_wdm'], [:windows, :windows32]
     build.bn_build ['dev/20160627_MTN', 'dev/20161123_UMEBT'], [:windows]
 
     build.bn_build ['dev/20161025', 'dev/20161114']
+  end
 
-    # STN工程版本
+  # stn
+
+  Dir.chdir stn_build_home do
+    build = Jenkins::Base.new
+    build.stn_build
+
+    build = Jenkins::Build.new
+    build.stn_build
+  end
+
+  Dir.chdir stn_dashboard_home do
+    build = Jenkins::Dashboard.new
+    build.stn_build
+  end
+
+  Dir.chdir stn_patch_home do
+    build = Jenkins::Patch.new
+
+    # 工程版本
     build.stn_build ['release/20160601_stn']
 
-    # STN开发版本
+    # 开发版本
     build.stn_build ['dev/20161026_stn', 'dev/20161119_stn']
   end
 end
