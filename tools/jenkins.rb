@@ -1510,6 +1510,22 @@ module Jenkins
 
         pipeline = Jenkins::Pipeline.new 'bn_patch'
         pipeline.build args.merge(@args_logrotator_module)
+
+        args = {
+          :script_path  => 'tools/bn_patch_init.groovy',
+          :parameters   => [
+              ['name',        '补丁名称(例如dev/20160801, release/20160606)', ''],
+              ['version',     '版本号',       ''],
+              ['branch',      '分支名称',     ''],
+              ['windows',     'windows系统',  false],
+              ['windows32',   'windows32系统',false],
+              ['linux',       'linux系统',    false],
+              ['solaris',     'solaris系统',  false]
+            ]
+        }
+
+        pipeline = Jenkins::Pipeline.new 'bn_patch_init'
+        pipeline.build args.merge(@args_logrotator)
       end
 
       osnames ||= [:linux, :solaris, :windows, :windows32]
@@ -1578,6 +1594,18 @@ module Jenkins
 
         pipeline = Jenkins::Pipeline.new 'stn_patch'
         pipeline.build args.merge(@args_logrotator_module)
+
+        args = {
+          :script_path  => 'tools/stn_patch_init.groovy',
+          :parameters   => [
+              ['name',        '补丁名称例如(dev/20160727_stn, release/20160601_stn)', ''],
+              ['version',     '版本号',     ''],
+              ['branch',      '分支名称',   '']
+            ]
+        }
+
+        pipeline = Jenkins::Pipeline.new 'stn_patch_init'
+        pipeline.build args.merge(@args_logrotator)
       end
 
       names.to_array.each do |name|
@@ -1630,34 +1658,6 @@ module Jenkins
       }
 
       pipeline = Jenkins::Pipeline.new 'autopatch'
-      pipeline.build args.merge(@args_logrotator)
-
-      args = {
-        :script_path  => 'tools/bn_patch_init.groovy',
-        :parameters   => [
-            ['name',        '补丁名称(例如dev/20160801, release/20160606)', ''],
-            ['version',     '版本号',       ''],
-            ['branch',      '分支名称',     ''],
-            ['windows',     'windows系统',  false],
-            ['windows32',   'windows32系统',false],
-            ['linux',       'linux系统',    false],
-            ['solaris',     'solaris系统',  false]
-          ]
-      }
-
-      pipeline = Jenkins::Pipeline.new 'bn_patch_init'
-      pipeline.build args.merge(@args_logrotator)
-
-      args = {
-        :script_path  => 'tools/stn_patch_init.groovy',
-        :parameters   => [
-            ['name',        '补丁名称例如(dev/20160727_stn, release/20160601_stn)', ''],
-            ['version',     '版本号',     ''],
-            ['branch',      '分支名称',   '']
-          ]
-      }
-
-      pipeline = Jenkins::Pipeline.new 'stn_patch_init'
       pipeline.build args.merge(@args_logrotator)
 
       args = {
@@ -1715,12 +1715,12 @@ if $0 == __FILE__
     public_home = 'jobs'
   else
     bn_build_home = 'jobs/bn_build'
-    bn_dashboard_home = 'jobs/bn_dashboard'
+    bn_dashboard_home = 'jobs/dashboard'
     bn_patch_home = 'jobs/bn_patch'
 
-    stn_build_home = 'jobs/stn_build'
-    stn_dashboard_home = 'jobs/stn_dashboard'
-    stn_patch_home = 'jobs/stn_patch'
+    stn_build_home = 'jobs/stn'
+    stn_dashboard_home = 'jobs/dashboard'
+    stn_patch_home = 'jobs/stn'
 
     public_home = 'jobs/public'
   end
