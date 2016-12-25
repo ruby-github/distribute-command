@@ -1701,7 +1701,7 @@ module Jenkins
 end
 
 if $0 == __FILE__
-  all = false
+  all = true
 
   if all
     bn_build_home = 'jobs'
@@ -1749,7 +1749,7 @@ if $0 == __FILE__
 
     build = Jenkins::Build.new
     build.bn_build 'main', bn_specs
-    build.bn_build 'appraisal', bn_specs
+    #build.bn_build 'appraisal', bn_specs
   end
 
   Dir.chdir bn_dashboard_home do
@@ -1769,11 +1769,11 @@ if $0 == __FILE__
     build.bn_build ['release/20150601', 'release/20151207']
 
     # -- 2016 --
-    build.bn_build ['release/20160606']
+    build.bn_build ['release/20160606', 'release/20161205']
 
     # 开发版本
     build.bn_build ['dev/20160417_wdm', 'dev/20161008_wdm'], [:windows, :windows32]
-    build.bn_build ['dev/20160627_MTN', 'dev/20161123_UMEBT'], [:windows]
+    build.bn_build ['dev/20160627_MTN', 'dev/20161123_UMEBT', 'dev/20161221_wdm'], [:windows]
 
     build.bn_build ['dev/20161025', 'dev/20161114']
   end
@@ -1797,7 +1797,7 @@ if $0 == __FILE__
     build = Jenkins::Patch.new
 
     # 工程版本
-    build.stn_build ['release/20160601_stn']
+    build.stn_build ['release/20160601_stn', 'release/20161210_stn']
 
     # 开发版本
     build.stn_build ['dev/20161026_stn', 'dev/20161119_stn']
