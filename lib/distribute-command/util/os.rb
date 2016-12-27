@@ -610,7 +610,7 @@ module Colorize
         end
       end
 
-      __write__ colorize(str, fore, back, extras.join(',')).locale
+      __write__ colorize(str, fore, back, extras.join(',')).utf8
       size += str.size
     end
 
