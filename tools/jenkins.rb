@@ -1733,10 +1733,10 @@ if $0 == __FILE__
 
   Dir.chdir bn_build_home do
     bn_specs = {
-      'main_linux'          => '0 15 * * *',
-      'main_solaris'        => '0 12 * * 1,3,5',
-      'main_windows'        => '0 22 * * 1,3',
-      'main_windows32'      => '0 2 * * 2,4',
+      'main_linux'          => '0 0,13 * * *',
+      'main_solaris'        => '0 0,12 * * 1-5',
+      'main_windows'        => '0 22 * * 0-4',
+      'main_windows32'      => '0 2 * * 1-5',
 
       'appraisal_linux'     => '0 12 * * *',
       'appraisal_solaris'   => '0 12 * * 2,4,6',
@@ -1800,7 +1800,7 @@ if $0 == __FILE__
     build.stn_build ['release/20160601_stn', 'release/20161210_stn']
 
     # 开发版本
-    build.stn_build ['dev/20161026_stn', 'dev/20161119_stn']
+    # build.stn_build ['dev/20161026_stn', 'dev/20161119_stn']
   end
 
   # public
