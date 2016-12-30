@@ -442,18 +442,27 @@ module Jenkins
 
             Dir.chdir dirname do
               File.glob('**/*.{xml,zip}').each do |file|
-                list << file
+                list << File.dirname(file)
               end
             end
+
+            list.uniq!
 
             current = true
 
             list.each do |file|
               osnames.each do |os|
-                if not File.copy File.join(dirname, file), File.join('template', version, os, file.downcase) do |src, dest|
-                    Util::Logger::info dest
+                os_dirname = File.join 'template', version, os
 
-                    [src, dest]
+                if not File.mkdir os_dirname
+                  status = false
+                  current = false
+
+                  next
+                end
+
+                if not CommandLine::cmdline 'cp -R "%s/"* "%s"/' % [dirname, os_dirname] do |line, stdin, wait_thr|
+                    Util::Logger::info line
                   end
 
                   status = false
@@ -463,10 +472,10 @@ module Jenkins
             end
 
             if current
-              File.delete dirname
+              system 'rm -fr "%s"' % dirname
             end
           else
-            File.delete dirname
+            system 'rm -fr "%s"' % dirname
           end
         end
 
@@ -481,15 +490,13 @@ module Jenkins
               xpath = File.join os_home, osname, '{release,dev}', version, 'build/xml'
 
               File.glob(xpath).each do |path|
-                if not File.copy dir, path do |src, dest|
-                    Util::Logger::info dest
-
-                    [src, dest]
+                if not CommandLine::cmdline 'cp -R "%s/"* "%s"/' % [dir, path] do |line, stdin, wait_thr|
+                    Util::Logger::info line
                   end
 
                   status = false
                 else
-                  File.delete dir
+                  system 'rm -fr "%s"' % dir
                 end
               end
             end
