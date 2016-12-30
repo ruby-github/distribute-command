@@ -353,7 +353,11 @@ module Util
               lines << '       ' + x
             end
 
-            line = '       ' + name.utf8 + ' ' + '.' * (width - name.bytesize + 2)
+            if width > name.bytesize
+              line = '       ' + name.utf8 + ' ' + '.' * (width - name.bytesize + 2)
+            else
+              line = '       ' + name.utf8
+            end
           else
             line = '[INFO] ' + name.utf8 + ' ' + '.' * (width - name.bytesize + 2)
           end
