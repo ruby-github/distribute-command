@@ -151,7 +151,7 @@ namespace :stn do
   namespace :deploy do
     task :base, [:home, :version] do |t, args|
       home = args[:home].to_s.nil || ($home || 'code')
-      version = args[:version].to_s.nil || (ENV['POM_VERSION'] || '2.0')
+      version = args[:version].to_s.nil || ENV['POM_VERSION']
 
       status = true
 
@@ -171,7 +171,7 @@ namespace :stn do
 
     task :thirdparty, [:home, :version] do |t, args|
       home = args[:home].to_s.nil || ($home || 'code')
-      version = args[:version].to_s.nil || (ENV['POM_VERSION'] || '2.0')
+      version = args[:version].to_s.nil || (ENV['POM_VERSION'] || '3.0')
 
       status = true
 
