@@ -24,7 +24,7 @@ STN_REPOS = {
   'installation'=> 'http://10.5.64.19/git/sdn_installation'
 }
 
-STN_METRIC_ID = $stn_metric_id || '310001113886'
+STN_METRIC_ID = $stn_metric_id || '310001127050'
 
 namespace :stn do
   namespace :update do
