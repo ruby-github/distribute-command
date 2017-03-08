@@ -52,17 +52,47 @@ BN_REPOS = {
 
 BN_REPOS_DEVTOOLS = 'https://10.5.72.55:8443/svn/BN_DEVKIT'
 
-BN_MAIL_ADDRS_IPTN    = ['10011354@zte.com.cn', '10041721@zte.com.cn', '10040195@zte.com.cn', '10033733@zte.com.cn'] # 彭鑫111354, 操小明141721, 赖洪水140195, 张晓冬133733
-BN_MAIL_ADDRS_IPTN_NJ = ['10011531@zte.com.cn'] # 赵宇111531
-BN_MAIL_ADDRS_NAF     = ['10033121@zte.com.cn', '10041713@zte.com.cn'] # 吉才颂133121, 吴高科141713
-BN_MAIL_ADDRS_E2E     = ['10035566@zte.com.cn'] # 李发献135566
-BN_MAIL_ADDRS_WDM     = ['10008896@zte.com.cn'] # 张新立108896
+$bn_mail_addrs_iptn    ||= ['10017591@zte.com.cn', '10041721@zte.com.cn', '10040195@zte.com.cn', '10045466@zte.com.cn'] # 张曰明117591, 操小明141721, 赖洪水140195, 蒋书轶145466
+$bn_mail_addrs_iptn_nj ||= ['10011531@zte.com.cn'] # 赵宇111531
+$bn_mail_addrs_naf     ||= ['10033121@zte.com.cn', '10041713@zte.com.cn'] # 吉才颂133121, 吴高科141713
+$bn_mail_addrs_e2e     ||= ['10035566@zte.com.cn', '10071997@zte.com.cn'] # 李发献135566,赵永旺171997
+$bn_mail_addrs_wdm     ||= ['10008896@zte.com.cn'] # 张新立108896
 
-BN_METRIC_ID_IPTN     = $bn_metric_id_iptn || '310001114849'
-BN_METRIC_ID_IPTN_NJ  = $bn_metric_id_iptn_nj || '310001114719'
-BN_METRIC_ID_NAF      = $bn_metric_id_naf || '310001115511'
-BN_METRIC_ID_E2E      = $bn_metric_id_e2e || '310001115567'
-BN_METRIC_ID_WDM      = $bn_metric_id_wdm || '310001115017'
+$bn_metric_id_iptn    ||= '310001125783'
+$bn_metric_id_iptn_nj ||= '310001122993'
+$bn_metric_id_naf     ||= '310001128834'
+$bn_metric_id_e2e     ||= '310001128683'
+$bn_metric_id_wdm     ||= '310001128924'
+
+def bn_metric_id module_name
+  case module_name
+  when 'e2e', 'e2e-1', 'e2e-2', 'e2e-3'
+    $bn_metric_id_e2e
+  when 'wdm', 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
+    $bn_metric_id_wdm
+  when 'naf', 'xmlfile'
+    $bn_metric_id_naf
+  when 'ptn2', 'ip', 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
+    $bn_metric_id_iptn_nj
+  else
+    $bn_metric_id_iptn
+  end
+end
+
+def bn_mail_addrs module_name
+  case module_name
+  when 'naf'
+    $bn_mail_addrs_naf
+  when 'e2e'
+    $bn_mail_addrs_e2e
+  when 'wdm'
+    $bn_mail_addrs_wdm
+  when 'ptn2', 'ip'
+    $bn_mail_addrs_iptn_nj
+  else
+    $bn_mail_addrs_iptn
+  end
+end
 
 namespace :bn do
   namespace :update do
@@ -382,18 +412,7 @@ namespace :bn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        case module_name
-        when 'e2e'
-          metric_id = BN_METRIC_ID_E2E
-        when 'wdm'
-          metric_id = BN_METRIC_ID_WDM
-        when 'naf', 'xmlfile'
-          metric_id = BN_METRIC_ID_NAF
-        when 'ptn2', 'ip'
-          metric_id = BN_METRIC_ID_IPTN_NJ
-        else
-          metric_id = BN_METRIC_ID_IPTN
-        end
+        metric_id = bn_metric_id module_name
 
         id = Jenkins::buildstart_metric metric_id, module_name, true
 
@@ -515,18 +534,7 @@ namespace :bn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        case module_name
-        when 'e2e'
-          metric_id = BN_METRIC_ID_E2E
-        when 'wdm'
-          metric_id = BN_METRIC_ID_WDM
-        when 'naf', 'xmlfile'
-          metric_id = BN_METRIC_ID_NAF
-        when 'ptn2', 'ip'
-          metric_id = BN_METRIC_ID_IPTN_NJ
-        else
-          metric_id = BN_METRIC_ID_IPTN
-        end
+        metric_id = bn_metric_id module_name
 
         id = Jenkins::buildstart_metric metric_id, module_name, true
 
@@ -787,18 +795,7 @@ namespace :bn do
           next
         end
 
-        case module_name
-        when 'naf'
-          addrs = BN_MAIL_ADDRS_NAF
-        when 'e2e'
-          addrs = BN_MAIL_ADDRS_E2E
-        when 'wdm'
-          addrs = BN_MAIL_ADDRS_WDM
-        when 'ptn2', 'ip'
-          addrs = BN_MAIL_ADDRS_IPTN_NJ
-        else
-          addrs = BN_MAIL_ADDRS_IPTN
-        end
+        addrs = bn_mail_addrs module_name
 
         if File.directory? home
           Dir.chdir home do
@@ -890,18 +887,7 @@ namespace :bn do
           next
         end
 
-        case module_name
-        when 'naf'
-          addrs = BN_MAIL_ADDRS_NAF
-        when 'e2e'
-          addrs = BN_MAIL_ADDRS_E2E
-        when 'wdm'
-          addrs = BN_MAIL_ADDRS_WDM
-        when 'ptn2', 'ip'
-          addrs = BN_MAIL_ADDRS_IPTN_NJ
-        else
-          addrs = BN_MAIL_ADDRS_IPTN
-        end
+        addrs = bn_mail_addrs module_name
 
         if File.directory? home
           Dir.chdir home do
@@ -1481,18 +1467,7 @@ namespace :bn do
         errors = []
         errors_list = []
 
-        case module_name
-        when 'e2e-1', 'e2e-2', 'e2e-3'
-          metric_id = BN_METRIC_ID_E2E
-        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
-          metric_id = BN_METRIC_ID_WDM
-        when 'naf'
-          metric_id = BN_METRIC_ID_NAF
-        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
-          metric_id = BN_METRIC_ID_IPTN_NJ
-        else
-          metric_id = BN_METRIC_ID_IPTN
-        end
+        metric_id = bn_metric_id module_name
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -1580,18 +1555,7 @@ namespace :bn do
         errors = []
         errors_list = []
 
-        case module_name
-        when 'e2e-1', 'e2e-2', 'e2e-3'
-          metric_id = BN_METRIC_ID_E2E
-        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
-          metric_id = BN_METRIC_ID_WDM
-        when 'naf'
-          metric_id = BN_METRIC_ID_NAF
-        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
-          metric_id = BN_METRIC_ID_IPTN_NJ
-        else
-          metric_id = BN_METRIC_ID_IPTN
-        end
+        metric_id = bn_metric_id module_name
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -1679,18 +1643,7 @@ namespace :bn do
         errors = []
         errors_list = []
 
-        case module_name
-        when 'e2e-1', 'e2e-2', 'e2e-3'
-          metric_id = BN_METRIC_ID_E2E
-        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
-          metric_id = BN_METRIC_ID_WDM
-        when 'naf'
-          metric_id = BN_METRIC_ID_NAF
-        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
-          metric_id = BN_METRIC_ID_IPTN_NJ
-        else
-          metric_id = BN_METRIC_ID_IPTN
-        end
+        metric_id = bn_metric_id module_name
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -1789,18 +1742,7 @@ namespace :bn do
         errors = []
         errors_list = []
 
-        case module_name
-        when 'e2e-1', 'e2e-2', 'e2e-3'
-          metric_id = BN_METRIC_ID_E2E
-        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
-          metric_id = BN_METRIC_ID_WDM
-        when 'naf'
-          metric_id = BN_METRIC_ID_NAF
-        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
-          metric_id = BN_METRIC_ID_IPTN_NJ
-        else
-          metric_id = BN_METRIC_ID_IPTN
-        end
+        metric_id = bn_metric_id module_name
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -1961,18 +1903,7 @@ namespace :bn do
         errors = []
         errors_list = []
 
-        case module_name
-        when 'e2e-1', 'e2e-2', 'e2e-3'
-          metric_id = BN_METRIC_ID_E2E
-        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
-          metric_id = BN_METRIC_ID_WDM
-        when 'naf'
-          metric_id = BN_METRIC_ID_NAF
-        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
-          metric_id = BN_METRIC_ID_IPTN_NJ
-        else
-          metric_id = BN_METRIC_ID_IPTN
-        end
+        metric_id = bn_metric_id module_name
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -2072,18 +2003,7 @@ namespace :bn do
         errors = []
         errors_list = []
 
-        case module_name
-        when 'e2e-1', 'e2e-2', 'e2e-3'
-          metric_id = BN_METRIC_ID_E2E
-        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
-          metric_id = BN_METRIC_ID_WDM
-        when 'naf'
-          metric_id = BN_METRIC_ID_NAF
-        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
-          metric_id = BN_METRIC_ID_IPTN_NJ
-        else
-          metric_id = BN_METRIC_ID_IPTN
-        end
+        metric_id = bn_metric_id module_name
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -2189,18 +2109,7 @@ namespace :bn do
         errors = []
         errors_list = []
 
-        case module_name
-        when 'e2e-1', 'e2e-2', 'e2e-3'
-          metric_id = BN_METRIC_ID_E2E
-        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
-          metric_id = BN_METRIC_ID_WDM
-        when 'naf'
-          metric_id = BN_METRIC_ID_NAF
-        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
-          metric_id = BN_METRIC_ID_IPTN_NJ
-        else
-          metric_id = BN_METRIC_ID_IPTN
-        end
+        metric_id = bn_metric_id module_name
 
         paths.each do |path|
           if not File.directory? File.join(home, path)
@@ -2307,18 +2216,7 @@ namespace :bn do
         errors = []
         errors_list = []
 
-        case module_name
-        when 'e2e-1', 'e2e-2', 'e2e-3'
-          metric_id = BN_METRIC_ID_E2E
-        when 'wdm-1', 'wdm-2', 'wdm-3', 'wdm-4', 'wdm-5'
-          metric_id = BN_METRIC_ID_WDM
-        when 'naf'
-          metric_id = BN_METRIC_ID_NAF
-        when 'nanjing-1', 'nanjing-2', 'nanjing-3', 'nanjing-4'
-          metric_id = BN_METRIC_ID_IPTN_NJ
-        else
-          metric_id = BN_METRIC_ID_IPTN
-        end
+        metric_id = bn_metric_id module_name
 
         paths.each do |path|
           if not File.directory? File.join(home, path)

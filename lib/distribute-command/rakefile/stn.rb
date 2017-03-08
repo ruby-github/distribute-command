@@ -24,7 +24,11 @@ STN_REPOS = {
   'installation'=> 'http://10.5.64.19/git/sdn_installation'
 }
 
-STN_METRIC_ID = $stn_metric_id || '310001127050'
+$stn_metric_id ||= '310001127050'
+
+def stn_metric_id module_name
+  $stn_metric_id
+end
 
 namespace :stn do
   namespace :update do
@@ -249,7 +253,7 @@ namespace :stn do
           Compile::mvn path, 'mvn clean -fn'
         end
 
-        id = Jenkins::buildstart_metric STN_METRIC_ID, module_name, true
+        id = Jenkins::buildstart_metric stn_metric_id(module_name), module_name, true
 
         if Compile::mvn path, cmdline, _retry, true do |errors|
             errors_list << errors
@@ -528,7 +532,7 @@ namespace :stn do
           next
         end
 
-        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
+        id = Jenkins::buildstart_metric stn_metric_id(nil), STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
         Compile::mvn File.join(home, path), 'mvn clean -fn'
 
@@ -603,7 +607,7 @@ namespace :stn do
           next
         end
 
-        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
+        id = Jenkins::buildstart_metric stn_metric_id(nil), STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
         if Compile::mvn File.join(home, path), 'mvn test -fn -U -T 5', true, true do |_errors|
             errors_list << _errors
@@ -676,7 +680,7 @@ namespace :stn do
           next
         end
 
-        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
+        id = Jenkins::buildstart_metric stn_metric_id(nil), STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
         # if not Compile::mvn File.join(home, path), 'mvn findbugs:findbugs -fn -U', false, true do |_errors|
         #     errors_list << _errors
@@ -760,7 +764,7 @@ namespace :stn do
           next
         end
 
-        id = Jenkins::buildstart_metric STN_METRIC_ID, STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
+        id = Jenkins::buildstart_metric stn_metric_id(nil), STN_PATHS.key(File.join(File.paths(path).first, 'trunk')), false
 
         if Compile::mvn File.join(home, path), 'mvn deploy -fn -U', false, true do |_errors|
             errors_list << _errors
