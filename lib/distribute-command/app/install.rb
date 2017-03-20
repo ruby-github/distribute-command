@@ -85,7 +85,7 @@ module Install
 
     if ['upgrade'].include? type
       File.tmpdir do |tmpdir|
-        if not cut_installation_upgrade installation, tmpdir
+        if not cut_installation_upgrade path, tmpdir
           status = false
         end
       end
