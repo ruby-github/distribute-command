@@ -1060,11 +1060,23 @@ module Compile
 
     map = {}
 
+    default_map = nil
+
     errors[:error].each do |file, info|
       if not info[:scm].nil?
         if info[:scm][:date].is_a? Time
           if info[:scm][:date] < (Time.now - MAIL_THRESHOLD_DAY * 24 * 3600)
             if $mail_threshold
+              if default_map.nil?
+                addrs = args[:addrs] || info[:scm][:mail] || $mail_admin
+
+                if not addrs.nil?
+                  default_map = {}
+                  default_map[addrs] ||= {}
+                  default_map[addrs][file] = info
+                end
+              end
+
               next
             end
           end
@@ -1076,6 +1088,12 @@ module Compile
       if not addrs.nil?
         map[addrs] ||= {}
         map[addrs][file] = info
+      end
+    end
+
+    if map.empty?
+      if not default_map.nil?
+        map = default_map
       end
     end
 

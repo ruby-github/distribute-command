@@ -14,14 +14,14 @@ STN_PATHS = {
 
 STN_REPOS = {
   'u3_interface'=> 'https://10.5.72.55:8443/svn/Interface',
-  'interface'   => 'http://10.5.64.19/git/sdn_interface',
-  'framework'   => 'http://10.5.64.19/git/sdn_framework',
-  'application' => 'http://10.5.64.19/git/sdn_application',
-  'nesc'        => 'http://10.5.64.19/git/sdn_nesc',
-  'tunnel'      => 'http://10.5.64.19/git/sdn_tunnel',
-  'ict'         => 'http://10.5.64.19/git/CTR-ICT',
-  'e2e'         => 'http://10.5.64.19/git/SPTN-E2E',
-  'installation'=> 'http://10.5.64.19/git/sdn_installation'
+  'interface'   => 'ssh://gerrit.zte.com.cn:29418/stn/sdn_interface',
+  'framework'   => 'ssh://gerrit.zte.com.cn:29418/stn/sdn_framework',
+  'application' => 'ssh://gerrit.zte.com.cn:29418/stn/sdn_application',
+  'nesc'        => 'ssh://gerrit.zte.com.cn:29418/stn/sdn_nesc',
+  'tunnel'      => 'ssh://gerrit.zte.com.cn:29418/stn/sdn_tunnel',
+  'ict'         => 'ssh://gerrit.zte.com.cn:29418/stn/CTR-ICT',
+  'e2e'         => 'ssh://gerrit.zte.com.cn:29418/stn/SPTN-E2E',
+  'installation'=> 'ssh://gerrit.zte.com.cn:29418/stn/sdn_installation'
 }
 
 $stn_metric_id ||= '310001127050'

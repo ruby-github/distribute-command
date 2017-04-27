@@ -776,7 +776,7 @@ module DistributeCommand
 
       default_cmdline = 'dbtool.bat -dbms:mssql -ip:${ip} -port:1433 -user:sa -pwd:sa -restoreems:%s' % File.join('${tmpdir}', args['database_name'] || 'database_backup.zip')
 
-      if args['db'].to_s.nil.nil?
+      if not args['db'].to_s.nil.nil?
         list = args['db'].to_s.split(':').map {|x| x.strip.nil}
 
         db_type     = list[0]

@@ -428,7 +428,7 @@ module Jenkins
 
       args[:assigned_node] = 'linux'
       args[:parameters] = [
-        ['home', '工作目录', 'cppcheck']
+        ['dir', '工作目录', 'cppcheck']
       ]
 
       args[:logrotator_days] = 7
@@ -619,12 +619,12 @@ module Jenkins
 
     def bn_build
       parameters = [
-        ['home', '工作目录', '/home/user/build/main'],
+        ['dir',   '工作目录', '/home/user/build/main'],
         ['agent', 'Agent名称', 'linux']
       ]
 
       parameters_test = [
-        ['home',  '工作目录',   'd:/build/main'],
+        ['dir',   '工作目录',   'd:/build/main'],
         ['agent', 'Agent名称',  'windows']
       ]
 
@@ -731,7 +731,7 @@ module Jenkins
             ['cmdline', '编译命令', @cmdline],
             ['force',   '全量编译', true],
             ['retry',   '失败重试', true],
-            ['dir',     '编译目录', ''],
+            ['module_dir',  '模块目录', ''],
             ['version', '版本号',   '']
           ]
         },
@@ -742,7 +742,7 @@ module Jenkins
             ['cmdline', '编译命令', @cmdline_cpp],
             ['force',   '全量编译', true],
             ['retry',   '失败重试', true],
-            ['dir',     '编译目录', ''],
+            ['module_dir',  '模块目录', ''],
             ['version', '版本号',   '']
           ]
         },
@@ -811,7 +811,7 @@ module Jenkins
       end
 
       parameters = [
-        ['home', '工作目录', 'd:/build/main'],
+        ['dir',   '工作目录', 'd:/build/main'],
         ['agent', 'Agent名称', 'windows']
       ]
 
@@ -854,7 +854,7 @@ module Jenkins
             ['cmdline', '编译命令', @cmdline],
             ['force',   '全量编译', true],
             ['retry',   '失败重试', true],
-            ['dir',     '编译目录', ''],
+            ['module_dir',  '模块目录', ''],
             ['version', '版本号',   '']
           ]
         },
@@ -865,7 +865,7 @@ module Jenkins
             ['cmdline', '编译命令', @cmdline_cpp],
             ['force',   '全量编译', true],
             ['retry',   '失败重试', true],
-            ['dir',     '编译目录', ''],
+            ['module_dir',  '模块目录', ''],
             ['version', '版本号',   '']
           ]
         }
@@ -894,7 +894,7 @@ module Jenkins
         :logrotator_num   => 20,
         :script_path      => 'bn/command.groovy',
         :parameters       => [
-          ['home',      '工作目录',   'bn/daily/windows'],
+          ['dir',       '工作目录',   'bn/daily/windows'],
           ['configure', '配置文件',   'installation.xml'],
           ['version',   '版本号',     ''],
           ['reboot',    '重启测试机', false]
@@ -905,7 +905,7 @@ module Jenkins
       pipeline.build args.merge(@args_logrotator_command)
 
       parameters = [
-        ['home', '工作目录', '/home/user/build/main'],
+        ['dir',   '工作目录', '/home/user/build/main'],
         ['agent', 'Agent名称', 'kloc']
       ]
 
@@ -955,12 +955,12 @@ module Jenkins
 
     def stn_build
       parameters = [
-        ['home',  '工作目录',   '/home/user/build/stn/main'],
+        ['dir',   '工作目录',   '/home/user/build/stn/main'],
         ['agent', 'Agent名称',  'linux']
       ]
 
       parameters_test = [
-        ['home',  '工作目录',   'f:/build/stn/main'],
+        ['dir',   '工作目录',   'f:/build/stn/main'],
         ['agent', 'Agent名称',  'windows']
       ]
 
@@ -1031,7 +1031,7 @@ module Jenkins
             ['cmdline', '编译命令', @cmdline],
             ['force',   '全量编译', true],
             ['retry',   '失败重试', true],
-            ['dir',     '编译目录', ''],
+            ['module_dir',  '模块目录', ''],
             ['version', '版本号',   '']
           ]
         },
@@ -1076,7 +1076,7 @@ module Jenkins
       end
 
       parameters = [
-        ['home', '工作目录', 'f:/build/stn/main'],
+        ['dir',   '工作目录', 'f:/build/stn/main'],
         ['agent', 'Agent名称', 'windows']
       ]
 
@@ -1110,7 +1110,7 @@ module Jenkins
             ['cmdline', '编译命令', @cmdline],
             ['force',   '全量编译', true],
             ['retry',   '失败重试', true],
-            ['dir',     '编译目录', ''],
+            ['module_dir',  '模块目录', ''],
             ['version', '版本号',   '']
           ]
         }
@@ -1136,7 +1136,7 @@ module Jenkins
         :logrotator_num   => 20,
         :script_path      => 'stn/command.groovy',
         :parameters       => [
-          ['home',      '工作目录',   'stn/daily/windows'],
+          ['dir',       '工作目录',   'stn/daily/windows'],
           ['configure', '配置文件',   'installation.xml'],
           ['version',   '版本号',     ''],
           ['reboot',    '重启测试机', false]
@@ -1190,7 +1190,7 @@ module Jenkins
             }
           },
           :parameters   => [
-            ['home', '工作目录', '/home/user/build/%s' % name],
+            ['dir',   '工作目录', '/home/user/build/%s' % name],
             ['agent', 'Agent名称', 'linux']
           ]
         },
@@ -1202,7 +1202,7 @@ module Jenkins
             }
           },
           :parameters   => [
-            ['home', '工作目录', '/home/user/build/%s' % name],
+            ['dir',   '工作目录', '/home/user/build/%s' % name],
             ['agent', 'Agent名称', 'solaris']
           ]
         },
@@ -1214,7 +1214,7 @@ module Jenkins
             }
           },
           :parameters   => [
-            ['home', '工作目录', 'd:/build/%s' % name],
+            ['dir',   '工作目录', 'd:/build/%s' % name],
             ['agent', 'Agent名称', 'windows']
           ]
         },
@@ -1226,7 +1226,7 @@ module Jenkins
             }
           },
           :parameters   => [
-            ['home', '工作目录', 'e:/build/%s' % name],
+            ['dir',   '工作目录', 'e:/build/%s' % name],
             ['agent', 'Agent名称', 'windows']
           ]
         }
@@ -1265,7 +1265,7 @@ module Jenkins
             }
           },
           :parameters   => [
-            ['home', '工作目录', '/home/user/build/stn/%s' % name],
+            ['dir',   '工作目录', '/home/user/build/stn/%s' % name],
             ['agent', 'Agent名称', 'linux']
           ]
         },
@@ -1273,11 +1273,11 @@ module Jenkins
           :script_path  => 'stn/build_main_win.groovy',
           :triggers     => {
             :timer  => {
-              :spec => (specs[name + '_windows'] || '0 0 * * 1-5')
+              :spec => (specs[name + '_windows'] || '30 0,16 * * 1-5')
             }
           },
           :parameters   => [
-            ['home', '工作目录', 'f:/build/stn/%s' % name],
+            ['dir',   '工作目录', 'f:/build/stn/%s' % name],
             ['agent', 'Agent名称', 'windows']
           ]
         }
@@ -1379,7 +1379,7 @@ module Jenkins
 
       args = {
         :parameters => [
-          ['home',    '工作目录',  '/home/user/build/main'],
+          ['dir',     '工作目录',  '/home/user/build/main'],
           ['agent',   'Agent名称', 'dashboard'],
           ['cmdline', '编译命令',  'mvn deploy -fn -U -T 5 -Djobs=5']
         ],
@@ -1773,9 +1773,9 @@ if $0 == __FILE__
 
     # 开发版本
     build.bn_build ['dev/20160417_wdm', 'dev/20161008_wdm'], [:windows, :windows32]
-    build.bn_build ['dev/20160627_MTN', 'dev/20161123_UMEBT', 'dev/20161221_wdm'], [:windows]
+    build.bn_build ['dev/20161123_UMEBT', 'dev/20170104_MTN', 'dev/20170404'], [:windows]
 
-    build.bn_build ['dev/20161025', 'dev/20161114']
+    build.bn_build ['dev/20170115', 'dev/20170219', 'dev/20170319', 'dev/20170416']
   end
 
   # stn
@@ -1800,7 +1800,7 @@ if $0 == __FILE__
     build.stn_build ['release/20160601_stn', 'release/20161210_stn']
 
     # 开发版本
-    # build.stn_build ['dev/20161026_stn', 'dev/20161119_stn']
+    build.stn_build ['dev/20170322_stn','dev/20170426_stn']
   end
 
   # public
