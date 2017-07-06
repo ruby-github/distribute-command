@@ -1700,8 +1700,160 @@ module Jenkins
   end
 end
 
+module Jenkins
+  module Docker
+    class Base
+      def initialize
+        @args_logrotator = {
+          :logrotator_days  => 31,
+          :logrotator_num   => 300
+        }
+      end
+
+      def build
+        stn_build
+      end
+
+      # private
+
+      def stn_build
+        parameters = [
+          ['agent', 'Agent名称', 'docker-slave']
+        ]
+
+        {
+          'docker_stn_build'   => {
+            :script_path  => 'docker/stn/stn_build.groovy',
+            :parameters   => [
+              ['branch',      '分支名称',   ''],
+              ['cmdline',     '编译命令',   'mvn deploy -fn -U -T 5'],
+              ['force',       '全量编译',   true],
+              ['retry',       '失败重试',   true],
+              ['version',     '版本号',     ''],
+              ['nfm_version', 'NFM版本号',  ''],
+              ['update',      '版本更新',   true],
+              ['compile',     '版本编译',   true],
+              ['install',     '版本打包',   true]
+            ]
+          },
+          'docker_stn_base'  => {
+            :script_path  => 'docker/stn/stn_base.groovy',
+            :parameters   => [
+              ['branch',  '分支名称', ''],
+              ['version', '版本号',   '']
+            ]
+          },
+          'docker_stn_update'  => {
+            :script_path  => 'docker/stn/stn_update.groovy',
+            :parameters   => [
+              ['branch',  '分支名称', '']
+            ]
+          },
+          'docker_stn_compile' => {
+            :script_path  => 'docker/stn/stn_compile.groovy',
+            :parameters   => [
+              ['branch',  '分支名称', ''],
+              ['cmdline', '编译命令', 'mvn deploy -fn -U -T 5'],
+              ['force',   '全量编译', true],
+              ['retry',   '失败重试', true],
+              ['version', '版本号',   '']
+            ]
+          },
+          'docker_stn_package' => {
+            :authorization=> ['stnbuild'],
+            :script_path  => 'docker/stn/stn_package.groovy',
+            :parameters   => [
+              ['branch',      '分支名称',   ''],
+              ['version',     '版本号',     ''],
+              ['nfm_version', 'NFM版本号',  '']
+            ]
+          },
+
+          'docker_stn_update_module' => {
+            :script_path  => 'docker/stn/stn_update_module.groovy',
+            :parameters   => [
+              ['name',    '模块名称', ''],
+              ['branch',  '分支名称', '']
+            ]
+          },
+          'docker_stn_compile_module'=> {
+            :script_path  => 'docker/stn/stn_compile_module.groovy',
+            :parameters   => [
+              ['name',    '模块名称', ''],
+              ['branch',  '分支名称', ''],
+              ['dirname', '模块目录', ''],
+              ['cmdline', '编译命令', 'mvn deploy -fn -U -T 5'],
+              ['force',   '全量编译', true],
+              ['retry',   '失败重试', true],
+              ['version', '版本号',   '']
+            ]
+          }
+        }.each do |k, v|
+          v[:parameters] = parameters + v[:parameters]
+
+          pipeline = Jenkins::Pipeline.new k
+          pipeline.build v.merge(@args_logrotator)
+        end
+      end
+    end
+
+    class Build
+      def initialize
+        @args_logrotator = {
+          :logrotator_days  => 31,
+          :logrotator_num   => 300
+        }
+      end
+
+      def build name = nil, specs = nil
+        stn_build name, specs
+      end
+
+      # private
+
+      def stn_build name = nil, specs = nil
+        name ||= 'master'
+        specs ||= {}
+
+        parameters = [
+          ['branch',      '分支名称',   'master'],
+          ['cmdline',     '编译命令',   'mvn deploy -fn -U -T 5'],
+          ['force',       '全量编译',   true],
+          ['retry',       '失败重试',   true],
+          ['version',     '版本号',     ''],
+          ['nfm_version', 'NFM版本号',  ''],
+          ['update',      '版本更新',   true],
+          ['compile',     '版本编译',   true],
+          ['install',     '版本打包',   true]
+        ]
+
+        {
+          'docker_stn_build_%s' % name  => {
+            :authorization=> ['stnbuild'],
+            :script_path  => 'docker/stn/stn_build_master.groovy',
+            :triggers     => {
+              :timer  => {
+                :spec => (specs[name] || '30 0,16 * * *')
+              }
+            },
+            :parameters   => [
+              ['agent', 'Agent名称', 'docker-slave']
+            ]
+          }
+        }.each do |k, v|
+          v[:parameters] = v[:parameters] + parameters
+          v[:concurrent] = false
+
+          pipeline = Jenkins::Pipeline.new k
+          pipeline.build v.merge(@args_logrotator)
+        end
+      end
+    end
+  end
+end
+
 if $0 == __FILE__
-  all = true
+  all = false
 
   if all
     bn_build_home = 'jobs'
@@ -1713,6 +1865,7 @@ if $0 == __FILE__
     stn_patch_home = 'jobs'
 
     public_home = 'jobs'
+    stn_docker_home = 'jobs'
   else
     bn_build_home = 'jobs/bn_build'
     bn_dashboard_home = 'jobs/dashboard'
@@ -1723,11 +1876,13 @@ if $0 == __FILE__
     stn_patch_home = 'jobs/stn'
 
     public_home = 'jobs/public'
+    stn_docker_home = 'jobs/stn_docker'
   end
 
   File.mkdir [bn_build_home, bn_dashboard_home, bn_patch_home]
   File.mkdir [stn_build_home, stn_dashboard_home, stn_patch_home]
   File.mkdir public_home
+  File.mkdir stn_docker_home
 
   # bn
 
@@ -1808,5 +1963,15 @@ if $0 == __FILE__
   Dir.chdir public_home do
     build = Jenkins::Tools.new
     build.build
+  end
+
+  # stn docker
+
+  Dir.chdir stn_docker_home do
+    build = Jenkins::Docker::Base.new
+    build.stn_build
+
+    build = Jenkins::Docker::Build.new
+    build.stn_build
   end
 end
