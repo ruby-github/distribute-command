@@ -1722,10 +1722,10 @@ module Jenkins
         ]
 
         {
-          'docker_stn_build'   => {
+          'docker_stn_build'    => {
             :script_path  => 'docker/stn/stn_build.groovy',
             :parameters   => [
-              ['branch',      '分支名称',   ''],
+              ['branch',      '分支名称',   'master'],
               ['cmdline',     '编译命令',   'mvn deploy -fn -U -T 5'],
               ['force',       '全量编译',   true],
               ['retry',       '失败重试',   true],
@@ -1733,61 +1733,75 @@ module Jenkins
               ['nfm_version', 'NFM版本号',  ''],
               ['update',      '版本更新',   true],
               ['compile',     '版本编译',   true],
-              ['install',     '版本打包',   true]
+              ['install',     '版本打包',   true],
+              ['check',       '版本检查',   true]
             ]
           },
-          'docker_stn_base'  => {
+          'docker_stn_base'     => {
             :script_path  => 'docker/stn/stn_base.groovy',
             :parameters   => [
-              ['branch',  '分支名称', ''],
+              ['branch',  '分支名称', 'master'],
               ['version', '版本号',   '']
             ]
           },
-          'docker_stn_update'  => {
+          'docker_stn_update'   => {
             :script_path  => 'docker/stn/stn_update.groovy',
             :parameters   => [
-              ['branch',  '分支名称', '']
+              ['branch',  '分支名称', 'master']
             ]
           },
-          'docker_stn_compile' => {
+          'docker_stn_compile'  => {
             :script_path  => 'docker/stn/stn_compile.groovy',
             :parameters   => [
-              ['branch',  '分支名称', ''],
+              ['branch',  '分支名称', 'master'],
               ['cmdline', '编译命令', 'mvn deploy -fn -U -T 5'],
               ['force',   '全量编译', true],
               ['retry',   '失败重试', true],
               ['version', '版本号',   '']
             ]
           },
-          'docker_stn_package' => {
+          'docker_stn_package'  => {
             :authorization=> ['stnbuild'],
             :script_path  => 'docker/stn/stn_package.groovy',
             :parameters   => [
-              ['branch',      '分支名称',   ''],
+              ['branch',      '分支名称',   'master'],
               ['version',     '版本号',     ''],
               ['nfm_version', 'NFM版本号',  '']
             ]
           },
+          'docker_stn_check'    => {
+            :script_path  => 'docker/stn/stn_check.groovy',
+            :parameters   => [
+              ['branch',  '分支名称', 'master']
+            ]
+          },
 
-          'docker_stn_update_module' => {
+          'docker_stn_update_module'  => {
             :script_path  => 'docker/stn/stn_update_module.groovy',
             :parameters   => [
               ['name',    '模块名称', ''],
-              ['branch',  '分支名称', '']
+              ['branch',  '分支名称', 'master']
             ]
           },
-          'docker_stn_compile_module'=> {
+          'docker_stn_compile_module' => {
             :script_path  => 'docker/stn/stn_compile_module.groovy',
             :parameters   => [
               ['name',    '模块名称', ''],
-              ['branch',  '分支名称', ''],
+              ['branch',  '分支名称', 'master'],
               ['dirname', '模块目录', ''],
               ['cmdline', '编译命令', 'mvn deploy -fn -U -T 5'],
               ['force',   '全量编译', true],
               ['retry',   '失败重试', true],
               ['version', '版本号',   '']
             ]
-          }
+          },
+          'docker_stn_check_module'   => {
+            :script_path  => 'docker/stn/stn_check_module.groovy',
+            :parameters   => [
+              ['name',    '模块名称', ''],
+              ['branch',  '分支名称', 'master']
+            ]
+          },
         }.each do |k, v|
           v[:parameters] = parameters + v[:parameters]
 
@@ -1824,7 +1838,8 @@ module Jenkins
           ['nfm_version', 'NFM版本号',  ''],
           ['update',      '版本更新',   true],
           ['compile',     '版本编译',   true],
-          ['install',     '版本打包',   true]
+          ['install',     '版本打包',   true],
+          ['check',       '版本检查',   true]
         ]
 
         {
