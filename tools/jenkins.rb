@@ -1256,19 +1256,19 @@ module Jenkins
       ]
 
       {
-        'stn_build_%s_linux' % name  => {
-          :authorization=> ['stnbuild'],
-          :script_path  => 'stn/build_main.groovy',
-          :triggers     => {
-            :timer  => {
-              :spec => (specs[name + '_linux'] || '30 0,16 * * *')
-            }
-          },
-          :parameters   => [
-            ['dir',   '工作目录', '/home/user/build/stn/%s' % name],
-            ['agent', 'Agent名称', 'linux']
-          ]
-        },
+        # 'stn_build_%s_linux' % name  => {
+        #   :authorization=> ['stnbuild'],
+        #   :script_path  => 'stn/build_main.groovy',
+        #   :triggers     => {
+        #     :timer  => {
+        #       :spec => (specs[name + '_linux'] || '30 0,16 * * *')
+        #     }
+        #   },
+        #   :parameters   => [
+        #     ['dir',   '工作目录', '/home/user/build/stn/%s' % name],
+        #     ['agent', 'Agent名称', 'linux']
+        #   ]
+        # },
         'stn_build_%s_windows' % name  => {
           :script_path  => 'stn/build_main_win.groovy',
           :triggers     => {
