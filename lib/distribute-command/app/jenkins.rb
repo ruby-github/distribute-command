@@ -21,14 +21,18 @@ module Jenkins
 
       id = nil
 
-      begin
-        hour = Time.now.hour
+      if night
+        begin
+          hour = Time.now.hour
 
-        if (hour >= 0 and hour <= 8) or hour >= 22
-          id = `#{cmdline}`
+          if (hour >= 0 and hour <= 8) or hour >= 22
+            id = `#{cmdline}`
+          end
+        rescue
+          id = nil
         end
-      rescue
-        id = nil
+      else
+        id = `#{cmdline}`
       end
 
       id

@@ -87,13 +87,25 @@ module Excel
       @worksheet = worksheet
     end
 
-    def data
+    def data max_rows = 0, max_columns = 0
       data = []
 
       @worksheet.UsedRange.Rows.Count.times do |i|
         line_data = []
 
+        if max_rows > 0
+          if i >= max_rows
+            break
+          end
+        end
+
         @worksheet.UsedRange.Columns.Count.times do |j|
+          if max_columns > 0
+            if j >= max_columns
+              break
+            end
+          end
+
           line_data << get(i + 1, j + 1)
         end
 
